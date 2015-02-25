@@ -56,14 +56,17 @@
         "wget --no-check-certificate -O authorized_keys 'https://github.com/mitchellh/vagrant/raw/master/keys/vagrant.pub'",
         "mv authorized_keys /home/core/.ssh",
         "chown -R  core /home/core/.ssh",
-        "sudo rm -rf /var/lib/coreos-install",
-        "sudo rm /etc/machine-id"
+        "sudo rm -rf /var/lib/coreos-install"
     ]
   },
   {
     "type": "file",
     "source": "packer/runner",
     "destination": "/home/core/runner"
+  },
+  { 
+    "type": "shell",
+    "inline": "sudo rm /etc/machine-id"
   },
   {
     "type": "shell",

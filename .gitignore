@@ -8,3 +8,4 @@ env.sh
 *.pem
 *.box
 packer_cache
+.inventory

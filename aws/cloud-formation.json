@@ -25,7 +25,7 @@
           },
 
           "us-east-1" : {
-              "AMI" : "ami-1083d178"
+              "AMI" : "ami-5a97ca32"
           },
 
           "us-west-2" : {
@@ -66,6 +66,10 @@
     "DiscoveryURL": {
       "Description": "An unique etcd cluster discovery URL. Grab a new token from https://discovery.etcd.io/new",
       "Type": "String"
+    },
+    "BuiltCoreOSAMI": {
+      "Description": "A unique AMI id for our custom CoreOS build using packer.",
+      "Type": "String"  
     },
     "AdvertisedIPAddress": {
       "Description": "Use 'private' if your etcd cluster is within one region or 'public' if it spans regions or cloud providers.",
