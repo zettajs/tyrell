@@ -32,6 +32,9 @@ Vagrant.configure(2) do |config|
   config.vm.provider :virtualbox do |v|
     v.check_guest_additions = false
     v.functional_vboxsf = false
+
+    v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
   end
 
   if Vagrant.has_plugin?("vagrant-vbguest") then
@@ -48,7 +51,8 @@ Vagrant.configure(2) do |config|
 
       if File.exist?(CLOUD_CONFIG_PATH)
         config.vm.provision :file, :source => "#{CLOUD_CONFIG_PATH}", :destination => "/tmp/vagrantfile-user-data"
-        config.vm.provision :shell, :inline => "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant", :privileged => true
+        config.vm.provision :shell, :inline => "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/", :privileged => true
+        config.vm.provision :shell, :inline => "sudo coreos-cloudinit --from-file /var/lib/coreos-vagrant/vagrantfile-user-data", :privileged => true
       end 
 
             

@@ -49,3 +49,7 @@ Boto is used by ansible to provision CloudFormation stacks, and boto looks for t
 export AWS_ACCESS_KEY_ID=""
 export AWS_SECRET_ACCESS_KEY=""
 ```
+## Other GOTCHAS!
+
+- `/etc/machine-id` helps detect unique machines in the cluster. If for any reason this isn't destroyed before trying to peer with the discovery service then we will only have one machine in the cluster peered. This is taken care of in packer.
+- `coreos-cloudinit` will run cloud-configs against the machine. This should be run in our local environment, but CloudFormation bootstrapping takes care of this for us.

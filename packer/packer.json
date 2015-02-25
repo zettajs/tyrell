@@ -55,22 +55,24 @@
     "inline": [
         "wget --no-check-certificate -O authorized_keys 'https://github.com/mitchellh/vagrant/raw/master/keys/vagrant.pub'",
         "mv authorized_keys /home/core/.ssh",
-        "chown -R  core /home/core/.ssh"
+        "chown -R  core /home/core/.ssh",
+        "sudo rm -rf /var/lib/coreos-install",
+        "sudo rm /etc/machine-id"
     ]
   },
   {
     "type": "file",
-    "source": "runner",
+    "source": "packer/runner",
     "destination": "/home/core/runner"
   },
   {
     "type": "shell",
-    "script": "install_pypy.sh"
+    "script": "packer/install_pypy.sh"
   },
   {
     "type": "shell",
     "environment_vars": "PATH=/home/core/bin:$PATH",
-    "script": "get-pip.py"  
+    "script": "packer/get-pip.py"  
   }],
   "post-processors": ["vagrant"]
 }
