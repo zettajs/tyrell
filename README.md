@@ -36,4 +36,16 @@ Want to create a Zetta deployment with Latest CoreOS? Here's how.
 - Vagrant
 - Ansible
 - Packer
+- Boto `pip install boto`
+- AWS API Credentials
 
+## A note on AWS
+
+You'll want to store your AWS credentials in an environment file. Like below. 
+
+Boto is used by ansible to provision CloudFormation stacks, and boto looks for the two environment variables to access the AWS API.
+
+```bash
+export AWS_ACCESS_KEY_ID=""
+export AWS_SECRET_ACCESS_KEY=""
+```
