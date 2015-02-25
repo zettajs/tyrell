@@ -1,0 +1,17 @@
+- name: Launch AWS cluster
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks: 
+    - name: Launch cloudformation cluster via ansible
+      cloudformation: 
+        stack_name: "zetta-coreos"
+        state: "present"
+        region: "us-east-1"
+        template: "../aws/cloud-formation.json"
+        template_parameters:
+          InstanceType: "t1.micro"
+          ClusterSize: 5
+          DiscoveryURL: "https://discovery.etcd.io/3015e2279848b304831ecc904bc5a66d"
+        tags:
+          Stack: "Zetta Core"

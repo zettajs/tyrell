@@ -1,0 +1,23 @@
+- name: setting up a singe zetta docker container
+  hosts: zetta 
+  tasks:
+    - name: "Copying zetta service file"
+      copy: src=./services/zetta@.service dest=/home/core
+      
+    - name: "Copying zetta sidekick service"
+      copy: src=./services/zmon@.service dest=/home/core
+
+    - name: "Copying influx service"
+      copy: src=./services/influxdb@.service dest=/home/core
+
+    - name: "Copying influx sidekick"
+      copy: src=./services/influxdb-discovery@.service dest=/home/core
+
+    - name: "Submitting zetta service file"
+      raw: fleetctl submit /home/core/zetta@.service
+
+    - name: "Submitting zmon service file"
+      raw: fleetctl submit /home/core/zmon@.service
+
+    - name: "Starting zetta and zmon service on host"
+      raw: fleetctl start zetta\@1 zmon\@1

@@ -1,0 +1,10 @@
+.vagrant
+ssh.config
+ansible.cfg
+roles
+node_modules
+npm-debug.log
+env.sh
+*.pem
+*.box
+packer_cache

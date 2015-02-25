@@ -1,0 +1,29 @@
+[Unit]
+Description=InfluxDB Sidekick Process
+ 
+Requires=etcd.service
+Requires=influxdb@%i.service
+ 
+After=etcd.service
+After=influxdb@%i.service
+BindsTo=influxdb@%i.service
+ 
+[Service]
+Restart=always
+RestartSec=5 
+EnvironmentFile=/etc/environment 
+ExecStart=/bin/bash -c '\
+  while true; do \
+    curl -f ${COREOS_PRIVATE_IPV4}:8086/ping; \
+    if [ $? -eq 0 ]; then \
+      /usr/bin/etcdctl set /services/influxdb/seed/${COREOS_PRIVATE_IPV4}:8090 \'{"host": "%H", "ipv4_addr":"${COREOS_PRIVATE_IPV4}", "port": 8090 }\' --ttl 30; \
+    else \
+      /usr/bin/etcdctl rm /services/influxdb/seed/${COREOS_PRIVATE_IPV4}:8090; \
+    fi; \
+    sleep 20; \
+  done'
+
+ExecStop=/usr/bin/etcdctl rm /services/influxdb/seed/${COREOS_PRIVATE_IPV4}:8090
+
+[X-Fleet]
+X-ConditionMachineOf=influxdb@%i.service

@@ -1,0 +1,219 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CoreOS on EC2: http://coreos.com/docs/running-coreos/cloud-providers/ec2/",
+  "Mappings" : {
+      "RegionMap" : {
+
+          "eu-central-1" : {
+              "AMI" : "ami-88c1f295"
+          },
+
+          "ap-northeast-1" : {
+              "AMI" : "ami-ea5c46eb"
+          },
+
+          "sa-east-1" : {
+              "AMI" : "ami-2fe95632"
+          },
+
+          "ap-southeast-2" : {
+              "AMI" : "ami-4fd3a775"
+          },
+
+          "ap-southeast-1" : {
+              "AMI" : "ami-70dcf622"
+          },
+
+          "us-east-1" : {
+              "AMI" : "ami-1083d178"
+          },
+
+          "us-west-2" : {
+              "AMI" : "ami-f3702bc3"
+          },
+
+          "us-west-1" : {
+              "AMI" : "ami-26b5ad63"
+          },
+
+          "eu-west-1" : {
+              "AMI" : "ami-5b911f2c"
+          }
+
+      }
+  },
+  "Parameters": {
+    "InstanceType" : {
+      "Description" : "EC2 PV instance type (m3.medium, etc).",
+      "Type" : "String",
+      "Default" : "t1.micro",
+      "ConstraintDescription" : "Must be a valid EC2 PV instance type."
+    },
+    "ClusterSize": {
+      "Default": "5",
+      "MinValue": "5",
+      "MaxValue": "12",
+      "Description": "Number of nodes in cluster (5-12).",
+      "Type": "Number"
+    },
+    "DataEBSSize": {
+      "Default": "5",
+      "MinValue": "5",
+      "MaxValue": "1024",
+      "Description": "Size in GBs for data partition. (5 - 1024)",
+      "Type": "Number"
+    },
+    "DiscoveryURL": {
+      "Description": "An unique etcd cluster discovery URL. Grab a new token from https://discovery.etcd.io/new",
+      "Type": "String"
+    },
+    "AdvertisedIPAddress": {
+      "Description": "Use 'private' if your etcd cluster is within one region or 'public' if it spans regions or cloud providers.",
+      "Default": "private",
+      "AllowedValues": ["private", "public"],
+      "Type": "String"
+    },
+    "AllowSSHFrom": {
+      "Description": "The net block (CIDR) that SSH is available to.",
+      "Default": "0.0.0.0/0",
+      "Type": "String"
+    },
+    "KeyPair" : {
+      "Description" : "The name of an EC2 Key Pair to allow SSH access to the instance.",
+      "Type" : "String",
+      "Default": "mdobs2-coreos-testing"
+    }
+  },
+  "Resources": {
+    "CoreOSSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "CoreOS SecurityGroup",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": {"Ref": "AllowSSHFrom"}},
+          {"IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "CidrIp": "0.0.0.0/0"}
+        ]
+      }
+    },
+    "Ingress4001": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupName": {"Ref": "CoreOSSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "4001", "ToPort": "4001", "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "CoreOSSecurityGroup", "GroupId" ]
+        }
+      }
+    },
+    "Ingress7001": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupName": {"Ref": "CoreOSSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "7001", "ToPort": "7001", "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "CoreOSSecurityGroup", "GroupId" ]
+        }
+      }
+    },
+    "Ingress8099": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupName": {"Ref": "CoreOSSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "8099", "ToPort": "8099", "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "CoreOSSecurityGroup", "GroupId" ]
+        }
+      }
+    },
+    "Ingress8090": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupName": {"Ref": "CoreOSSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "8090", "ToPort": "8090", "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "CoreOSSecurityGroup", "GroupId" ]
+        }
+      }
+    },
+    "CoreOSServerAutoScale": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AvailabilityZones": {"Fn::GetAZs": ""},
+        "LaunchConfigurationName": {"Ref": "CoreOSServerLaunchConfig"},
+        "MinSize": "1",
+        "MaxSize": "12",
+        "DesiredCapacity": {"Ref": "ClusterSize"},
+        "Tags": [
+            {"Key": "Name", "Value": { "Ref" : "AWS::StackName" }, "PropagateAtLaunch": true}
+        ]
+      }
+    },
+    "CoreOSServerLaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "AMI" ]},
+        "InstanceType": {"Ref": "InstanceType"},
+        "KeyName": {"Ref": "KeyPair"},
+        "SecurityGroups": [{"Ref": "CoreOSSecurityGroup"}],
+        "BlockDeviceMappings" : [
+           {
+             "DeviceName" : "/dev/xvdf",
+             "Ebs" : { "VolumeSize" : {"Ref": "DataEBSSize"}, "VolumeType" : "gp2" }
+           }
+        ],
+        "UserData" : { "Fn::Base64":
+          { "Fn::Join": [ "", [
+            "#cloud-config\n\n",
+            "write_files:\n",
+            "  - path: /home/core/journal2logentries.sh\n",
+            "    permissions: '0744'\n",
+            "    owner: root:root\n",
+            "    content: | \n",
+            "      #!/usr/bin/env bash\n",
+            "      token=2e5b2124-5777-48c4-a2bf-39d5d418b6dc\n",
+            "      journalctl -o short -f | awk -v token=$token '{ print token, $0; fflush(); }' | ncat data.logentries.com 10000\n",
+            "  - path: /home/core/setupdataebs.sh\n",
+            "    permissions: '0744'\n",
+            "    owner: root:root\n",
+            "    content: | \n",
+            "      #!/usr/bin/env bash\n",
+            "      if [ \"$(/usr/sbin/blkid | /usr/bin/grep /dev/xvdf)\" == \"\" ]; then\n",
+            "         /usr/sbin/mkfs.ext4 /dev/xvdf;\n",
+            "       fi;\n",
+            "      \n",
+            "      /usr/bin/mkdir -p /mnt/data\n",
+            "      /usr/bin/mount -onoatime,nodiratime /dev/xvdf /mnt/data\n",
+            "coreos:\n",
+            "  etcd:\n",
+            "    discovery: ", { "Ref": "DiscoveryURL" }, "\n",
+            "    addr: $", { "Ref": "AdvertisedIPAddress" }, "_ipv4:4001\n",
+            "    peer-addr: $", { "Ref": "AdvertisedIPAddress" }, "_ipv4:7001\n",
+            "  units:\n",
+            "    - name: etcd.service\n",
+            "      command: start\n",
+            "    - name: fleet.service\n",
+            "      command: start\n",
+            "    - name: logentries.service\n",
+            "      command: start\n",
+            "      runtime: no\n",
+            "      content: |\n",
+            "        [Unit]\n",
+            "        Description=Push journal logs to logentries.com\n",
+            "        After=systemd-journald.service\n",
+            "        After=systemd-networkd.service\n",
+            "        [Service]\n",
+            "        Restart=always\n",
+            "        ExecStart=/bin/bash /home/core/journal2logentries.sh\n",
+            "        [Install]\n",
+            "        WantedBy=multi-user.target\n",
+            "    - name: setupebs.service\n",
+            "      command: start\n",
+            "      runtime: no\n",
+            "      content: |\n",
+            "        [Unit]\n",
+            "        Description=Setup EBS Data Volume\n",
+            "        After=systemd-journald.service\n",
+            "        After=systemd-networkd.service\n",
+            "        [Service]\n",
+            "        ExecStart=/bin/bash /home/core/setupdataebs.sh\n",
+            "        [Install]\n",
+            "        WantedBy=multi-user.target\n"
+            ] ]
+          }
+        }
+      }
+    }
+  }
+}
