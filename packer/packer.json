@@ -2,7 +2,7 @@
   "variables": {
     "aws_access_key": "",
     "aws_secret_key": "",
-    "checksum": "5d030fd15672a3e68b2d8ef953920679",
+    "checksum": "10ad1d7456b157446586d1f61c20b7ce",
     "channel": "alpha",
     "version": "current",
     "checksum_type":"md5"
