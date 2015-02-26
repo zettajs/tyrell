@@ -8,12 +8,14 @@ if [ $BOX_ENV = "vagrant" ]
     if [ -a ./packer_virtualbox-iso_virtualbox.box ] 
       then
         echo "Box detected cleaning up current box..."
+
         rm ./packer_virtualbox-iso_virtualbox.box
         vagrant box remove zetta-coreos-alpha --box-version 0
     fi
 
     echo "Starting build process for vagrant only."
-
+    COREOS_MD5=`curl http://alpha.release.core-os.net/amd64-usr/current/coreos_production_iso.DIGESTS | grep -A 1 MD5 | grep coreos_production_iso_image.iso | awk '{ print $1 }'`
+    cat packer/packer_template.json | sed -e "s/@@COREOS_MD5_HASH@@/${COREOS_MD5}/" > packer/packer.json
     packer build -only=virtualbox-iso packer/packer.json
 
     vagrant box add zetta-coreos-alpha packer_virtualbox-iso_virtualbox.box
