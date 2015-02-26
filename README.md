@@ -53,3 +53,10 @@ export AWS_SECRET_ACCESS_KEY=""
 
 - `/etc/machine-id` helps detect unique machines in the cluster. If for any reason this isn't destroyed before trying to peer with the discovery service then we will only have one machine in the cluster peered. This is taken care of in packer.
 - `coreos-cloudinit` will run cloud-configs against the machine. This should be run in our local environment, but CloudFormation bootstrapping takes care of this for us.
+
+
+## Config Updates
+
+If you run into issues with using Ansible to provision on the cluster ensure that your SSH configuration and your Ansible configuration are present and up to date with your machine variables.
+
+[Configuration Update Gist](https://gist.github.com/mdobson/8c16e6b497de8348b718)
