@@ -9,3 +9,4 @@ env.sh
 *.box
 packer_cache
 .inventory
+dev/

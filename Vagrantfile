@@ -55,6 +55,8 @@ Vagrant.configure(2) do |config|
         config.vm.provision :shell, :inline => "sudo coreos-cloudinit --from-file /var/lib/coreos-vagrant/vagrantfile-user-data", :privileged => true
       end 
 
+      config.vm.synced_folder "dev/", "/home/core/dev"
+
             
       config.vm.network "forwarded_port", guest: 2375, host: 2375, auto_correct: true
     end
