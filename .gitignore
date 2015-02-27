@@ -10,3 +10,4 @@ env.sh
 packer_cache
 .inventory
 dev/
+packer/packer.json

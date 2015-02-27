@@ -25,14 +25,19 @@ elif [ $BOX_ENV = "aws" ]
     echo "Building and deploying to AWS."
 
     echo "Starting build process for AWS only."
+    
+    cat packer/packer_template.json | sed -e "s/@@AWS_ACCESS_KEY@@/${AWS_ACCESS_KEY}/" | sed -e "s/@@AWS_SECRET_KEY@@/${AWS_SECRET_KEY}/" > packer/packer.json
 
     packer build -only=amazon-ebs packer/packer.json
 
 
-elif [ $BOX_ENV = "help" ]
+elif [ $BOX_ENV = "--help" ]
   then
     echo "Utility for building and managing zetta infrastructure."
-    
+    echo "Usage: ./generate_box.sh <platform>"
+    echo "platforms:"
+    echo "vagrant -> Generates a vagrant box from the latest CoreOS iso."
+    echo "aws -> Generates an AWS image from the latest AMI available." 
      
 elif [ $BOX_ENV = "destroy" ]
   then
