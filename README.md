@@ -8,14 +8,8 @@ Want to create a Zetta deployment with Latest CoreOS? Here's how.
 
 1. Generate CoreOS box with Packer
   - `./generate_box.sh vagrant`
-2. Get Discovery URL
-  - `GET http://discovery.etcd.io/new`
-3. Update Configuration
-  - `Update discovery_url in user-data file`
-4. Start Cluster
-  - `vagrant up`
-5. Ansible Provision
-  - `./setup.sh && ./fleet.sh`
+2. Start Stack
+  - `./start_stack.sh`
 
 ## AWS
 
