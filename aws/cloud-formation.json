@@ -25,7 +25,7 @@
           },
 
           "us-east-1" : {
-              "AMI" : "ami-5a97ca32"
+              "AMI" : "@@AWS_AMI_ID@@"
           },
 
           "us-west-2" : {

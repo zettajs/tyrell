@@ -12,7 +12,7 @@
         template_parameters:
           InstanceType: "t1.micro"
           ClusterSize: 5
-          DiscoveryURL: "https://discovery.etcd.io/f42233a3a5d15446dfd6832565f1eed1"
+          DiscoveryURL: "@@DISCOVERY_URL@@"
           BuiltCoreOSAMI: "ami-589ac730"
         tags:
           Stack: "Zetta Core"
