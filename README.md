@@ -66,6 +66,8 @@ Steps for getting a valid .dockercfg. This assumes you have boot2docker
 3. Your .dockercg can be found at ~/.dockercfg
 4. Copy the .dockercfg to every coreos machine with the ansible/deploy-config.yml playbook
 
+For now you can use the .dockercfg found here. https://gist.github.com/mdobson/3560429303634f8c3a92
+
 ## Running zetta-multi-cloud
 
 To run zetta multi cloud via fleet services here are is what should be done for now.
