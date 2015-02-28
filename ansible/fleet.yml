@@ -13,11 +13,20 @@
     - name: "Copying influx sidekick"
       copy: src=./services/influxdb-discovery@.service dest=/home/core
 
-    - name: "Submitting zetta service file"
-      raw: fleetctl submit /home/core/zetta@.service
+    - name: "Copying zetta-service-registry"
+      copy: src=./services/zetta-registry@.service dest=/home/core
 
-    - name: "Submitting zmon service file"
-      raw: fleetctl submit /home/core/zmon@.service
+    - name: "Copying zetta-cloud-proxy"
+      copy: src=./services/zetta-proxy@.service dest=/home/core
 
-    - name: "Starting zetta and zmon service on host"
-      raw: fleetctl start zetta\@1 zmon\@1
+    - name: "Copying zetta-target-server"
+      copy: src=./services/zetta-target@.service dest=/home/core
+
+#    - name: "Submitting zetta service file"
+#      raw: fleetctl submit /home/core/zetta@.service
+
+#    - name: "Submitting zmon service file"
+#      raw: fleetctl submit /home/core/zmon@.service
+
+#    - name: "Starting zetta and zmon service on host"
+#      raw: fleetctl start zetta\@1 zmon\@1

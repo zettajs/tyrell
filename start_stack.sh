@@ -8,4 +8,4 @@ cat user-data.template | sed -e "s,@@ETCD_DISCOVERY_URL@@,${DISCOVERY_URL}," > u
 
 vagrant up
 
-./setup.sh && ./fleet.sh
+#./setup.sh && ./fleet.sh

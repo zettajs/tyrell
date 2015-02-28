@@ -1,11 +1,20 @@
 ## Basic ansible inventory
 core-01 ansible_ssh_host=172.17.8.101
+core-02 ansible_ssh_host=172.17.8.102
+core-03 ansible_ssh_host=172.17.8.103
 
 [zetta]
 core-01
 
 [coreos]
 core-01
+core-02
+core-03
+
+[cluster]
+core-01
+core-02
+core-03
 
 [coreos:vars]
 ansible_python_interpreter="PATH=/home/core/bin:$PATH python"
