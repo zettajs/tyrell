@@ -1,0 +1,5 @@
+- name: setting up a singe zetta docker container
+  hosts: cluster 
+  tasks:
+    - name: "Copying .dockercfg to machine."
+      copy: src=.dockercfg dest=/home/core 
