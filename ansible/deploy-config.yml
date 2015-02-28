@@ -3,3 +3,12 @@
   tasks:
     - name: "Copying .dockercfg to machine."
       copy: src=.dockercfg dest=/home/core 
+
+    - name: "Pulling registry container."
+      raw: docker pull mdobson/zetta-service-registry
+
+    - name: "Pulling proxy container."
+      raw: docker pull mdobson/zetta-cloud-proxy
+
+    - name: "Pulling target server."
+      raw: docker pull mdobson/zetta-target-server
