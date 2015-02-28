@@ -12,3 +12,4 @@ packer_cache
 dev/
 packer/packer.json
 user-data
+.dockercfg
