@@ -1,9 +1,9 @@
 - name: setting up a singe zetta docker container
-  hosts: zetta 
+  hosts: zetta
   tasks:
     - name: "Copying zetta service file"
       copy: src=./services/zetta@.service dest=/home/core
-      
+
     - name: "Copying zetta sidekick service"
       copy: src=./services/zmon@.service dest=/home/core
 
@@ -21,3 +21,9 @@
 
     - name: "Starting zetta and zmon service on host"
       raw: fleetctl start zetta\@1 zmon\@1
+
+    - name: "Starting Influxdb Master"
+      raw: fleetctl start influxdb@1 influxdb-discovery@1 && while [ $(etcdctl ls /services/influxdb/seed 2> /dev/null | wc -l) -lt 1 ]; do echo "Waiting for influxdb to start..."; sleep 1; done;
+
+    - name: "Starting Influxdb Replicas"
+      raw: echo fleetctl start influxdb\@{2..`fleetctl list-machines | tail -n +2 | wc -l`} influxdb-discovery\@{2..`fleetctl list-machines | tail -n +2 | wc -l`} | bash
