@@ -15,12 +15,11 @@ ExecStart=/bin/bash -c '\
   seeds=""; \
   while read -r line; do \
     if [ "$line" != "" ]; then \
-      seeds="$seeds$(/usr/bin/basename $line),"; \
+      seeds="$seeds$(/usr/bin/basename $line):8090,"; \
     fi; \
   done <<< "$(/usr/bin/etcdctl ls /services/influxdb/seed)"; \
   if [ "$seeds" != "" ]; then SEEDS="-e SEEDS=\"$seeds\""; else SEEDS=""; fi; \
-  echo $SEEDS; \
-  /usr/bin/docker run -rm  -p 8083:8083 -p 8086:8086 -p $COREOS_PRIVATE_IPV4:8099:8099 -p $COREOS_PRIVATE_IPV4:8090:8090 -e FORCE_HOSTNAME=$COREOS_PRIVATE_IPV4 $SEEDS --name influxdb-%i adammagaluk/influxdb; \
+  /usr/bin/docker run -rm -v /mnt/data:/data  -p 8083:8083 -p 8086:8086 -p $COREOS_PRIVATE_IPV4:8099:8099 -p $COREOS_PRIVATE_IPV4:8090:8090 -e FORCE_HOSTNAME=$COREOS_PRIVATE_IPV4 $SEEDS --name influxdb-%i adammagaluk/influxdb; \
 '
 ExecStop=/usr/bin/docker stop influxdb-%i
 

@@ -16,14 +16,14 @@ ExecStart=/bin/bash -c '\
   while true; do \
     curl -f ${COREOS_PRIVATE_IPV4}:8086/ping; \
     if [ $? -eq 0 ]; then \
-      /usr/bin/etcdctl set /services/influxdb/seed/${COREOS_PRIVATE_IPV4}:8090 \'{"host": "%H", "ipv4_addr":"${COREOS_PRIVATE_IPV4}", "port": 8090 }\' --ttl 30; \
+      /usr/bin/etcdctl set /services/influxdb/seed/${COREOS_PRIVATE_IPV4} \'{"host": "%H", "ipv4_addr":"${COREOS_PRIVATE_IPV4}", "port": 8090 }\' --ttl 30; \
     else \
-      /usr/bin/etcdctl rm /services/influxdb/seed/${COREOS_PRIVATE_IPV4}:8090; \
+      /usr/bin/etcdctl rm /services/influxdb/seed/${COREOS_PRIVATE_IPV4}; \
     fi; \
     sleep 20; \
   done'
 
-ExecStop=/usr/bin/etcdctl rm /services/influxdb/seed/${COREOS_PRIVATE_IPV4}:8090
+ExecStop=/usr/bin/etcdctl rm /services/influxdb/seed/${COREOS_PRIVATE_IPV4}
 
 [X-Fleet]
 X-ConditionMachineOf=influxdb@%i.service
