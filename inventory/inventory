@@ -8,20 +8,12 @@ core-05 ansible_ssh_host=172.17.8.105
 [zetta]
 core-01
 
-[coreos]
-core-01
-core-02
-core-03
-
 [cluster]
 core-01
 core-02
 core-03
 core-04
 core-05
-
-[coreos:vars]
-ansible_python_interpreter="PATH=/home/core/bin:$PATH python"
 
 [cluster:vars]
 ansible_python_interpreter="PATH=/home/core/bin:$PATH python"
