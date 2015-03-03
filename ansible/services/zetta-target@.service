@@ -1,0 +1,15 @@
+[Unit]
+Description=Zetta Target Server
+After=docker.service
+Requires=docker.service
+
+[Service]
+User=core
+TimeoutStartSec=0
+EnvironmentFile=/etc/environment
+ExecStartPre=-/usr/bin/docker kill zetta.target.%i
+ExecStartPre=-/usr/bin/docker rm zetta.target.%i
+ExecStartPre=-/bin/sh -c "curl -i http://172.17.8.103:3000/"
+ExecStartPre=/usr/bin/docker pull mdobson/zetta-target-server
+ExecStart=/usr/bin/docker run -rm --name zetta.target.%i -p %i:%i -e MAPPED_PORT=%i -e COREOS_PRIVATE_IPV4=${COREOS_PRIVATE_IPV4} -e SERVICE_REGISTRY_URL=http://${COREOS_PRIVATE_IPV4}:3000 mdobson/zetta-target-server
+ExecStop=/usr/bin/docker stop zetta.target.%i

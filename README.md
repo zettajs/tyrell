@@ -8,14 +8,8 @@ Want to create a Zetta deployment with Latest CoreOS? Here's how.
 
 1. Generate CoreOS box with Packer
   - `./generate_box.sh vagrant`
-2. Get Discovery URL
-  - `GET http://discovery.etcd.io/new`
-3. Update Configuration
-  - `Update discovery_url in user-data file`
-4. Start Cluster
-  - `vagrant up`
-5. Ansible Provision
-  - `./setup.sh && ./fleet.sh`
+2. Start Stack
+  - `./start_stack.sh`
 
 ## AWS
 
@@ -60,3 +54,36 @@ export AWS_SECRET_ACCESS_KEY=""
 If you run into issues with using Ansible to provision on the cluster ensure that your SSH configuration and your Ansible configuration are present and up to date with your machine variables.
 
 [Configuration Update Gist](https://gist.github.com/mdobson/8c16e6b497de8348b718)
+
+## Configuring fleet to pull from private docker repositories
+
+A .dockercfg file is required to run on all machines to authenticate with the docker private repo service.
+
+Steps for getting a valid .dockercfg. This assumes you have boot2docker
+
+1. `boot2docker init && boot2docker up`
+2. `docker login`
+3. Your .dockercg can be found at ~/.dockercfg
+4. Copy the .dockercfg to every coreos machine with the ansible/deploy-config.yml playbook
+
+For now you can use the .dockercfg found here. https://gist.github.com/mdobson/3560429303634f8c3a92
+
+## Running zetta-multi-cloud
+
+To run zetta multi cloud via fleet services here are is what should be done for now.
+
+**NOTE**: This assumes you have configured fleet to pull from our private container repositories.
+
+```bash
+# Submit the three services to fleet
+fleetctl submit zetta-regsitry@.service zetta-proxy@.service zetta-target@.service
+
+# Start a service registry for every machine in the cluster. Wait for registries to be pulled.
+fleetctl start zetta-regsitry@{1..n}.service
+
+# Start target servers.
+fleetctl start zetta-target@{3001..3010}.service
+
+# Start any number of proxies. I usually do three.
+fleetctl start zetta-proxy@{1..3}.service
+```

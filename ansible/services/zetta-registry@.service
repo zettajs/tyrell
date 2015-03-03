@@ -1,0 +1,17 @@
+[Unit]
+Description=Zetta Cloud Registry
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+User=core
+EnvironmentFile=/etc/environment
+ExecStartPre=-/usr/bin/docker kill zetta.registry.%i
+ExecStartPre=-/usr/bin/docker rm zetta.registry.%i
+ExecStartPre=/usr/bin/docker pull mdobson/zetta-service-registry
+ExecStart=/usr/bin/docker run -rm --name zetta.registry.%i -e COREOS_PRIVATE_IPV4=${COREOS_PRIVATE_IPV4} -p 3000:3000 mdobson/zetta-service-registry
+ExecStop=/usr/bin/docker stop zetta.registry.%i
+
+[X-Fleet]
+Conflicts=zetta-registry@*.service
