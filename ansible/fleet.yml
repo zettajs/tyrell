@@ -1,17 +1,11 @@
 - name: setting up a singe zetta docker container
-  hosts: zetta 
+  hosts: zetta
   tasks:
     - name: "Copying zetta service file"
       copy: src=./services/zetta@.service dest=/home/core
-      
+
     - name: "Copying zetta sidekick service"
       copy: src=./services/zmon@.service dest=/home/core
-
-    - name: "Copying influx service"
-      copy: src=./services/influxdb@.service dest=/home/core
-
-    - name: "Copying influx sidekick"
-      copy: src=./services/influxdb-discovery@.service dest=/home/core
 
     - name: "Copying zetta-service-registry"
       copy: src=./services/zetta-registry@.service dest=/home/core
