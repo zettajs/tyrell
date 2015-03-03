@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -e 
+set -e
+set -x
 
 db=""
 rf=4
@@ -8,7 +9,7 @@ split=2
 shard_duration="7d"
 
 # get influxdb host from etcd
-host=$(basename $(etcdctl ls /services/influxdb/seed | head -n 1))
+host=$(basename $(etcdctl ls /services/influxdb/seed | head -n 1)):8086
 
 while getopts r:s:d: opt; do
   case $opt in
@@ -43,21 +44,15 @@ function generate_user()
 }
 
 # create db
-echo curl --fail -X POST 'http://'${host}'/cluster/database_configs/'$db'?u=root&p=root' -d '{"spaces":[{"name":"default","regEx":"/.*/","retentionPolicy":"inf","shardDuration":"'${shardDuration}'","replicationFactor":'$rf',"split":'$split',"$$hashKey":"00F"}]}'
-
 curl --fail -X POST 'http://'${host}'/cluster/database_configs/'$db'?u=root&p=root' -d '{"spaces":[{"name":"default","regEx":"/.*/","retentionPolicy":"inf","shardDuration":"'${shardDuration}'","replicationFactor":'$rf',"split":'$split',"$$hashKey":"00F"}]}'
 
 # create db user
 user=$(generate_user)
 userpass=$(generate_password)
-echo curl --fail -X POST 'http://'${host}'/db/'$db'/users?u=root&p=root' -d "{\"name\": \"${user}\", \"password\": \"${userpass}\"}"
-
 curl --fail -X POST 'http://'${host}'/db/'$db'/users?u=root&p=root' -d "{\"name\": \"${user}\", \"password\": \"${userpass}\"}"
 
 # update root password
 rootpass=$(generate_password)
-echo curl --fail -X POST 'http://'${host}'/cluster_admins/root?u=root&p=root' -d "{\"password\": \"${rootpass}\"}"
-
 curl --fail -X POST 'http://'${host}'/cluster_admins/root?u=root&p=root' -d "{\"password\": \"${rootpass}\"}"
 
 # Update etcd for influx info
