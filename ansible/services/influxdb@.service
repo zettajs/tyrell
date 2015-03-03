@@ -15,7 +15,7 @@ ExecStart=/bin/bash -c '\
   seeds=""; \
   while read -r line; do \
     if [ "$line" != "" ]; then \
-      seeds="$seeds$(/usr/bin/basename $line),"; \
+      seeds="$seeds$(/usr/bin/basename $line):8090,"; \
     fi; \
   done <<< "$(/usr/bin/etcdctl ls /services/influxdb/seed)"; \
   if [ "$seeds" != "" ]; then SEEDS="-e SEEDS=\"$seeds\""; else SEEDS=""; fi; \
