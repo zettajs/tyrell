@@ -8,6 +8,7 @@ if [ -a $HOME/.dockercfg ]
 else
   then
     echo "Error copying dockercfg over. Login to the registry service and try again."
+    exit
 fi
 
 if [ $BOX_ENV = "vagrant" ] 
