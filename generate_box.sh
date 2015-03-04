@@ -2,6 +2,14 @@
 
 BOX_ENV=$1
 
+if [ -a $HOME/.dockercfg ]
+  then
+    cp $HOME/.dockercfg packer/.dockercfg
+else
+  then
+    echo "Error copying dockercfg over. Login to the registry service and try again."
+fi
+
 if [ $BOX_ENV = "vagrant" ] 
   then 
     echo "Generating vagrant box."

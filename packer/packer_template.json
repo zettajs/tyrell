@@ -67,6 +67,11 @@
     "type": "file",
     "source": "services",
     "destination": "/etc/systemd/system"   
+  },
+  {
+    "type": "file",
+    "source": ".dockercfg",
+    "destination": "/home/core/.dockercfg"  
   }
   ],
   "post-processors": ["vagrant"]
