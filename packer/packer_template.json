@@ -59,23 +59,15 @@
         "sudo rm -rf /var/lib/coreos-install"
     ]
   },
-  {
-    "type": "file",
-    "source": "packer/runner",
-    "destination": "/home/core/runner"
-  },
   { 
     "type": "shell",
     "inline": "sudo rm /etc/machine-id"
   },
   {
-    "type": "shell",
-    "script": "packer/install_pypy.sh"
-  },
-  {
-    "type": "shell",
-    "environment_vars": "PATH=/home/core/bin:$PATH",
-    "script": "packer/get-pip.py"  
-  }],
+    "type": "file",
+    "source": "services",
+    "destination": "/etc/systemd/system"   
+  }
+  ],
   "post-processors": ["vagrant"]
 }
