@@ -35,17 +35,4 @@ export AWS_SECRET_ACCESS_KEY=""
 - `/etc/machine-id` helps detect unique machines in the cluster. If for any reason this isn't destroyed before trying to peer with the discovery service then we will only have one machine in the cluster peered. This is taken care of in packer.
 - `coreos-cloudinit` will run cloud-configs against the machine. This should be run in our local environment, but CloudFormation bootstrapping takes care of this for us.
 
-## Configuring fleet to pull from private docker repositories
-
-A .dockercfg file is required to run on all machines to authenticate with the docker private repo service.
-
-Steps for getting a valid .dockercfg. This assumes you have boot2docker
-
-1. `boot2docker init && boot2docker up`
-2. `docker login`
-3. Your .dockercg can be found at ~/.dockercfg
-4. Copy the .dockercfg to every coreos machine with the ansible/deploy-config.yml playbook
-
-For now you can use the .dockercfg found here. https://gist.github.com/mdobson/3560429303634f8c3a92
-
 
