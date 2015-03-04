@@ -13,24 +13,11 @@ Want to create a Zetta deployment with Latest CoreOS? Here's how.
 
 ## AWS
 
-1. Generate CoreOS box with Packer
-  - `./generate_box.sh aws`
-2. Get Discovery URL
-  - `GET http://discovery.etcd.io/new`
-3. Update Configuration
-  - `Update discovery_url in aws-cluster.yml`
-  - `Update AMI in cloud-formation.json`
-4. Deploy via CloudFormation
-  - `ansible-playbook aws-cluster.yml`
-5. Ansible Provision
-  - `TBD`
-
 ## Dependencies
 
 - Vagrant
-- Ansible
 - Packer
-- Boto `pip install boto`
+- AWS CLI Tools
 - AWS API Credentials
 
 ## A note on AWS
@@ -48,13 +35,6 @@ export AWS_SECRET_ACCESS_KEY=""
 - `/etc/machine-id` helps detect unique machines in the cluster. If for any reason this isn't destroyed before trying to peer with the discovery service then we will only have one machine in the cluster peered. This is taken care of in packer.
 - `coreos-cloudinit` will run cloud-configs against the machine. This should be run in our local environment, but CloudFormation bootstrapping takes care of this for us.
 
-
-## Config Updates
-
-If you run into issues with using Ansible to provision on the cluster ensure that your SSH configuration and your Ansible configuration are present and up to date with your machine variables.
-
-[Configuration Update Gist](https://gist.github.com/mdobson/8c16e6b497de8348b718)
-
 ## Configuring fleet to pull from private docker repositories
 
 A .dockercfg file is required to run on all machines to authenticate with the docker private repo service.
@@ -68,22 +48,4 @@ Steps for getting a valid .dockercfg. This assumes you have boot2docker
 
 For now you can use the .dockercfg found here. https://gist.github.com/mdobson/3560429303634f8c3a92
 
-## Running zetta-multi-cloud
 
-To run zetta multi cloud via fleet services here are is what should be done for now.
-
-**NOTE**: This assumes you have configured fleet to pull from our private container repositories.
-
-```bash
-# Submit the three services to fleet
-fleetctl submit zetta-regsitry@.service zetta-proxy@.service zetta-target@.service
-
-# Start a service registry for every machine in the cluster. Wait for registries to be pulled.
-fleetctl start zetta-regsitry@{1..n}.service
-
-# Start target servers.
-fleetctl start zetta-target@{3001..3010}.service
-
-# Start any number of proxies. I usually do three.
-fleetctl start zetta-proxy@{1..3}.service
-```
