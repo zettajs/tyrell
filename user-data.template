@@ -20,6 +20,10 @@ coreos:
       command: start
     - name: zetta-target@3001.service
       command: start
+    - name: zetta-target@3002.service
+      command: start
+    - name: zetta-target@3003.service
+      command: start
     - name: docker-tcp.socket
       command: start
       enable: true
