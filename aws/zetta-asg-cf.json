@@ -1,0 +1,75 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Zetta ASG",
+  "Parameters": {
+    "InstanceType" : {
+      "Description" : "EC2 PV instance type (m3.medium, etc).",
+      "Type" : "String",
+      "Default" : "t2.micro",
+      "ConstraintDescription" : "Must be a valid EC2 PV instance type."
+    },
+    "ClusterSize": {
+      "Default": "1",
+      "MinValue": "1",
+      "MaxValue": "12",
+      "Description": "Number of nodes in cluster (5-12).",
+      "Type": "Number"
+    },
+    "AMI": {
+      "Description": "A unique AMI id for our custom CoreOS build using packer.",
+      "Type": "String"
+    },
+    "AdvertisedIPAddress": {
+      "Description": "Use 'private' if your etcd cluster is within one region or 'public' if it spans regions or cloud providers.",
+      "Default": "private",
+      "AllowedValues": ["private", "public"],
+      "Type": "String"
+    },
+    "KeyPair" : {
+      "Description" : "The name of an EC2 Key Pair to allow SSH access to the instance.",
+      "Type" : "String"
+    },
+    "ZettaAppSecurityGroup" : {
+      "Description" : "Security Group to assign to",
+      "Type": "List<AWS::EC2::SecurityGroup::Id>"
+    },
+    "ZettaStack" : {
+      "Description" : "Zetta Stack",
+      "Type" : "String"
+    },
+    "LoadBalancer" : {
+      "Description" : "LoadBalancer",
+      "Type" : "String"
+    }
+  },
+  "Resources": {
+    "ZettaAutoScale": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AvailabilityZones": {"Fn::GetAZs": ""},
+        "LaunchConfigurationName": {"Ref": "ZettaServerLaunchConfig"},
+        "MinSize": "1",
+        "MaxSize": "12",
+        "DesiredCapacity": {"Ref": "ClusterSize"},
+        "HealthCheckType": "ELB",
+        "HealthCheckGracePeriod": 60,
+        "Tags": [
+            {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
+            {"Key": "Name", "Value": { "Fn::Join" : [ "-", [ {"Ref" : "ZettaStack" }, {"Ref" : "AWS::StackName" }, "app" ] ] }, "PropagateAtLaunch": true}
+        ]
+      }
+    },
+    "ZettaServerLaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "ImageId" : { "Ref" : "AMI" },
+        "InstanceType": {"Ref": "InstanceType"},
+        "KeyName": {"Ref": "KeyPair"},
+        "SecurityGroups": {"Ref": "ZettaAppSecurityGroup"},
+        "UserData" : { "Fn::Base64":
+          { "Fn::Join": [ "", [""] ] }
+        }
+      }
+    }
+  }
+}

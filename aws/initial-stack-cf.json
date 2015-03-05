@@ -1,0 +1,119 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Initial Zetta Stack Deployment, init SG, ELB",
+
+  "Parameters": {
+    "DiscoveryUrl": {
+      "Description": "An unique etcd cluster discovery URL. Grab a new token from https://discovery.etcd.io/new",
+      "Type": "String"
+    },
+    "KeyPair": {
+      "Description": "Keypair to use in ASG groups created later.",
+      "Type": "String"
+    }
+  },
+
+  "Resources": {
+    "ELBSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Zetta ELB SecurityGroup",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "CidrIp": "0.0.0.0/0"}
+        ]
+      }
+    },
+    "CoreOsSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Core SecurityGroup, applies to any machine in CoreOS cluster",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
+        ]
+      }
+    },
+    "CoreIngress4001": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupName": {"Ref": "CoreOsSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "4001", "ToPort": "4001", "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "CoreOsSecurityGroup", "GroupId" ]
+        }
+      }
+    },
+    "CoreIngress7001": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupName": {"Ref": "CoreOsSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "7001", "ToPort": "7001", "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "CoreOsSecurityGroup", "GroupId" ]
+        }
+      }
+    },
+
+    "AppSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Core SecurityGroup, applies to any machine in CoreOS cluster",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
+        ]
+      }
+    },
+    "CoreIngressZettaProxy": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupName": {"Ref": "AppSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "3000", "ToPort": "3000", "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "ELBSecurityGroup", "GroupId" ]
+        }
+      }
+    },
+
+    "DBSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Core SecurityGroup, applies to any machine in CoreOS cluster",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
+        ]
+      }
+    },
+    "DBIngress8090": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupName": {"Ref": "DBSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "8090", "ToPort": "8090", "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "DBSecurityGroup", "GroupId" ]
+        }
+      }
+    },
+    "DBIngress8099": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupName": {"Ref": "DBSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "8099", "ToPort": "8099", "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "DBSecurityGroup", "GroupId" ]
+        }
+      }
+    },
+
+    "ZettaELB" : {
+      "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties" : {
+        "AvailabilityZones" : { "Fn::GetAZs" : "" },
+        "Listeners" : [
+          { "LoadBalancerPort" : "80", "InstancePort" : "3000", "Protocol" : "HTTP" }
+        ],
+        "HealthCheck" : {
+          "Target": "HTTP:3000/status",
+          "HealthyThreshold": "2",
+          "UnhealthyThreshold": "5",
+          "Interval": "30",
+          "Timeout": "5"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled" : "true",
+          "Timeout" : "60"
+        },
+        "SecurityGroups": [ { "Fn::GetAtt" : [ "ELBSecurityGroup", "GroupId" ] } ]
+      }
+    }
+
+  }
+}
