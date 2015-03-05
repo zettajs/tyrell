@@ -6,9 +6,8 @@ if [ -a $HOME/.dockercfg ]
   then
     cp $HOME/.dockercfg packer/.dockercfg
 else
-  then
-    echo "Error copying dockercfg over. Login to the registry service and try again."
-    exit
+  echo "Error copying dockercfg over. Login to the registry service and try again."
+  exit
 fi
 
 if [ $BOX_ENV = "vagrant" ] 

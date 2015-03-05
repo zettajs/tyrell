@@ -2,6 +2,10 @@
 Description=Zetta Cloud Proxy
 After=docker.service
 Requires=docker.service
+After=zetta-registry.service
+Requires=zetta-registry.service
+After=zetta-target@{3001..3003}.service
+Requires=zetta-target@{3001..3003}.service
 
 [Service]
 User=core

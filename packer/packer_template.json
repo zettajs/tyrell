@@ -65,12 +65,16 @@
   },
   {
     "type": "file",
-    "source": "services",
-    "destination": "/etc/systemd/system"   
+    "source": "packer/services",
+    "destination": "/home/core"   
+  },
+  {
+    "type": "shell",
+    "inline": "sudo cp -R /home/core/services/* /etc/systemd/system"   
   },
   {
     "type": "file",
-    "source": ".dockercfg",
+    "source": "packer/.dockercfg",
     "destination": "/home/core/.dockercfg"  
   }
   ],
