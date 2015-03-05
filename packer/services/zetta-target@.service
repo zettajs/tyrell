@@ -5,9 +5,6 @@ Requires=docker.service
 After=zetta-registry.service
 Requires=zetta-registry.service
 
-[Install]
-WantedBy=zetta-proxy.service
-
 [Service]
 User=core
 TimeoutStartSec=0
