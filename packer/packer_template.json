@@ -65,7 +65,7 @@
   },
   {
     "type": "file",
-    "source": "packer/services",
+    "source": "services",
     "destination": "/home/core"   
   },
   {
@@ -74,7 +74,7 @@
   },
   {
     "type": "file",
-    "source": "packer/.dockercfg",
+    "source": ".dockercfg",
     "destination": "/home/core/.dockercfg"  
   },
   {
