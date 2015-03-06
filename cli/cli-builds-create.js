@@ -8,11 +8,16 @@ var Vagrant = require('./lib/vagrant');
 
 
 program
-  .option('-p --platform <platform>', 'Platform to create image for. Required.')
   .option('-v --verbose', 'Display packer build output')
   .parse(process.argv);
 
-var platform = program.platform;
+var platform = program.args[0];
+
+if(!platform) {
+  program.help();
+  process.exit(1);  
+}
+
 var verbose = program.verbose;
 
 var configPath = path.join(Packer.packerPath(), '.dockercfg');
