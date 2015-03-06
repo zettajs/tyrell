@@ -4,6 +4,7 @@ var awsUtils = require('./aws-utils');
 
 var list = module.exports.list = function(AWS, stackName, cb) {
   var cloudformation = new AWS.CloudFormation();
+  var autoscaling = new AWS.AutoScaling();
 
   cloudformation.describeStacks(function(err, stacks) {
     if (err) {
@@ -27,7 +28,14 @@ var list = module.exports.list = function(AWS, stackName, cb) {
         
         stack.AppVersion = stack.Tags.filter(function(t) { return t.Key === 'zetta:app:version'})[0].Value;
         stack.Resources = resources;
-        next(null, stack);
+
+        autoscaling.describeAutoScalingGroups({ AutoScalingGroupNames: [ stack.Resources['ZettaAutoScale'].PhysicalResourceId]}, function(err, data) {
+          if (err) {
+            return next(err);
+          }
+          stack.ZettaAutoScale = data.AutoScalingGroups[0];
+          next(null, stack);
+        });
       });
     }, cb);
   });
@@ -104,4 +112,12 @@ var remove = module.exports.remove = function(AWS, cfName, cb) {
   cloudformation.deleteStack({ StackName: cfName }, cb);
 };
 
-var scale = module.exports.scale = function() {};
+var scale = module.exports.scale = function(AWS, asgName, desired, cb) {
+  var autoscaling = new AWS.AutoScaling();
+
+  var params = {
+    AutoScalingGroupName: asgName,
+    DesiredCapacity: Number(desired)
+  };
+  autoscaling.setDesiredCapacity(params, cb);
+};

@@ -36,7 +36,11 @@ stacks.get(AWS, name, function(err, stack) {
     }
 
     results.forEach(function(v) {
-      console.log(v.AppVersion, v.StackName)
+      console.log(v.AppVersion,
+                  v.StackName,
+                  v.ZettaAutoScale.MinSize,
+                  v.ZettaAutoScale.MaxSize,
+                  v.ZettaAutoScale.Instances.length + '/' + v.ZettaAutoScale.DesiredCapacity);
     });
   });
 
