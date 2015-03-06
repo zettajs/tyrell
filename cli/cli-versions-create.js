@@ -1,9 +1,8 @@
 var crypto = require('crypto');
 var program = require('commander');
 var AWS = require('aws-sdk'); 
-var createZettaCf = require('./lib/create-zetta-cf');
-var awsUtils = require('./lib/aws-utils');
-var getStack = require('./lib/get-stack');
+var stacks = require('./lib/stacks');
+var versions = require('./lib/versions');
 
 AWS.config.update({region: 'us-east-1'});
 
@@ -23,10 +22,10 @@ if (!name) {
 
 if (!program.ami) {
   program.help();
-  program.exit(1);
+  return program.exit(1);
 }
 
-getStack(AWS, name, function(err, stack) {
+stacks.get(AWS, name, function(err, stack) {
   if (err) {
     console.error(err);
     process.exit(1);
@@ -46,25 +45,11 @@ getStack(AWS, name, function(err, stack) {
   };
 
   console.log('Creating CF Version', config.app.version);
-  createZettaCf(AWS, config, function(err, stack) {
+  versions.create(AWS, config, function(err, stack) {
     if (err) {
       console.error(err);
       process.exit(1);
     }
-    
-    awsUtils.getAsgFromStack(AWS, stack.StackId, function(err, asgName) {
-      if (err) {
-        console.error(err);
-        process.exit(1);
-      }
-
-      console.log('Waiting for ASG instances to become avialable');
-      awsUtils.asgInstancesAvailable(AWS, asgName, {}, function(err) {
-        if (err) {
-          console.error(err);
-          process.exit(0);
-        }
-      });
-    })
   });
+
 });
