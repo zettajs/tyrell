@@ -1,8 +1,8 @@
 var program = require('commander');
 var AWS = require('aws-sdk'); 
 var traffic = require('./lib/traffic');
-var getAppVersions = require('./lib/get-app-versions');
-var getStack = require('./lib/get-stack');
+var versions = require('./lib/versions');
+var stacks = require('./lib/stacks');
 
 AWS.config.update({region: 'us-east-1'});
 
@@ -18,7 +18,7 @@ if (!name) {
   process.exit(1);
 }
 
-getStack(AWS, name, function(err, stack) {
+stacks.get(AWS, name, function(err, stack) {
   if (err) {
     console.error(err);
     process.exit(1);
@@ -40,8 +40,8 @@ getStack(AWS, name, function(err, stack) {
   }
 
 
-   // deploy new version
-  getAppVersions(AWS, name, function(err, versions) {
+  // deploy new version
+  versions.list(AWS, name, function(err, versions) {
     if (err) {
       console.error(err);
       process.exit(1);

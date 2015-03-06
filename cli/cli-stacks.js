@@ -5,7 +5,13 @@ var stacks = require('./lib/stacks');
 AWS.config.update({region: 'us-east-1'});
 
 program
-  .parse(process.argv);
+  .command('create', 'create zetta stack')
+  .command('remove', 'remove zetta stack')
+  .parse(process.argv)
+
+if (program.args.length) {
+  return;
+}
 
 stacks.list(AWS, function(err, stacks) {
   if (err) {
@@ -17,5 +23,8 @@ stacks.list(AWS, function(err, stacks) {
   })
 });
 
-
+/*
+cli versions delete [version]
+cli versions scale [version] [n]
+*/
 

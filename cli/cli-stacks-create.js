@@ -2,14 +2,13 @@ var fs = require('fs');
 var program = require('commander');
 var AWS = require('aws-sdk'); 
 var getDiscoveryUrl = require('./lib/get-discovery-url');
-var createStack = require('./lib/create-stack-cf');
+var stacks = require('./lib/stacks');
 
 AWS.config.update({region: 'us-east-1'});
 
 program
   .option('-k, --keyPair <key_pair>', 'Specify existing keypair to use when creating future asg.')
   .parse(process.argv);
-
 
 var name = program.args[0];
 if (!name) {
@@ -61,7 +60,7 @@ getKeyPair(function(err, key) {
       discoveryUrl: url,
       keyPair: key.KeyName
     };
-    createStack(AWS, config, function(err) {
+    stacks.create(AWS, config, function(err) {
       if (err) {
         console.error(err);
         process.exit(1);

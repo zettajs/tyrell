@@ -1,6 +1,39 @@
 var fs = require('fs');
+var async = require('async');
+var awsUtils = require('./aws-utils');
 
-module.exports = function(AWS, config, done) {
+var list = module.exports.list = function(AWS, stackName, cb) {
+  var cloudformation = new AWS.CloudFormation();
+
+  cloudformation.describeStacks(function(err, stacks) {
+    if (err) {
+      return cb(err);
+    }
+
+    var stacks = stacks.Stacks.filter(function(stack) {
+      return stack.Tags.filter(function(tag) { return tag.Key === 'zetta:app:version' }).length > 0;
+    });
+    
+    async.map(stacks, function(stack, next) {
+      cloudformation.describeStackResources({ StackName: stack.StackName }, function(err, data) {
+        if (err) {
+          return next(err);
+        }
+
+        var resources = {};
+        data.StackResources.forEach(function(r) {
+          resources[r.LogicalResourceId] = r;
+        });
+        
+        stack.AppVersion = stack.Tags.filter(function(t) { return t.Key === 'zetta:app:version'})[0].Value;
+        stack.Resources = resources;
+        next(null, stack);
+      });
+    }, cb);
+  });
+};
+
+var create = module.exports.create = function(AWS, config, done) {
   var cloudformation = new AWS.CloudFormation();
 
   var stackName = config.stack + '-app-' + config.app.version;
@@ -52,9 +85,23 @@ module.exports = function(AWS, config, done) {
         if (!status) {
           return setTimeout(check, 1000);
         }
-        done(null, stack);
+
+        awsUtils.getAsgFromStack(AWS, stack.StackId, function(err, asgName) {
+          if (err) {
+            return done(err);
+          }
+
+          awsUtils.asgInstancesAvailable(AWS, asgName, {}, done);
+        });
       });
     }
     check();
   });
 };
+
+var remove = module.exports.remove = function(AWS, cfName, cb) {
+  var cloudformation = new AWS.CloudFormation();
+  cloudformation.deleteStack({ StackName: cfName }, cb);
+};
+
+var scale = module.exports.scale = function() {};
