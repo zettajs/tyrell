@@ -1,18 +1,20 @@
 var spawn = require('child_process').spawn;
 var base = 'vagrant';
 
-function changeToVagrantDirectory() {
-  process.chdir(__dirname);
-  process.chdir('..');
-  process.chdir('..'); 
-}
 
 exports.command = function(vagrantArgs, cb) {
-  changeToVagrantDirectory();
+  vagrantPath();
   var vagrant = spawn(base, vagrantArgs);
-  vagrant.on('close', function(code, signal) {
+  vagrant.on('exit', function(code, signal) {
     cb(code);  
   });
 
   return vagrant;
 };
+
+var vagrantPath = exports.vagrantPath = function () {
+  process.chdir(__dirname);
+  process.chdir('..');
+  process.chdir('..'); 
+  return process.cwd();
+}
