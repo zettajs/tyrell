@@ -73,7 +73,11 @@ if(platform === 'vagrant') {
 
     async.parallel([
       function(next) { buildBox(zettaConfigPath, 'zetta', next) },
-      function(next) { buildBox(influxdbConfigPath, 'influxdb', next) }
+      function(next) {
+        setTimeout(function() {
+          buildBox(influxdbConfigPath, 'influxdb', next);
+        }, 30000);
+      }
     ], function(err) {
       if (err) {
         throw err;
