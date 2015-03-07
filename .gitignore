@@ -15,3 +15,4 @@ packer/packer.json
 user-data
 .dockercfg
 *.swp
+packer/builds

@@ -1,0 +1,30 @@
+{ "variables": {
+    "output_name": "zetta"
+  },
+  "ami_tags": {
+    "zetta:app": true
+  },
+  "provisioners": [
+  {
+    "type": "file",
+    "source": "services",
+    "destination": "/home/core"
+  },
+  {
+    "type": "shell",
+    "inline": "sudo cp -R /home/core/services/* /etc/systemd/system"
+  },
+  {
+    "type": "file",
+    "source": ".dockercfg",
+    "destination": "/home/core/.dockercfg"
+  },
+  {
+    "type": "shell",
+    "inline": [
+      "docker pull zetta/zetta-service-registry",
+      "docker pull zetta/zetta-cloud-proxy",
+      "docker pull zetta/zetta-target-server"
+    ]
+  }
+] }
