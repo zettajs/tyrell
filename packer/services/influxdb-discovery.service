@@ -1,13 +1,11 @@
 [Unit]
 Description=InfluxDB Sidekick Process
- 
 Requires=etcd.service
-Requires=influxdb@%i.service
- 
+Requires=influxdb.service
 After=etcd.service
 After=influxdb.service
 BindsTo=influxdb.service
- 
+
 [Service]
 Restart=always
 RestartSec=5 

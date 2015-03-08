@@ -7,6 +7,7 @@ var Vagrant = require('./lib/vagrant');
 
 program
   .option('-v --verbose', 'Display packer build output')
+  .option('-c, --channel [channel]', 'CoreOS update channel [alpha]', 'alpha')
   .parse(process.argv);
 
 var platform = program.args[0];
@@ -92,7 +93,7 @@ if(platform === 'vagrant') {
           return done(new Error('Non-Zero exit code. Build not completed'));
         }
 
-        var vagrant = Vagrant.command(['box', 'add', BoxType + '-coreos-build', boxFilePath, '--force'], function(code) {
+        var vagrant = Vagrant.command(['box', 'add', BoxType + '-coreos-' + program.channel + '-build', boxFilePath, '--force'], function(code) {
           if(code !== 0) {
             return done(new Error('Non-Zero exit code. Vagrant box not configured.'));
           }

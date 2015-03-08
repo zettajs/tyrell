@@ -4,9 +4,6 @@ var path = require('path');
 var discoveryToken = /@@ETCD_DISCOVERY_URL@@/;
 var Vagrant = require('./lib/vagrant');
 var DiscoveryUrl = require('./lib/get-discovery-url');
-var userDataTemplatePath = path.join(Vagrant.vagrantPath(), 'user-data.template');
-var userDataPath = path.join(Vagrant.vagrantPath(), 'user-data');
-
 
 program
   .option('-v, --verbose', 'Display verbose output from starting local cluster.')
@@ -21,11 +18,17 @@ function generateConfig(cb) {
     if(err) {
       cb(err);  
     }
-    var template = fs.readFileSync(userDataTemplatePath);
+
+    var template = fs.readFileSync(path.join(Vagrant.vagrantPath(), 'zetta-user-data.template'));
     var config = template.toString().replace(discoveryToken, url);
-    fs.writeFileSync(userDataPath, config); 
+    fs.writeFileSync(path.join(Vagrant.vagrantPath(), 'zetta-user-data'), config);
+
+    var template = fs.readFileSync(path.join(Vagrant.vagrantPath(), 'influxdb-user-data.template'));
+    var config = template.toString().replace(discoveryToken, url);
+    fs.writeFileSync(path.join(Vagrant.vagrantPath(), 'influxdb-user-data'), config);
+
     cb();
-  }); 
+  });
 }
 
 function startCluster() {
