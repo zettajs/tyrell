@@ -1,6 +1,7 @@
 var fs = require('fs');
 var async = require('async');
 var versions = require('./versions');
+var databases = require('./databases');
 
 var get = module.exports.get = function(AWS, stackName, cb) {
   var ec2 = new AWS.EC2();
@@ -137,19 +138,36 @@ var create = module.exports.create = function(AWS, config, done) {
 var remove = module.exports.remove = function(AWS, name, cb) {
   var cloudformation = new AWS.CloudFormation();
 
-  versions.list(AWS, name, function(err, results) {
+
+  async.parallel([
+    function(next){
+      versions.list(AWS, name, function(err, results) {
+        if (err) {
+          return next(err);
+        }
+        
+        async.each(results, function(version, next) {
+          versions.remove(AWS, version.StackName, next);
+        }, next);
+      });
+    },
+    function(next){
+      databases.list(AWS, name, function(err, results) {
+        if (err) {
+          return next(err);
+        }
+        
+        async.each(results, function(version, next) {
+          databases.remove(AWS, version.StackName, next);
+        }, next);
+      });
+    },
+  ], function(err) {
     if (err) {
       return cb(err);
     }
-    
-    async.each(results, function(version, next) {
-      versions.remove(AWS, version.StackName, next);
-    }, function(err) {
-      if (err) {
-        return cb(err);
-      }
-
-      cloudformation.deleteStack({ StackName: name }, cb);  
-    });    
+    cloudformation.deleteStack({ StackName: name }, cb);
   });
+
+
 };

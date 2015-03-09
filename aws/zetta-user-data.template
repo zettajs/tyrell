@@ -5,10 +5,10 @@ coreos:
     # generate a new token for each unique cluster from https://discovery.etcd.io/new
     # WARNING: replace each time you 'vagrant destroy'
     discovery: @@ETCD_DISCOVERY_URL@@
-    addr: $public_ipv4:4001
-    peer-addr: $public_ipv4:7001
+    addr: $private_ipv4:4001
+    peer-addr: $private_ipv4:7001
   fleet:
-    public-ip: $public_ipv4
+    metadata: role=zetta
   units:
     - name: etcd.service
       command: start

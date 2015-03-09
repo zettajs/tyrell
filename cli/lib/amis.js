@@ -6,6 +6,12 @@ var list = module.exports.list = function(AWS, cb) {
       cb(err);  
     }
 
+    data.Images = data.Images.filter(function(image) {
+      return image.Tags.filter(function(tag) {
+        return tag.Key === 'zetta:app' || tag.Key === 'zetta:influxdb';
+      }).length > 0;
+    });
+
     cb(null, data.Images);  
   });  
 }

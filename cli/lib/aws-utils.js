@@ -107,11 +107,11 @@ module.exports.asgInstancesState = asgInstancesState;
 
 
 
-function getAsgFromStack(AWS, StackId, cb) {
+function getAsgFromStack(AWS, StackId, ResourceId, cb) {
   var cloudformation = new AWS.CloudFormation();
 
   var params = {
-    LogicalResourceId: 'ZettaAutoScale',
+    LogicalResourceId: ResourceId,
     StackName: StackId
   };
   cloudformation.describeStackResource(params, function(err, data) {

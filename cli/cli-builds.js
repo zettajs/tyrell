@@ -20,6 +20,6 @@ amis.list(AWS, function(err, images) {
   } 
 
   images.forEach(function(image) {
-    console.log(image.Name, '\t', image.ImageId, '\t', image.CreationDate);  
+    console.log(image.ImageId, '\t', image.CreationDate, '\t', image.Name);  
   });
 });
