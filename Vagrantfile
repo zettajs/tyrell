@@ -23,30 +23,31 @@ end
 
 def init_machine(config, i, type)
 
-
-  config.vm.box_version = ">= 0"
-  config.vm.box_url = "http://%s.release.core-os.net/amd64-usr/current/coreos_production_vagrant.json" % $update_channel
-
-  config.ssh.insert_key = false
-  config.ssh.username = "core"
-
-  config.vm.synced_folder ".", "/vagrant", disabled: true
-
-  config.vm.provider :virtualbox do |v|
-    v.check_guest_additions = false
-    v.functional_vboxsf = false
-
-    v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
-    v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
-  end
-
-  if Vagrant.has_plugin?("vagrant-vbguest") then
-    config.vbguest.auto_update = false
-  end
-
   config.vm.define vm_name = "%s-%02d" % [$instance_name_prefix, i] do |config|
     config.vm.box = "%s-coreos-%s-build" % [type, $update_channel]
     config.vm.hostname = vm_name
+
+    config.vm.box_version = ">= 0"
+    config.vm.box_url = "http://%s.release.core-os.net/amd64-usr/current/coreos_production_vagrant.json" % $update_channel
+
+    config.ssh.insert_key = false
+    config.ssh.username = "core"
+
+    config.vm.synced_folder ".", "/vagrant", disabled: true
+
+    config.vm.provider :virtualbox do |v|
+      v.check_guest_additions = false
+      v.functional_vboxsf = false
+
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+    end
+
+    if Vagrant.has_plugin?("vagrant-vbguest") then
+      config.vbguest.auto_update = false
+    end
+
+
     ip = "172.17.8.#{i+100}"
     config.vm.network :private_network, ip: ip
 

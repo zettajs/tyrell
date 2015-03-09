@@ -12,7 +12,7 @@ packer_cache
 .inventory
 dev/
 packer/packer.json
-user-data
+*-user-data
 .dockercfg
 *.swp
 packer/builds
