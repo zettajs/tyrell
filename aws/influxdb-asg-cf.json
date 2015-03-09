@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Zetta ASG",
+  "Description": "InfluxDb ASG",
   "Parameters": {
     "InstanceType" : {
       "Description" : "EC2 PV instance type (m3.medium, etc).",
@@ -13,6 +13,13 @@
       "MinValue": "1",
       "MaxValue": "12",
       "Description": "Number of nodes in cluster (5-12).",
+      "Type": "Number"
+    },
+    "DataEBSSize": {
+      "Default": "5",
+      "MinValue": "5",
+      "MaxValue": "1024",
+      "Description": "Size in GBs for data partition. (5 - 1024)",
       "Type": "Number"
     },
     "AMI": {
@@ -29,7 +36,7 @@
       "Description" : "The name of an EC2 Key Pair to allow SSH access to the instance.",
       "Type" : "String"
     },
-    "ZettaAppSecurityGroup" : {
+    "DBSecurityGroup" : {
       "Description" : "Security Group to assign to",
       "Type": "List<AWS::EC2::SecurityGroup::Id>"
     },
@@ -39,15 +46,14 @@
     }
   },
   "Resources": {
-    "ZettaAutoScale": {
+    "InfluxDbAutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
         "AvailabilityZones": {"Fn::GetAZs": ""},
-        "LaunchConfigurationName": {"Ref": "ZettaServerLaunchConfig"},
+        "LaunchConfigurationName": {"Ref": "DBServerLaunchConfig"},
         "MinSize": "1",
         "MaxSize": "12",
         "DesiredCapacity": {"Ref": "ClusterSize"},
-        "HealthCheckType": "ELB",
         "HealthCheckGracePeriod": 60,
         "Tags": [
             {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
@@ -55,13 +61,19 @@
         ]
       }
     },
-    "ZettaServerLaunchConfig": {
+    "DBServerLaunchConfig": {
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Properties": {
         "ImageId" : { "Ref" : "AMI" },
         "InstanceType": {"Ref": "InstanceType"},
         "KeyName": {"Ref": "KeyPair"},
-        "SecurityGroups": {"Ref": "ZettaAppSecurityGroup"},
+        "SecurityGroups": {"Ref": "DBSecurityGroup"},
+        "BlockDeviceMappings" : [
+           {
+             "DeviceName" : "/dev/xvdf",
+             "Ebs" : { "VolumeSize" : {"Ref": "DataEBSSize"}, "VolumeType" : "gp2" }
+           }
+        ],
         "UserData" : null
       }
     }

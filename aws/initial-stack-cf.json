@@ -61,7 +61,7 @@
     "CoreIngressZettaProxy": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "AppSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "3000", "ToPort": "3000", "SourceSecurityGroupId": {
+        "GroupName": {"Ref": "AppSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "SourceSecurityGroupId": {
           "Fn::GetAtt" : [ "ELBSecurityGroup", "GroupId" ]
         }
       }
@@ -92,16 +92,24 @@
         }
       }
     },
+    "DBIngress8086": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupName": {"Ref": "DBSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "8086", "ToPort": "8086", "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "AppSecurityGroup", "GroupId" ]
+        }
+      }
+    },
 
     "ZettaELB" : {
       "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
       "Properties" : {
         "AvailabilityZones" : { "Fn::GetAZs" : "" },
         "Listeners" : [
-          { "LoadBalancerPort" : "80", "InstancePort" : "3000", "Protocol" : "HTTP" }
+          { "LoadBalancerPort" : "80", "InstancePort" : "80", "Protocol" : "HTTP" }
         ],
         "HealthCheck" : {
-          "Target": "HTTP:3000/status",
+          "Target": "HTTP:80/",
           "HealthyThreshold": "2",
           "UnhealthyThreshold": "5",
           "Interval": "30",

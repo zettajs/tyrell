@@ -2,7 +2,7 @@ var crypto = require('crypto');
 var program = require('commander');
 var AWS = require('aws-sdk'); 
 var stacks = require('./lib/stacks');
-var versions = require('./lib/versions');
+var databases = require('./lib/databases');
 
 AWS.config.update({region: 'us-east-1'});
 
@@ -10,7 +10,7 @@ program
   .option('-a, --ami <ami>', 'Existing AMI to use.')
   .option('--type <instance type>', 'Instance type to use. [t1.micro]', 't1.micro')
   .option('-s, --size <cluster stize>', 'Size of Autoscale group. [1]', 1)
-  .option('--version <app version>', 'Logical version of the app being deployed', crypto.randomBytes(6).toString('hex'))
+  .option('--version <app version>', 'Logical db version of the app being deployed', crypto.randomBytes(6).toString('hex'))
   .parse(process.argv);
 
 
@@ -20,7 +20,7 @@ if (!name) {
   process.exit(1);
 }
 
-if (!program.ami || !(/ami-*/).test(program.ami)) {
+if (!program.ami) {
   program.help();
   return program.exit(1);
 }
@@ -37,16 +37,15 @@ stacks.get(AWS, name, function(err, stack) {
     discoveryUrl: stack.Parameters['DiscoveryUrl'],
     app: {
       ami: program.ami, // cl arg or from previous packer task
-      security_groups: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['AppSecurityGroup'].GroupId].join(','),
+      security_groups: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['DBSecurityGroup'].GroupId].join(','),
       cluster_size: program.size + '',
       instance_type: program.type,
-      load_balancer: stack.Resources['ZettaELB'].PhysicalResourceId,
       version: program.version
     }
   };
 
   console.log('Creating CF Version', config.app.version);
-  versions.create(AWS, config, function(err, stack) {
+  databases.create(AWS, config, function(err, stack) {
     if (err) {
       console.error(err);
       process.exit(1);
