@@ -96,7 +96,7 @@ var create = module.exports.create = function(AWS, config, done) {
       { Key: 'zetta:stack', Value: stackName },
       { Key: 'zetta:stack:main', Value: 'true' }
     ],
-    TemplateBody: fs.readFileSync('../aws/initial-stack-cf.json').toString(),
+    TemplateBody: JSON.stringify(require('../../aws/initial-stack-cf.json')),
     TimeoutInMinutes: 5
   };
 
