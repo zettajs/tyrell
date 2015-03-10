@@ -31,26 +31,31 @@ var list = module.exports.list = function(AWS, elbName, cb) {
       if(err) {
         return cb(err);
       }
+
       var states = data.InstanceStates;
       var params = {
-        InstanceIds: lb.Instances.map(function(i) { return i.InstanceId; })
+        InstanceIds: lb.Instances.map(function(i) { return i.InstanceId; }),
       };
+
       ec2.describeInstances(params, function(err, data) {
         if (err) {
           return cb(err);
         }
-        var instances = data.Reservations.map(function(data) {
-          var instance = data.Instances[0];
-          instance.Tags = formatTags(instance.Tags);
 
-          states.some(function(state) {
-            if (state.InstanceId === instance.InstanceId) {
-              instance.ELBState = state.State;
-              return true;
-            }
+        var instances = [];
+
+        data.Reservations.forEach(function(data) {
+          data.Instances.forEach(function(instance) {
+            instance.Tags = formatTags(instance.Tags);
+
+            states.some(function(state) {
+              if (state.InstanceId === instance.InstanceId) {
+                instance.ELBState = state.State;
+                return true;
+              }
+            });
+            instances.push(instance);
           });
-
-          return instance;
         });
 
         return cb(null, instances);
