@@ -105,6 +105,7 @@
       "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
       "Properties" : {
         "AvailabilityZones" : { "Fn::GetAZs" : "" },
+        "CrossZone": true,
         "Listeners" : [
           { "LoadBalancerPort" : "80", "InstancePort" : "80", "Protocol" : "HTTP" }
         ],
