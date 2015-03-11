@@ -107,7 +107,7 @@
         "AvailabilityZones" : { "Fn::GetAZs" : "" },
         "CrossZone": true,
         "Listeners" : [
-          { "LoadBalancerPort" : "80", "InstancePort" : "80", "Protocol" : "HTTP" }
+          { "LoadBalancerPort" : "80", "InstancePort" : "80", "Protocol" : "TCP" }
         ],
         "HealthCheck" : {
           "Target": "HTTP:80/",
