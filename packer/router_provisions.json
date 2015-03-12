@@ -1,9 +1,9 @@
 {
   "variables": {
-    "output_name": "influxdb"
+    "output_name": "router"
   },
   "ami_tags": {
-    "zetta:influxdb": true
+    "zetta:router": true
   },
   "provisioners": [
     {
@@ -23,7 +23,7 @@
     {
       "type": "shell",
       "inline": [
-        "docker pull adammagaluk/influxdb"
+        "docker pull zetta/zetta-cloud-proxy"
       ]
     }
   ]

@@ -23,9 +23,9 @@ function generateConfig(cb) {
     var config = template.toString().replace(discoveryToken, url);
     fs.writeFileSync(path.join(Vagrant.vagrantPath(), 'zetta-user-data'), config);
 
-    var template = fs.readFileSync(path.join(Vagrant.vagrantPath(), 'influxdb-user-data.template'));
+    var template = fs.readFileSync(path.join(Vagrant.vagrantPath(), 'router-user-data.template'));
     var config = template.toString().replace(discoveryToken, url);
-    fs.writeFileSync(path.join(Vagrant.vagrantPath(), 'influxdb-user-data'), config);
+    fs.writeFileSync(path.join(Vagrant.vagrantPath(), 'router-user-data'), config);
 
     cb();
   });

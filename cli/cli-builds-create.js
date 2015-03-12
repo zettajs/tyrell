@@ -69,14 +69,14 @@ if(platform === 'vagrant') {
     var zettaConfig = extendProvisionsTemplate(packerTemplateFile, require(path.join(Packer.packerPath(), 'zetta_provisions.json')));
     var zettaConfigPath = writeToFile(zettaConfig, 'zetta_packer.json');
 
-    var influxdbConfig = extendProvisionsTemplate(packerTemplateFile, require(path.join(Packer.packerPath(), 'influxdb_provisions.json')));
-    var influxdbConfigPath = writeToFile(influxdbConfig, 'influxdb_packer.json');
+    var routerConfig = extendProvisionsTemplate(packerTemplateFile, require(path.join(Packer.packerPath(), 'router_provisions.json')));
+    var routerConfigPath = writeToFile(routerConfig, 'router_packer.json');
 
     async.parallel([
       function(next) { buildBox(zettaConfigPath, 'zetta', next) },
       function(next) {
         setTimeout(function() {
-          buildBox(influxdbConfigPath, 'influxdb', next);
+          buildBox(routerConfigPath, 'router', next);
         }, 30000);
       }
     ], function(err) {
@@ -129,13 +129,13 @@ if(platform === 'vagrant') {
   var zettaConfig = extendProvisionsTemplate(packerTemplateFile, require(path.join(Packer.packerPath(), 'zetta_provisions.json')));
   var zettaConfigPath = writeToFile(zettaConfig, 'zetta_packer.json');
 
-  var influxdbConfig = extendProvisionsTemplate(packerTemplateFile, require(path.join(Packer.packerPath(), 'influxdb_provisions.json')));
-  var influxdbConfigPath = writeToFile(influxdbConfig, 'influxdb_packer.json');
+  var routerConfig = extendProvisionsTemplate(packerTemplateFile, require(path.join(Packer.packerPath(), 'router_provisions.json')));
+  var routerConfigPath = writeToFile(routerConfig, 'router_packer.json');
 
 
   async.parallel([
     function(next) { buildBox(zettaConfigPath, 'zetta', next) },
-    function(next) { buildBox(influxdbConfigPath, 'influxdb', next) }
+    function(next) { buildBox(routerConfigPath, 'router', next) }
   ], function(err) {
     if (err) {
       throw err;

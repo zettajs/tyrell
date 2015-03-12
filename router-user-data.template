@@ -9,15 +9,13 @@ coreos:
     peer-addr: $public_ipv4:7001
   fleet:
     public-ip: $public_ipv4
-    metadata: role=influxdb
+    metadata: role=router
   units:
     - name: etcd.service
       command: start
     - name: fleet.service
       command: start
-    - name: influxdb.service
-      command: start
-    - name: influxdb-discovery.service
+    - name: zetta-proxy.service
       command: start
     - name: docker-tcp.socket
       command: start
