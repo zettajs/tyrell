@@ -12,7 +12,7 @@ CONFIG = File.join(File.dirname(__FILE__), "config.rb")
 CLOUD_CONFIG_PATH = File.join(File.dirname(__FILE__))
 
 $num_instances_zetta=1
-$num_instances_db=1
+$num_instances_router=1
 $instance_name_prefix = "core"
 $update_channel = "alpha"
 
@@ -24,7 +24,7 @@ end
 def init_machine(config, i, type)
 
   config.vm.define vm_name = "%s-%02d" % [$instance_name_prefix, i] do |config|
-    config.vm.box = "%s-coreos-%s-build" % [type, $update_channel]
+    config.vm.box = "zetta-coreos-%s-build" % $update_channel
     config.vm.hostname = vm_name
 
     config.vm.box_version = ">= 0"
@@ -47,15 +47,12 @@ def init_machine(config, i, type)
       config.vbguest.auto_update = false
     end
 
-
     ip = "172.17.8.#{i+100}"
     config.vm.network :private_network, ip: ip
 
-    if File.exist?("#{CLOUD_CONFIG_PATH}/#{type}-user-data")
-      config.vm.provision :file, :source => "#{CLOUD_CONFIG_PATH}/#{type}-user-data", :destination => "/tmp/vagrantfile-user-data"
-      config.vm.provision :shell, :inline => "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/", :privileged => true
-      config.vm.provision :shell, :inline => "sudo coreos-cloudinit --from-file /var/lib/coreos-vagrant/vagrantfile-user-data", :privileged => true
-    end
+    config.vm.provision :file, :source => "#{CLOUD_CONFIG_PATH}/#{type}-user-data", :destination => "/tmp/vagrantfile-user-data"
+    config.vm.provision :shell, :inline => "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/", :privileged => true
+    config.vm.provision :shell, :inline => "sudo coreos-cloudinit --from-file /var/lib/coreos-vagrant/vagrantfile-user-data", :privileged => true
 
     config.vm.synced_folder "dev/", "/home/core/dev", id: "dev", :nfs => true, :mount_options => ['nolock,vers=3,udp']
     config.vm.network "forwarded_port", guest: 2375, host: 2375, auto_correct: true
@@ -68,8 +65,8 @@ Vagrant.configure(2) do |config|
     init_machine(config, i, "zetta")
   end
 
-  (($num_instances_zetta+1)..($num_instances_db+$num_instances_zetta)).each do |i|
-    init_machine(config, i, "influxdb")
+  (($num_instances_zetta+1)..($num_instances_router+$num_instances_zetta)).each do |i|
+    init_machine(config, i, "router")
   end
 
 end

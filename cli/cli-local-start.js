@@ -16,7 +16,7 @@ var newConfig = program.newconfig;
 function generateConfig(cb) {
   DiscoveryUrl(function(err, url) {
     if(err) {
-      cb(err);  
+      return cb(err);
     }
 
     var template = fs.readFileSync(path.join(Vagrant.vagrantPath(), 'zetta-user-data.template'));
@@ -26,7 +26,7 @@ function generateConfig(cb) {
     var template = fs.readFileSync(path.join(Vagrant.vagrantPath(), 'router-user-data.template'));
     var config = template.toString().replace(discoveryToken, url);
     fs.writeFileSync(path.join(Vagrant.vagrantPath(), 'router-user-data'), config);
-
+    
     cb();
   });
 }
@@ -40,7 +40,7 @@ function startCluster() {
 
   if(verbose) {
     vagrant.stdout.on('data', function(chunk) {
-      console.log(chunk.toString());  
+      process.stdout.write(chunk.toString());  
     });  
   } 
 }

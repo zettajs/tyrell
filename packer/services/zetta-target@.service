@@ -2,8 +2,6 @@
 Description=Zetta Target Server
 After=docker.service
 Requires=docker.service
-After=zetta-registry.service
-Requires=zetta-registry.service
 
 [Service]
 User=core

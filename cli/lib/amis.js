@@ -8,7 +8,7 @@ var list = module.exports.list = function(AWS, cb) {
 
     data.Images = data.Images.filter(function(image) {
       return image.Tags.filter(function(tag) {
-        return tag.Key === 'zetta:app' || tag.Key === 'zetta:router';
+        return tag.Key === 'zetta:app';
       }).length > 0;
     });
 
