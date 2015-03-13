@@ -1,14 +1,14 @@
 var program = require('commander');
 var AWS = require('aws-sdk'); 
-var databases = require('./lib/databases');
+var routers = require('./lib/routers');
 var stacks = require('./lib/stacks');
 
 AWS.config.update({region: 'us-east-1'});
 
 program
-  .command('create', 'create a new influxdb database cluster from ami')
-  .command('remove', 'remove database version')
-  .command('scale', 'scale database ASG')
+  .command('create', 'create a new router ASG from ami')
+  .command('remove', 'remove router ASG version')
+  .command('scale', 'scale router ASG')
   .parse(process.argv);
 
 if (program.args.length 
@@ -22,14 +22,13 @@ if (!name) {
   process.exit(1);
 }
 
-
 stacks.get(AWS, name, function(err, stack) {
   if (err) {
     console.error(err);
     process.exit(1);
   }
 
-  databases.list(AWS, name, function(err, results) {
+  routers.list(AWS, name, function(err, results) {
     if (err) {
       console.error(err);
       process.exit(1);
@@ -38,9 +37,9 @@ stacks.get(AWS, name, function(err, stack) {
     results.forEach(function(v) {
       console.log(v.AppVersion,
                   v.StackName,
-                  v.InfluxDbAutoScale.MinSize,
-                  v.InfluxDbAutoScale.MaxSize,
-                  v.InfluxDbAutoScale.Instances.length + '/' + v.InfluxDbAutoScale.DesiredCapacity);
+                  v.RouterAutoScale.MinSize,
+                  v.RouterAutoScale.MaxSize,
+                  v.RouterAutoScale.Instances.length + '/' + v.RouterAutoScale.DesiredCapacity);
     });
   });
 

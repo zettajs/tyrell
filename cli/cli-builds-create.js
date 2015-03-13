@@ -4,6 +4,7 @@ var program = require('commander');
 var async = require('async');
 var Packer = require('./lib/packer');
 var Vagrant = require('./lib/vagrant');
+var AWS = require('aws-sdk');
 
 program
   .option('-v --verbose', 'Display packer build output')
@@ -109,14 +110,11 @@ if(platform === 'vagrant') {
 
   });    
 } else if (platform === 'aws') {
-  if(!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-    throw new Error('AWS Credentials not set. Build Halted');  
-  }
-
   var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_template_base.json');
   var packerTemplateFile = require(packerTemplateFilePath);
-  packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID;
-  packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY;
+  var credentials = new AWS.SharedIniFileCredentials({profile: 'default'});
+  packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID || credentials.accessKeyId;
+  packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY || credentials.secretAccessKey;
 
   var zettaConfig = extendProvisionsTemplate(packerTemplateFile, require(path.join(Packer.packerPath(), 'zetta_provisions.json')));
   var zettaConfigPath = writeToFile(zettaConfig, 'zetta_packer.json');

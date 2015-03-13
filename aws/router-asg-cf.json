@@ -38,7 +38,7 @@
     }
   },
   "Resources": {
-    "InfluxDbAutoScale": {
+    "RouterAutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
         "AvailabilityZones": {"Fn::GetAZs": ""},
