@@ -4,6 +4,7 @@ var program = require('commander');
 var async = require('async');
 var Packer = require('./lib/packer');
 var Vagrant = require('./lib/vagrant');
+var AWS = require('aws-sdk');
 
 program
   .option('-v --verbose', 'Display packer build output')
@@ -69,16 +70,8 @@ if(platform === 'vagrant') {
     var zettaConfig = extendProvisionsTemplate(packerTemplateFile, require(path.join(Packer.packerPath(), 'zetta_provisions.json')));
     var zettaConfigPath = writeToFile(zettaConfig, 'zetta_packer.json');
 
-    var influxdbConfig = extendProvisionsTemplate(packerTemplateFile, require(path.join(Packer.packerPath(), 'influxdb_provisions.json')));
-    var influxdbConfigPath = writeToFile(influxdbConfig, 'influxdb_packer.json');
-
     async.parallel([
       function(next) { buildBox(zettaConfigPath, 'zetta', next) },
-      function(next) {
-        setTimeout(function() {
-          buildBox(influxdbConfigPath, 'influxdb', next);
-        }, 30000);
-      }
     ], function(err) {
       if (err) {
         throw err;
@@ -117,25 +110,17 @@ if(platform === 'vagrant') {
 
   });    
 } else if (platform === 'aws') {
-  if(!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-    throw new Error('AWS Credentials not set. Build Halted');  
-  }
-
   var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_template_base.json');
   var packerTemplateFile = require(packerTemplateFilePath);
-  packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID;
-  packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY;
+  var credentials = new AWS.SharedIniFileCredentials({profile: 'default'});
+  packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID || credentials.accessKeyId;
+  packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY || credentials.secretAccessKey;
 
   var zettaConfig = extendProvisionsTemplate(packerTemplateFile, require(path.join(Packer.packerPath(), 'zetta_provisions.json')));
   var zettaConfigPath = writeToFile(zettaConfig, 'zetta_packer.json');
 
-  var influxdbConfig = extendProvisionsTemplate(packerTemplateFile, require(path.join(Packer.packerPath(), 'influxdb_provisions.json')));
-  var influxdbConfigPath = writeToFile(influxdbConfig, 'influxdb_packer.json');
-
-
   async.parallel([
     function(next) { buildBox(zettaConfigPath, 'zetta', next) },
-    function(next) { buildBox(influxdbConfigPath, 'influxdb', next) }
   ], function(err) {
     if (err) {
       throw err;

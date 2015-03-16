@@ -8,17 +8,13 @@ coreos:
     addr: $private_ipv4:4001
     peer-addr: $private_ipv4:7001
   fleet:
-    metadata: role=zetta
+    metadata: role=router
   units:
     - name: etcd.service
       command: start
     - name: fleet.service
       command: start
-    - name: zetta-target@3001.service
-      command: start
-    - name: zetta-target@3002.service
-      command: start
-    - name: zetta-target@3003.service
+    - name: zetta-proxy.service
       command: start
     - name: docker-tcp.socket
       command: start
@@ -34,9 +30,3 @@ coreos:
 
         [Install]
         WantedBy=sockets.target
-write_files:
-  - path: /etc/profile.d/zetta
-    permissions: 644
-    owner: root
-    content: |
-      ZETTA_VERSION="@@ZETTA_VERSION@@"

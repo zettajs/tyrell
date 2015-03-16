@@ -1,7 +1,7 @@
 var fs = require('fs');
 var async = require('async');
 var versions = require('./versions');
-var databases = require('./databases');
+var routers = require('./routers');
 
 var get = module.exports.get = function(AWS, stackName, cb) {
   var ec2 = new AWS.EC2();
@@ -152,13 +152,13 @@ var remove = module.exports.remove = function(AWS, name, cb) {
       });
     },
     function(next){
-      databases.list(AWS, name, function(err, results) {
+      routers.list(AWS, name, function(err, results) {
         if (err) {
           return next(err);
         }
         
         async.each(results, function(version, next) {
-          databases.remove(AWS, version.StackName, next);
+          routers.remove(AWS, version.StackName, next);
         }, next);
       });
     },

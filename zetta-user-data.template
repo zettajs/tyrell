@@ -15,10 +15,6 @@ coreos:
       command: start
     - name: fleet.service
       command: start
-    - name: zetta-registry.service
-      command: start
-    - name: zetta-proxy.service
-      command: start
     - name: zetta-target@3001.service
       command: start
     - name: zetta-target@3002.service
@@ -39,3 +35,9 @@ coreos:
 
         [Install]
         WantedBy=sockets.target
+write_files:
+  - path: /etc/profile.d/zetta
+    permissions: 644
+    owner: root
+    content: |
+      ZETTA_VERSION="@@ZETTA_VERSION@@"

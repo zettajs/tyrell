@@ -6,7 +6,7 @@
 
 # Size of the CoreOS cluster created by Vagrant
 $num_instances_zetta=2
-$num_instances_db=3
+$num_instances_router=1
 
 # Official CoreOS channel from which updates should be downloaded
 $update_channel='alpha'

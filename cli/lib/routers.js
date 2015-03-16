@@ -12,7 +12,7 @@ var list = module.exports.list = function(AWS, stackName, cb) {
     }
 
     var stacks = stacks.Stacks.filter(function(stack) {
-      return stack.Tags.filter(function(tag) { return tag.Key === 'zetta:influxdb:version' }).length > 0;
+      return stack.Tags.filter(function(tag) { return tag.Key === 'zetta:router:version' }).length > 0;
     });
     
     async.map(stacks, function(stack, next) {
@@ -26,14 +26,14 @@ var list = module.exports.list = function(AWS, stackName, cb) {
           resources[r.LogicalResourceId] = r;
         });
         
-        stack.AppVersion = stack.Tags.filter(function(t) { return t.Key === 'zetta:influxdb:version'})[0].Value;
+        stack.AppVersion = stack.Tags.filter(function(t) { return t.Key === 'zetta:router:version'})[0].Value;
         stack.Resources = resources;
 
-        autoscaling.describeAutoScalingGroups({ AutoScalingGroupNames: [ stack.Resources['InfluxDbAutoScale'].PhysicalResourceId]}, function(err, data) {
+        autoscaling.describeAutoScalingGroups({ AutoScalingGroupNames: [ stack.Resources['RouterAutoScale'].PhysicalResourceId]}, function(err, data) {
           if (err) {
             return next(err);
           }
-          stack.InfluxDbAutoScale = data.AutoScalingGroups[0];
+          stack.RouterAutoScale = data.AutoScalingGroups[0];
           next(null, stack);
         });
       });
@@ -44,12 +44,12 @@ var list = module.exports.list = function(AWS, stackName, cb) {
 var create = module.exports.create = function(AWS, config, done) {
   var cloudformation = new AWS.CloudFormation();
 
-  var userData = fs.readFileSync('../aws/influxdb-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
+  var userData = fs.readFileSync('../aws/router-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
 
-  var template = JSON.parse(fs.readFileSync('../aws/influxdb-asg-cf.json').toString());
-  template.Resources['DBServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
+  var template = JSON.parse(fs.readFileSync('../aws/router-asg-cf.json').toString());
+  template.Resources['ServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
-  var stackName = config.stack + '-influxdb-' + config.app.version;
+  var stackName = config.stack + '-router-' + config.app.version;
   var params = {
     StackName: stackName,
     OnFailure: 'DELETE',
@@ -58,12 +58,12 @@ var create = module.exports.create = function(AWS, config, done) {
       { ParameterKey: 'InstanceType', ParameterValue: config.app.instance_type },
       { ParameterKey: 'ClusterSize', ParameterValue: config.app.cluster_size },
       { ParameterKey: 'AMI', ParameterValue: config.app.ami },
-      { ParameterKey: 'DBSecurityGroup', ParameterValue: config.app.security_groups },
+      { ParameterKey: 'RouterSecurityGroups', ParameterValue: config.app.security_groups },
       { ParameterKey: 'KeyPair', ParameterValue: config.keyPair }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: config.stack },
-      { Key: 'zetta:influxdb:version', Value: config.app.version }
+      { Key: 'zetta:router:version', Value: config.app.version }
     ],
     TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 5
@@ -97,7 +97,7 @@ var create = module.exports.create = function(AWS, config, done) {
           return setTimeout(check, 1000);
         }
 
-        awsUtils.getAsgFromStack(AWS, stack.StackId, 'InfluxDbAutoScale', function(err, asgName) {
+        awsUtils.getAsgFromStack(AWS, stack.StackId, 'RouterAutoScale', function(err, asgName) {
           if (err) {
             return done(err);
           }

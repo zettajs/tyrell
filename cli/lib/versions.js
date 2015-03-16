@@ -1,6 +1,9 @@
 var fs = require('fs');
 var async = require('async');
 var awsUtils = require('./aws-utils');
+var Vagrant = require('./vagrant');
+var spawn = require('child_process').spawn;
+var versionToken = /@@ZETTA_VERSION@@/;
 
 var list = module.exports.list = function(AWS, stackName, cb) {
   var cloudformation = new AWS.CloudFormation();
@@ -45,7 +48,8 @@ var create = module.exports.create = function(AWS, config, done) {
   var cloudformation = new AWS.CloudFormation();
 
   var userData = fs.readFileSync('../aws/zetta-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
-
+  userData = userData.replace('@@ZETTA_VERSION@@', config.app.version);
+  
   var template = JSON.parse(fs.readFileSync('../aws/zetta-asg-cf.json').toString());
   template.Resources['ZettaServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
@@ -124,4 +128,33 @@ var scale = module.exports.scale = function(AWS, asgName, desired, cb) {
     DesiredCapacity: Number(desired)
   };
   autoscaling.setDesiredCapacity(params, cb);
+};
+
+
+
+var routeAWS = module.exports.route = function(AWS, keyPath, version, cb) {
+  
+  // get ip
+  
+  var cmd = "etcdctl set /zetta/version '{ \"version\": \"" + version + "\"}'";
+  var ssh = spawn('ssh', ['-i', keyPath, 'core@'+ip, cmd]);
+  ssh.on('exit', function(code, signal) {
+    if (code !== 0) {
+      return cb(new Error('Non-Zero exit code. Failed to initialize zetta version.'));
+    }
+    cb();
+  });
+
+  return ssh;
+};
+
+var routeVagrant = module.exports.routeVagrant = function(box, version, cb) {
+  var cmd = "etcdctl set /zetta/version '{ \"version\": \"" + version + "\"}'";
+  var ssh = Vagrant.command(['ssh', box, '--', cmd], function(code) {
+    if(code !== 0) {
+      return cb(new Error('Non-Zero exit code. Failed to initialize zetta version.'));
+    }
+    cb();
+  });
+  return ssh;
 };

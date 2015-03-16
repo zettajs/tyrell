@@ -58,16 +58,16 @@
         ]
       }
     },
-    "CoreIngressZettaProxy": {
+    "AppIngressFromRouter": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "AppSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "SourceSecurityGroupId": {
-          "Fn::GetAtt" : [ "ELBSecurityGroup", "GroupId" ]
+        "GroupName": {"Ref": "AppSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "3000", "ToPort": "3020", "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "RouterSecurityGroup", "GroupId" ]
         }
       }
     },
 
-    "DBSecurityGroup": {
+    "RouterSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupDescription": "Core SecurityGroup, applies to any machine in CoreOS cluster",
@@ -76,27 +76,11 @@
         ]
       }
     },
-    "DBIngress8090": {
+    "RouterIngress80": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "DBSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "8090", "ToPort": "8090", "SourceSecurityGroupId": {
-          "Fn::GetAtt" : [ "DBSecurityGroup", "GroupId" ]
-        }
-      }
-    },
-    "DBIngress8099": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "GroupName": {"Ref": "DBSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "8099", "ToPort": "8099", "SourceSecurityGroupId": {
-          "Fn::GetAtt" : [ "DBSecurityGroup", "GroupId" ]
-        }
-      }
-    },
-    "DBIngress8086": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "GroupName": {"Ref": "DBSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "8086", "ToPort": "8086", "SourceSecurityGroupId": {
-          "Fn::GetAtt" : [ "AppSecurityGroup", "GroupId" ]
+        "GroupName": {"Ref": "RouterSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "ELBSecurityGroup", "GroupId" ]
         }
       }
     },

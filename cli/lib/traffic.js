@@ -73,12 +73,12 @@ module.exports.route = function(AWS, opts, cb) {
     }
 
     currentActive = currentActive.filter(function(instance) {
-      return instance.Tags['zetta:app:version'] !== opts.version.AppVersion;
+      return instance.Tags['zetta:router:version'] !== opts.version.AppVersion;
     }).map(function(instance) {
       return { InstanceId: instance.InstanceId };
     });
 
-    var asgName = opts.version.Resources['ZettaAutoScale'].PhysicalResourceId;
+    var asgName = opts.version.Resources['RouterAutoScale'].PhysicalResourceId;
     awsUtils.getAutoScaleInstances(AWS, asgName, function(err, instances) {
       if (err) {
         return cb(err);

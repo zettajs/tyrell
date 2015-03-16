@@ -2,15 +2,16 @@
 Description=Zetta Target Server
 After=docker.service
 Requires=docker.service
-After=zetta-registry.service
-Requires=zetta-registry.service
 
 [Service]
 User=core
 TimeoutStartSec=0
+Restart=always
+RestartSec=5
 EnvironmentFile=/etc/environment
+EnvironmentFile=/etc/profile.d/zetta
 ExecStartPre=-/usr/bin/docker kill zetta.target.%i
 ExecStartPre=-/usr/bin/docker rm zetta.target.%i
 ExecStartPre=/usr/bin/docker pull zetta/zetta-target-server
-ExecStart=/usr/bin/docker run -rm --name zetta.target.%i -p %i:%i -e MAPPED_PORT=%i -e COREOS_PRIVATE_IPV4=${COREOS_PRIVATE_IPV4} -e SERVICE_REGISTRY_URL=http://${COREOS_PRIVATE_IPV4}:3000 zetta/zetta-target-server
+ExecStart=/usr/bin/docker run -rm --name zetta.target.%i -p %i:%i -e VERSION=${ZETTA_VERSION} -e MAPPED_PORT=%i -e COREOS_PRIVATE_IPV4=${COREOS_PRIVATE_IPV4} -e SERVICE_REGISTRY_URL=http://${COREOS_PRIVATE_IPV4}:3000 zetta/zetta-target-server
 ExecStop=/usr/bin/docker stop zetta.target.%i

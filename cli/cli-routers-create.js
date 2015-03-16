@@ -2,7 +2,7 @@ var crypto = require('crypto');
 var program = require('commander');
 var AWS = require('aws-sdk'); 
 var stacks = require('./lib/stacks');
-var databases = require('./lib/databases');
+var routers = require('./lib/routers');
 
 AWS.config.update({region: 'us-east-1'});
 
@@ -37,7 +37,7 @@ stacks.get(AWS, name, function(err, stack) {
     discoveryUrl: stack.Parameters['DiscoveryUrl'],
     app: {
       ami: program.ami, // cl arg or from previous packer task
-      security_groups: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['DBSecurityGroup'].GroupId].join(','),
+      security_groups: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['RouterSecurityGroup'].GroupId].join(','),
       cluster_size: program.size + '',
       instance_type: program.type,
       version: program.version
@@ -45,7 +45,7 @@ stacks.get(AWS, name, function(err, stack) {
   };
 
   console.log('Creating CF Version', config.app.version);
-  databases.create(AWS, config, function(err, stack) {
+  routers.create(AWS, config, function(err, stack) {
     if (err) {
       console.error(err);
       process.exit(1);
