@@ -6,6 +6,8 @@ Requires=docker.service
 [Service]
 User=core
 TimeoutStartSec=0
+Restart=always
+RestartSec=5
 EnvironmentFile=/etc/environment
 ExecStartPre=-/usr/bin/docker kill zetta.proxy
 ExecStartPre=-/usr/bin/docker rm zetta.proxy
