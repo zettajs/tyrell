@@ -2,19 +2,22 @@
 
 
 ```
-Usage: cli [options] [command]
+  Usage: cli [options] [command]
 
 
-Commands:
+  Commands:
 
-  stacks                 list all stacks, and sub commands
-  versions [stack-name]  list zetta versions, and sub commands
-  traffic [stack-name]   switch elb traffic to a specific ASG version
-  help [cmd]             display help for [cmd]
+    stacks                 list all stacks, and sub commands
+    versions [stack-name]  list zetta versions, and sub commands
+    routers [stack-name]   list routers versions, and sub commands
+    traffic [stack-name]   switch elb traffic to a specific router ASG
+    builds                 build a new CoreOS image for zetta.
+    local                  interact with a local CoreOS cluster.
+    help [cmd]             display help for [cmd]
 
-Options:
+  Options:
 
-  -h, --help  output usage information
+    -h, --help  output usage information
 ```
 
 
@@ -31,7 +34,7 @@ aws_secret_access_key = your_secret_key
 
 ## Stacks
 
-Stacks would refer to example "Centralite Production", these would exist through deploying new versions of the actual application.
+Stacks would refer to example "Centralite", these would exist through deploying new versions of the actual application.
 
 
 ### List Stacks
@@ -61,7 +64,7 @@ Options
 
 ## Versions
 
-Versions are the concept of the Zetta portion of the architecture. This would include a cluster of machines running `zetta-proxy`, `zetta-registry`, and multiple `zetta-targets`. A version is a Cloudformation stack based on `../aws/zetta-asg-cf.json` and an AMI specified. This creates a Autoscale group based on the AMI.
+Versions are the concept of the Zetta-target portion of the architecture. A version is a Cloudformation stack based on `../aws/zetta-asg-cf.json` and an AMI specified. This creates a Autoscale group based on the AMI.
 
 
 ### List Versions
@@ -98,28 +101,92 @@ Remove version
 
 Scale a versions Autoscale group to a desired size.
 
-`node cli versions remove [stack name] [version] -s [size]`
+`node cli versions scale [stack name] [version] -s [size]`
 
 Options:
 
   -s, --size <cluster stize>  Size of Autoscale group.
 
 
+## Routers
+
+Routers are an ASG of instances running multi-cloud's proxy. These are what the ELB routes to.
+
+### List Routers
+
+List all versions currently deployed.
+
+`node cli routers [stack name]`
+
+
+### Create Router
+
+Create a new version, ami must be specified.
+
+`node cli routers create [stack name] -a [ami]`
+
+Options:
+
+  -a, --ami <ami>             Existing AMI to use. Must be specified.
+
+  --type <instance type>      Instance type to use. [t2.micro]
+
+  -s, --size <cluster stize>  Size of Autoscale group. [1]
+
+  --version <app version>     Logical version of the app being deployed. If not specified it will generate one.
+
+
+### Remove Router
+
+Remove version
+
+`node cli routers remove [stack name] [version]`
+
+### Scale Router
+
+Scale a versions Autoscale group to a desired size.
+
+`node cli routers scale [stack name] [version] -s [size]`
+
+Options:
+
+  -s, --size <cluster stize>  Size of Autoscale group.
+
+
+
 ## Traffic
+
+Traffic allows you to route ELB traffic to an ASG of routers or set the specific version of zetta targets to use.
+
+### Traffic Zetta
+
+Traffic zetta allows you to set the current version of zetta to use in the zetta routers. This is set by updating a etcd key `/zetta/version` with a json object that contains {"version": "some version id"}
+
+
+#### Show Current Version
+
+`node cli traffic zetta [stack name] -k [pem file]`
+
+#### Set version
+
+`node cli traffic zetta [stack name] -k [pem file] --version [version id]`
+
+
+### Traffic ELB
 
 With each stack created, one ELB is created for a stack. This routes traffic to instances in a version. You can you the traffic command to perform the Blue/Green switch between versions.
 
-### Show Current Traffic
+#### Show Current Traffic
 
 List all instances being routed to by the ELB.
 
-`node cli traffic [stack name]`
+`node cli traffic elb [stack name]`
 
-### Route to Specific Version
+#### Route to Specific Version
 
 Route traffic to a version. This will add all instances from the version's ASG to the ELB and wait for them to be InService on the ELb. Then it will remove any instances from the ELB that are not part of the version. Last step can be disabled with `--no-replace`
 
-`node cli traffic [stack name] --version [version]`
+`node cli traffic elb [stack name] --version [version]`
 
 
 Options:
