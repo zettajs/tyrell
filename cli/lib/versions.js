@@ -17,6 +17,13 @@ var list = module.exports.list = function(AWS, stackName, cb) {
     var stacks = stacks.Stacks.filter(function(stack) {
       return stack.Tags.filter(function(tag) { return tag.Key === 'zetta:app:version' }).length > 0;
     });
+
+    stacks = stacks.filter(function(stack) {
+      return stack.Tags.filter(function(tag) { 
+        return tag.Key === 'zetta:stack' && tag.Value === stackName;
+      }).length > 0;
+    });
+
     
     async.map(stacks, function(stack, next) {
       cloudformation.describeStackResources({ StackName: stack.StackName }, function(err, data) {
