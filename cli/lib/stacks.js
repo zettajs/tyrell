@@ -168,6 +168,53 @@ var remove = module.exports.remove = function(AWS, name, cb) {
     }
     cloudformation.deleteStack({ StackName: name }, cb);
   });
+};
 
+// list all ec2 instances for a stack. Includes routers and versions
+var ec2List = module.exports.ec2List = function(AWS, name, cb) {
+  var ec2 = new AWS.EC2();
+  var instances = [];
+  async.parallel([
+    function(next) {
+      routers.list(AWS, name, function(err, routers) {
+        if (err) {
+          return next(err);
+        }
+        
+        instances = instances.concat.apply(instances, routers.map(function(router) { return router.RouterAutoScale.Instances; }));
+        next();
+      });
+    },
+    function(next) {
+      versions.list(AWS, name, function(err, routers) {
+        if (err) {
+          return next(err);
+        }
+        
+        instances = instances.concat.apply(instances, routers.map(function(router) { return router.ZettaAutoScale.Instances; }));
+        next();
+      });      
+    }
+  ], function(err) {
+    if (err) {
+      return cb(err);
+    }
+
+    var params = { InstanceIds: instances.map(function(i) { return i.InstanceId; }) };
+    ec2.describeInstances(params, function(err, data) {
+      if (err) {
+        return cb(err);
+      }
+      
+      var instances = [];
+      data.Reservations.forEach(function(data) {
+        data.Instances.forEach(function(instance) {
+          instances.push(instance);
+        });
+      });
+      
+      return cb(null, instances);
+    });
+  });
 
 };

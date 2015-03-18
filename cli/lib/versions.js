@@ -131,13 +131,27 @@ var scale = module.exports.scale = function(AWS, asgName, desired, cb) {
 };
 
 
+var routeAWS = module.exports.getSSH = function(host, keyPath, cb) {
+  var cmd = "etcdctl get /zetta/version";
+  var ssh = spawn('ssh', ['-o', 'StrictHostKeyChecking no', '-i', keyPath, host, cmd]);
+  var buffer = '';
+  ssh.on('exit', function(code, signal) {
+    if (code !== 0) {
+      return cb(new Error('Non-Zero exit code. Failed to initialize zetta version.'));
+    }
+    cb(null, JSON.parse(buffer));
+  });
 
-var routeAWS = module.exports.route = function(AWS, keyPath, version, cb) {
-  
-  // get ip
-  
+  ssh.stdout.on('data', function(chunk) {
+    buffer+=chunk.toString(); 
+  });  
+
+  return ssh;
+};
+
+var routeAWS = module.exports.routeSSH = function(host, keyPath, version, cb) {
   var cmd = "etcdctl set /zetta/version '{ \"version\": \"" + version + "\"}'";
-  var ssh = spawn('ssh', ['-i', keyPath, 'core@'+ip, cmd]);
+  var ssh = spawn('ssh', ['-o', 'StrictHostKeyChecking no', '-i', keyPath, host, cmd]);
   ssh.on('exit', function(code, signal) {
     if (code !== 0) {
       return cb(new Error('Non-Zero exit code. Failed to initialize zetta version.'));

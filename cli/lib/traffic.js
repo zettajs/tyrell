@@ -1,4 +1,6 @@
 var awsUtils = require('./aws-utils');
+var stacks = require('./stacks');
+var versions = require('./versions');
 
 function formatTags(tags) {
   var obj = {};
@@ -117,4 +119,34 @@ module.exports.route = function(AWS, opts, cb) {
     });
     
   }); 
+};
+
+module.exports.zettaVersion = function(AWS, stackName, keyPath, cb) {
+  stacks.ec2List(AWS, stackName, function(err, instances) {
+    if (err) {
+      return cb(err);
+    }
+    
+    instances = instances.filter(function(instance) {
+      return (instance.State.Name === 'running')
+    });
+
+    var host = 'core@' + instances[0].PublicDnsName;
+    versions.getSSH(host, keyPath, cb);
+  });
+};
+
+module.exports.setZettaVersion = function(AWS, stackName, version, keyPath, cb) {
+  stacks.ec2List(AWS, stackName, function(err, instances) {
+    if (err) {
+      return cb(err);
+    }
+    
+    instances = instances.filter(function(instance) {
+      return (instance.State.Name === 'running')
+    });
+
+    var host = 'core@' + instances[0].PublicDnsName;
+    versions.routeSSH(host, keyPath, version, cb);
+  });
 };
