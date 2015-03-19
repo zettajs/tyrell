@@ -1,6 +1,10 @@
-# Stack Deploy Utility for Zetta Cloud
+# Tyrell
 
-Want to create a Zetta deployment with Latest CoreOS? Here's how.
+Stack Deploy Utility for Zetta Cloud
+
+![tyrell-logo](assets/tyrell.png)
+
+Want to create a Zetta deployment with Latest CoreOS? Here's how!
 
 ## Vagrant
 
