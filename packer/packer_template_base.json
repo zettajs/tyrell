@@ -13,7 +13,7 @@
     "access_key": "{{user `aws_access_key` }}",
     "secret_key": "{{user `aws_secret_key` }}",
     "region": "us-east-1",
-    "source_ami": "ami-8297d4ea",
+    "source_ami": "ami-323b195a",
     "instance_type": "t2.micro",
     "ssh_username": "core",
     "ami_name": "{{user `output_name`}}-coreos-alpha-os-{{timestamp}}",
@@ -23,6 +23,7 @@
   },
   {
     "type": "virtualbox-iso",
+    "headless": true,
     "vm_name": "{{user `output_name`}}-coreos-{{user `channel`}}",
     "iso_checksum": "{{user `checksum`}}",
     "iso_checksum_type": "{{user `checksum_type`}}",
