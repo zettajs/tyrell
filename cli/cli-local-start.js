@@ -53,8 +53,12 @@ function startCluster() {
   if(verbose) {
     vagrant.stdout.on('data', function(chunk) {
       process.stdout.write(chunk.toString());  
-    });  
+    });
   }
+
+  vagrant.stderr.on('data', function(chunk) {
+    process.stderr.write(chunk.toString());  
+  });
 }
 
 if(newConfig) {
