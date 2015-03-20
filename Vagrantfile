@@ -54,6 +54,11 @@ def init_machine(config, i, type)
     config.vm.provision :shell, :inline => "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/", :privileged => true
     config.vm.provision :shell, :inline => "sudo coreos-cloudinit --from-file /var/lib/coreos-vagrant/vagrantfile-user-data", :privileged => true
 
+    target_dir = ENV['TYRELL_TARGET_DIR']
+    proxy_dir = ENV['TYRELL_PROXY_DIR']
+
+    config.vm.synced_folder target_dir, "/home/core/target", id: "target", :nfs => true, :mount_options => ["nolock,vers=3,udp"] if target_dir
+    config.vm.synced_folder proxy_dir, "/home/core/proxy", id: "proxy", :nfs => true, :mount_options => ["nolock,vers=3,udp"] if proxy_dir
     config.vm.synced_folder "dev/", "/home/core/dev", id: "dev", :nfs => true, :mount_options => ['nolock,vers=3,udp']
     config.vm.network "forwarded_port", guest: 2375, host: 2375, auto_correct: true
   end
