@@ -54,6 +54,13 @@ function extendProvisionsTemplate(orig, updates) {
 }
 
 function writeToFile(config, filePath) {
+
+  // create build path
+  try {
+    fs.mkdirSync(path.join(Packer.packerPath(), 'builds'));
+  } catch(err) {
+  }
+
   var packerFilePath = path.join(Packer.packerPath(), 'builds', filePath);
   var fd = fs.openSync(packerFilePath, 'w+');
   fs.writeSync(fd, JSON.stringify(config, null, '\t'));
