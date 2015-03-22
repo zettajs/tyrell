@@ -70,7 +70,8 @@ var create = module.exports.create = function(AWS, config, done) {
       { ParameterKey: 'ClusterSize', ParameterValue: config.app.cluster_size },
       { ParameterKey: 'AMI', ParameterValue: config.app.ami },
       { ParameterKey: 'ZettaAppSecurityGroup', ParameterValue: config.app.security_groups },
-      { ParameterKey: 'KeyPair', ParameterValue: config.keyPair }
+      { ParameterKey: 'KeyPair', ParameterValue: config.keyPair },
+      { ParameterKey: 'InstanceProfile', ParameterValue: config.app.instanceProfile }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: config.stack },
@@ -79,7 +80,6 @@ var create = module.exports.create = function(AWS, config, done) {
     TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 5
   };
-
 
   function checkStackStatus(cb) {
     cloudformation.describeStacks({ StackName: stackName }, function(err, data) {

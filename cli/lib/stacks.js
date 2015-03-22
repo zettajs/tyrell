@@ -88,6 +88,7 @@ var create = module.exports.create = function(AWS, config, done) {
   var params = {
     StackName: stackName,
     OnFailure: 'DELETE',
+    Capabilities: ['CAPABILITY_IAM'],
     Parameters: [
       { ParameterKey: 'DiscoveryUrl', ParameterValue: config.discoveryUrl },
       { ParameterKey: 'KeyPair', ParameterValue: config.keyPair }
