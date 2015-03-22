@@ -56,11 +56,6 @@ def init_machine(config, i, type)
 
     config.vm.synced_folder "dev/", "/home/core/dev", id: "dev", :nfs => true, :mount_options => ['nolock,vers=3,udp']
 
-
-    config.vm.synced_folder "../zetta-target-server", "/home/core/zetta-target-server", id: "target", :nfs => true, :mount_options => ['nolock,vers=3,udp']
-    config.vm.synced_folder "../zetta-cloud-proxy", "/home/core/zetta-cloud-proxy", id: "proxy", :nfs => true, :mount_options => ['nolock,vers=3,udp']
-
-
     config.vm.network "forwarded_port", guest: 2375, host: 2375, auto_correct: true
   end
 end
