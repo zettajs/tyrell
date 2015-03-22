@@ -40,3 +40,5 @@ write_files:
     owner: root
     content: |
       ZETTA_VERSION="@@ZETTA_VERSION@@"
+      ZETTA_DEVICE_DATA_QUEUE="@@ZETTA_DEVICE_DATA_QUEUE@@"
+      ZETTA_USAGE_QUEUE="@@ZETTA_USAGE_QUEUE@@"
