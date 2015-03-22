@@ -45,3 +45,5 @@ write_files:
       ZETTA_VERSION="@@ZETTA_VERSION@@"
       ZETTA_DEVICE_DATA_QUEUE="@@ZETTA_DEVICE_DATA_QUEUE@@"
       ZETTA_USAGE_QUEUE="@@ZETTA_USAGE_QUEUE@@"
+      AWS_ACCESSKEY="fakekey"
+      AWS_SECRET="fakesecret"
