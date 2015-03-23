@@ -2,6 +2,7 @@
 Description=Zetta Target Server
 After=docker.service
 Requires=docker.service
+Requires=zetta-target-check@%i.service
 
 [Service]
 User=core
