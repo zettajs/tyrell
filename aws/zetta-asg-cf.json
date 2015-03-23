@@ -36,6 +36,10 @@
     "ZettaStack" : {
       "Description" : "Zetta Stack",
       "Type" : "String"
+    },
+    "InstanceProfile" : {
+      "Description" : "IAM Instance Profile for ec2 instances",
+      "Type" : "String"
     }
   },
   "Resources": {
@@ -62,6 +66,7 @@
         "InstanceType": {"Ref": "InstanceType"},
         "KeyName": {"Ref": "KeyPair"},
         "SecurityGroups": {"Ref": "ZettaAppSecurityGroup"},
+        "IamInstanceProfile": {"Ref" : "InstanceProfile" },
         "UserData" : null
       }
     }

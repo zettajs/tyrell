@@ -41,7 +41,10 @@ stacks.get(AWS, name, function(err, stack) {
       cluster_size: program.size + '',
       instance_type: program.type,
       load_balancer: stack.Resources['ZettaELB'].PhysicalResourceId,
-      version: program.version
+      version: program.version,
+      instanceProfile: stack.Resources['AppRoleInstanceProfile'].PhysicalResourceId,
+      deviceDataQueue: stack.Resources['DeviceDataQueue'].PhysicalResourceId,
+      zettaUsageQueue: stack.Resources['ZettaUsageQueue'].PhysicalResourceId
     }
   };
 

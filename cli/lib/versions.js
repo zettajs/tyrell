@@ -56,6 +56,8 @@ var create = module.exports.create = function(AWS, config, done) {
 
   var userData = fs.readFileSync('../aws/zetta-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
   userData = userData.replace('@@ZETTA_VERSION@@', config.app.version);
+  userData = userData.replace('@@ZETTA_DEVICE_DATA_QUEUE@@', config.app.deviceDataQueue);
+  userData = userData.replace('@@ZETTA_USAGE_QUEUE@@', config.app.zettaUsageQueue);
   
   var template = JSON.parse(fs.readFileSync('../aws/zetta-asg-cf.json').toString());
   template.Resources['ZettaServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
@@ -70,7 +72,8 @@ var create = module.exports.create = function(AWS, config, done) {
       { ParameterKey: 'ClusterSize', ParameterValue: config.app.cluster_size },
       { ParameterKey: 'AMI', ParameterValue: config.app.ami },
       { ParameterKey: 'ZettaAppSecurityGroup', ParameterValue: config.app.security_groups },
-      { ParameterKey: 'KeyPair', ParameterValue: config.keyPair }
+      { ParameterKey: 'KeyPair', ParameterValue: config.keyPair },
+      { ParameterKey: 'InstanceProfile', ParameterValue: config.app.instanceProfile }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: config.stack },
@@ -79,7 +82,6 @@ var create = module.exports.create = function(AWS, config, done) {
     TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 5
   };
-
 
   function checkStackStatus(cb) {
     cloudformation.describeStacks({ StackName: stackName }, function(err, data) {

@@ -7,6 +7,7 @@ var versionToken = /@@ZETTA_VERSION@@/;
 var Vagrant = require('./lib/vagrant');
 var versions = require('./lib/versions');
 var DiscoveryUrl = require('./lib/get-discovery-url');
+var AWS = require('aws-sdk');
 
 program
   .option('-v, --verbose', 'Display verbose output from starting local cluster.')
@@ -26,6 +27,8 @@ function generateConfig(cb) {
     var template = fs.readFileSync(path.join(Vagrant.vagrantPath(), 'zetta-user-data.template'));
     var config = template.toString().replace(discoveryToken, url);
     config = config.replace(versionToken, version);
+    config = config.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/, 'http://core-01:9324/queue/device-data');
+    config = config.replace(/@@ZETTA_USAGE_QUEUE@@/, 'http://core-01:9324/queue/zetta-usage');
     fs.writeFileSync(path.join(Vagrant.vagrantPath(), 'zetta-user-data'), config);
 
     var template = fs.readFileSync(path.join(Vagrant.vagrantPath(), 'router-user-data.template'));
@@ -46,6 +49,20 @@ function startCluster() {
       if (err) {
         throw err;
       }
+      
+      var sqs = new AWS.SQS({ region: 'us-east-1',
+                              endpoint: 'http://core-01:9324',
+                              accessKeyId: 'key',
+                              secretAccessKey: 'secret'
+                            });
+
+      sqs.createQueue({ QueueName: 'device-data' }, function(err, data) {
+        if (err) console.error(err);
+      });
+      sqs.createQueue({ QueueName: 'zetta-usage' }, function(err, data) {
+        if (err) console.error(err);
+      });
+
     });
 
   }); 
