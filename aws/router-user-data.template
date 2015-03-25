@@ -14,6 +14,11 @@ coreos:
       command: start
     - name: fleet.service
       command: start
+    - name: journallogs-logentries.service
+      command: start
+      runtime: no
+    - name: docker-stats-logentries.service
+      command: start
     - name: zetta-proxy.service
       command: start
     - name: docker-tcp.socket
@@ -30,3 +35,11 @@ coreos:
 
         [Install]
         WantedBy=sockets.target
+write_files:
+  - path: /etc/profile.d/zetta
+    permissions: 644
+    owner: root
+    content: |
+      ZETTA_VERSION="@@ZETTA_VERSION@@"
+      LOGENTRIES_TOKEN="@@LOGENTRIES_TOKEN@@"
+

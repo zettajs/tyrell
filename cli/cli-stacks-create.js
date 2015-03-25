@@ -8,6 +8,7 @@ AWS.config.update({region: 'us-east-1'});
 
 program
   .option('-k, --keyPair <key_pair>', 'Specify existing keypair to use when creating future asg.')
+  .option('--logToken <token>', 'Specify a log entries token for logging.', '')
   .parse(process.argv);
 
 var name = program.args[0];
@@ -58,8 +59,10 @@ getKeyPair(function(err, key) {
     var config = {
       stack: name,
       discoveryUrl: url,
-      keyPair: key.KeyName
+      keyPair: key.KeyName,
+      logentriesToken: program.logToken
     };
+
     stacks.create(AWS, config, function(err) {
       if (err) {
         console.error(err);

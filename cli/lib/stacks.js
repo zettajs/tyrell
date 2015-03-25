@@ -91,7 +91,8 @@ var create = module.exports.create = function(AWS, config, done) {
     Capabilities: ['CAPABILITY_IAM'],
     Parameters: [
       { ParameterKey: 'DiscoveryUrl', ParameterValue: config.discoveryUrl },
-      { ParameterKey: 'KeyPair', ParameterValue: config.keyPair }
+      { ParameterKey: 'KeyPair', ParameterValue: config.keyPair },
+      { ParameterKey: 'LogentriesToken', ParameterValue: config.logentriesToken }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stackName },

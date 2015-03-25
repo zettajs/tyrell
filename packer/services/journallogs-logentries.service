@@ -1,0 +1,12 @@
+[Unit]
+Description=Send all system logs to logentries
+After=systemd-journald.service
+After=systemd-networkd.service
+
+[Service]
+Restart=always
+EnvironmentFile=/etc/profile.d/zetta
+ExecStart=/bin/bash /home/core/journal2logentries.sh
+
+[Install]
+WantedBy=multi-user.target
