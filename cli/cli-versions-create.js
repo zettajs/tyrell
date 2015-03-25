@@ -35,6 +35,7 @@ stacks.get(AWS, name, function(err, stack) {
     stack: name,
     keyPair: stack.Parameters['KeyPair'],
     discoveryUrl: stack.Parameters['DiscoveryUrl'],
+    logentriesToken: stack.Parameters['LogentriesToken'],
     app: {
       ami: program.ami, // cl arg or from previous packer task
       security_groups: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['AppSecurityGroup'].GroupId].join(','),

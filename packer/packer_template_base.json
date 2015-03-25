@@ -58,15 +58,31 @@
     "type": "shell",
     "only": ["virtualbox-iso"],
     "inline": [
-        "wget --no-check-certificate -O authorized_keys 'https://github.com/mitchellh/vagrant/raw/master/keys/vagrant.pub'",
-        "mv authorized_keys /home/core/.ssh",
-        "chown -R  core /home/core/.ssh",
-        "sudo rm -rf /var/lib/coreos-install"
+      "wget --no-check-certificate -O authorized_keys 'https://github.com/mitchellh/vagrant/raw/master/keys/vagrant.pub'",
+      "mv authorized_keys /home/core/.ssh",
+      "chown -R  core /home/core/.ssh",
+      "sudo rm -rf /var/lib/coreos-install"
     ]
   },
   {
     "type": "shell",
     "inline": "sudo rm /etc/machine-id"
+  },
+  {
+    "only": ["virtualbox-iso"],
+    "type": "shell",
+    "inline": "docker pull adammagaluk/elasticmq"
+  },
+  {
+    "only": ["amazon-ebs"],
+    "type": "shell",
+    "inline": "docker pull adammagaluk/docker-stats-logentries"
+  },
+  {
+    "only": ["amazon-ebs"],
+    "type": "file",
+    "source": "journal2logentries.sh",
+    "destination": "/home/core/journal2logentries.sh"
   }
   ],
   "post-processors": [

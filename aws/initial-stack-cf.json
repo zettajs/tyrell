@@ -10,6 +10,11 @@
     "KeyPair": {
       "Description": "Keypair to use in ASG groups created later.",
       "Type": "String"
+    },
+    "LogentriesToken": {
+      "Description": "LogEntries Token.",
+      "Type": "String",
+      "Default": ""
     }
   },
 
