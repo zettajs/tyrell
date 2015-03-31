@@ -43,8 +43,9 @@
       "Properties": {
         "AvailabilityZones": {"Fn::GetAZs": ""},
         "LaunchConfigurationName": {"Ref": "ServerLaunchConfig"},
-        "MinSize": "1",
+        "MinSize": "0",
         "MaxSize": "12",
+        "HealthCheckType": "EC2",
         "DesiredCapacity": {"Ref": "ClusterSize"},
         "HealthCheckGracePeriod": 60,
         "Tags": [

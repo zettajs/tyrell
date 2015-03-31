@@ -48,10 +48,10 @@
       "Properties": {
         "AvailabilityZones": {"Fn::GetAZs": ""},
         "LaunchConfigurationName": {"Ref": "ZettaServerLaunchConfig"},
-        "MinSize": "1",
+        "MinSize": "0",
         "MaxSize": "12",
         "DesiredCapacity": {"Ref": "ClusterSize"},
-        "HealthCheckType": "ELB",
+        "HealthCheckType": "EC2",
         "HealthCheckGracePeriod": 60,
         "Tags": [
             {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
