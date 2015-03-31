@@ -89,6 +89,16 @@
         }
       }
     },
+    
+    "DataWorkerSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Zetta Sqs data worker",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
+        ]
+      }
+    },
 
     "ZettaELB" : {
       "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
@@ -197,7 +207,7 @@
                 "Statement": [
                           {
                             "Effect": "Allow",
-                            "Action": [ "sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueUrl" ],
+                            "Action": [ "sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueUrl", "sqs:GetQueueAttributes" ],
                             "Resource": [ { "Fn::GetAtt" : ["DeviceDataQueue", "Arn"]}, { "Fn::GetAtt" : ["ZettaUsageQueue", "Arn"]} ]
                           }
                       ]
