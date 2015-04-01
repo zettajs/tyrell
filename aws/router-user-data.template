@@ -14,11 +14,6 @@ coreos:
       command: start
     - name: fleet.service
       command: start
-    - name: journallogs-logentries.service
-      command: start
-      runtime: no
-    - name: docker-stats-logentries.service
-      command: start
     - name: zetta-proxy.service
       command: start
     - name: docker-tcp.socket
