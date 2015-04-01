@@ -48,7 +48,6 @@ stacks.get(AWS, name, function(err, stack) {
     }
   };
 
-  console.log(config)
   console.log('Creating CF Version', config.app.version);
   workers.create(AWS, config, function(err, stack) {
     if (err) {

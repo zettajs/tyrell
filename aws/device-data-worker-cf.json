@@ -52,13 +52,10 @@
         "AvailabilityZones": {"Fn::GetAZs": ""},
         "LaunchConfigurationName": {"Ref": "DeviceDataLaunchConfig"},
         "MinSize": "0",
-        "MaxSize": "12",
-        "DesiredCapacity": "0",
-        "HealthCheckType": "EC2",
-        "HealthCheckGracePeriod": 60,
+        "MaxSize": "0",
         "Tags": [
-            {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
-            {"Key": "Name", "Value": { "Fn::Join" : [ "-", [ {"Ref" : "ZettaStack" }, {"Ref" : "AWS::StackName" }, "app" ] ] }, "PropagateAtLaunch": true}
+          {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
+          {"Key": "Name", "Value": { "Fn::Join" : [ "-", [ {"Ref" : "ZettaStack" }, {"Ref" : "AWS::StackName" }, "app" ] ] }, "PropagateAtLaunch": true}
         ]
       }
     },
@@ -72,9 +69,27 @@
         "IamInstanceProfile": {"Ref" : "InstanceProfile" },
         "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
           "#!/bin/bash\n",
-          "sudo docker run zetta/zetta-device-data-worker --limit 20 --region ", { "Ref" : "AWS::Region" }, " device ", { "Ref" : "DeviceDataQueueUrl" }, " ", { "Ref" : "DeviceDataS3Bucket" }, "\n",
-          "sudo shutdown -h now\n"
+          "docker run zetta/zetta-device-data-worker --region ", { "Ref" : "AWS::Region" }, " device ", { "Ref" : "DeviceDataQueueUrl" }, " ", { "Ref" : "DeviceDataS3Bucket" }, "\n",
+          "shutdown -h now\n"
       	]]}}
+      }
+    },
+    "DeviceDataUp": {
+      "Type": "AWS::AutoScaling::ScheduledAction",
+      "Properties": {
+        "AutoScalingGroupName": { "Ref": "DeviceDataAutoScale" },
+        "MaxSize": "1",
+        "MinSize": "1",
+        "Recurrence": "0 * * * *"
+      }
+    },
+    "DeviceDataDown": {
+      "Type": "AWS::AutoScaling::ScheduledAction",
+      "Properties": {
+        "AutoScalingGroupName": { "Ref": "DeviceDataAutoScale" },
+        "MaxSize": "0",
+        "MinSize": "0",
+        "Recurrence": "45 * * * *"
       }
     }
   }

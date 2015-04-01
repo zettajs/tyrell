@@ -47,6 +47,7 @@ var list = module.exports.list = function(AWS, stackName, cb) {
 
 var create = module.exports.create = function(AWS, config, done) {
   var cloudformation = new AWS.CloudFormation();
+  var autoscaling = new AWS.AutoScaling();
   var template = JSON.parse(fs.readFileSync('../aws/device-data-worker-cf.json').toString());
 
   var stackName = config.stack + '-sqsworker-' + config.app.version;
@@ -102,7 +103,25 @@ var create = module.exports.create = function(AWS, config, done) {
           return setTimeout(check, 1000);
         }
 
-        return done();
+        cloudformation.describeStackResources({ StackName: stack.StackName }, function(err, data) {
+          if (err) {
+            return done(err);
+          }
+
+          var resources = {};
+          data.StackResources.forEach(function(r) {
+            resources[r.LogicalResourceId] = r;
+          });
+
+          var params = {
+            AutoScalingGroupName: resources['DeviceDataAutoScale'].PhysicalResourceId,
+            ScalingProcesses: ['ReplaceUnhealthy']
+          };
+          autoscaling.suspendProcesses(params, function(err, data) {
+            done(err);
+          });
+
+        });
       });
     }
     check();
