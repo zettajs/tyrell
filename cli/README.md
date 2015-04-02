@@ -32,6 +32,27 @@ aws_secret_access_key = your_secret_key
 
 ```
 
+## Deploy Project Example
+
+```
+node cli stacks create example
+
+node cli builds
+node cli routers create example -a ami-123456
+node cli versions create example -a ami-123456
+
+node cli traffic elb example --router <router-version>
+chmod 400 zetta-kp-example.pem
+node cli traffic zetta example --version <zetta-version> -k zetta-kp-example.pem
+
+node cli builds --workers
+node cli workers create example -a ami-654321
+
+
+```
+
+
+
 ## Stacks
 
 Stacks would refer to example "Centralite", these would exist through deploying new versions of the actual application.
