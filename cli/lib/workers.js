@@ -118,7 +118,15 @@ var create = module.exports.create = function(AWS, config, done) {
             ScalingProcesses: ['ReplaceUnhealthy']
           };
           autoscaling.suspendProcesses(params, function(err, data) {
-            done(err);
+            if (err) {
+              return done(err);
+            }
+            
+            var params = {
+              AutoScalingGroupName: resources['ZettaUsageAutoScale'].PhysicalResourceId,
+              ScalingProcesses: ['ReplaceUnhealthy']
+            };
+            autoscaling.suspendProcesses(params, done);
           });
 
         });
