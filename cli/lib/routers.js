@@ -20,13 +20,15 @@ var list = module.exports.list = function(AWS, stackName, cb) {
     if (err) {
       return cb(err);
     }
-
+    
+    // filter with only router cf 
     var stacks = stacks.Stacks.filter(function(stack) {
       return stack.Tags.filter(function(tag) { 
         return tag.Key === 'zetta:router:version';
       }).length > 0;
     });
-
+    
+    // filter stack name
     stacks = stacks.filter(function(stack) {
       return stack.Tags.filter(function(tag) { 
         return tag.Key === 'zetta:stack' && tag.Value === stackName;
@@ -52,6 +54,11 @@ var list = module.exports.list = function(AWS, stackName, cb) {
             return next(err);
           }
           stack.RouterAutoScale = data.AutoScalingGroups[0];
+
+          stack.RouterAutoScale.AddToLoadBalancer = stack.RouterAutoScale.SuspendedProcesses.every(function(p) {
+            return p.ProcessName !== 'AddToLoadBalancer';
+          });
+
           next(null, stack);
         });
       });

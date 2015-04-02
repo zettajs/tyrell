@@ -1,6 +1,8 @@
+var async = require('async');
 var awsUtils = require('./aws-utils');
 var stacks = require('./stacks');
 var versions = require('./versions');
+var routers = require('./routers');
 
 function formatTags(tags) {
   var obj = {};
@@ -66,59 +68,98 @@ var list = module.exports.list = function(AWS, elbName, cb) {
   });
 };
 
-module.exports.route = function(AWS, opts, cb) {
-  var elb = new AWS.ELB();
+var assignRouterToElb = module.exports.assignRouterToElb = function(AWS, stackName, version, cb) {
+  var autoscaling = new AWS.AutoScaling();  
 
-  list(AWS, opts.elbName, function(err, currentActive) {
+  routers.list(AWS, stackName, function(err, all) {
     if (err) {
       return cb(err);
     }
 
-    currentActive = currentActive.filter(function(instance) {
-      return instance.Tags['zetta:router:version'] !== opts.version.AppVersion;
-    }).map(function(instance) {
-      return { InstanceId: instance.InstanceId };
-    });
+    var activeASG = all.filter(function(router) {
+      return router.AppVersion === version;
+    })[0];
 
-    var asgName = opts.version.Resources['RouterAutoScale'].PhysicalResourceId;
-    awsUtils.getAutoScaleInstances(AWS, asgName, function(err, instances) {
+    var nonActiveASG = all.filter(function(router) {
+      return router.AppVersion !== version;
+    });
+    
+
+    var params = {
+      AutoScalingGroupName: activeASG.RouterAutoScale.AutoScalingGroupName,
+      ScalingProcesses: ['AddToLoadBalancer']
+    };
+    // start AddToELB process on active asg
+    autoscaling.resumeProcesses(params, function(err, data) {
       if (err) {
         return cb(err);
       }
       
-      var params = {
-        Instances: instances.map(function(i) { return { InstanceId: i }; }),
-        LoadBalancerName: opts.elbName
-      };
+      
+      // suspend AddToElb process on all other asgs
+      async.each(nonActiveASG, function(router, next) {
+        var params = {
+          AutoScalingGroupName: router.RouterAutoScale.AutoScalingGroupName,
+          ScalingProcesses: ['AddToLoadBalancer']
+        };
+        autoscaling.suspendProcesses(params, next);
+      }, cb);
 
-      elb.registerInstancesWithLoadBalancer(params, function(err, data) {
+    });
+  });
+};
+
+module.exports.route = function(AWS, opts, cb) {
+  var elb = new AWS.ELB();
+
+  assignRouterToElb(AWS, opts.stack, opts.version.AppVersion, function(err) {
+    if (err) {
+      return cb(err);
+    }
+
+    list(AWS, opts.elbName, function(err, currentActive) {
+      if (err) {
+        return cb(err);
+      }
+      
+      currentActive = currentActive.filter(function(instance) {
+        return instance.Tags['zetta:router:version'] !== opts.version.AppVersion;
+      }).map(function(instance) {
+        return { InstanceId: instance.InstanceId };
+      });
+      
+      var asgName = opts.version.Resources['RouterAutoScale'].PhysicalResourceId;
+      awsUtils.getAutoScaleInstances(AWS, asgName, function(err, instances) {
         if (err) {
           return cb(err);
         }
-        awsUtils.asgInstancesAvailableInElb(AWS, opts.elbName, asgName, {}, function(err) {
+        
+        var params = {
+        Instances: instances.map(function(i) { return { InstanceId: i }; }),
+          LoadBalancerName: opts.elbName
+        };
+        
+        elb.registerInstancesWithLoadBalancer(params, function(err, data) {
           if (err) {
             return cb(err);
           }
-          
-          if (!opts.replace || currentActive.length === 0) {
-            return cb();
-          }
-      
-          var params = {
-            Instances: currentActive,
-            LoadBalancerName: opts.elbName
-          };
-          elb.deregisterInstancesFromLoadBalancer(params, function(err, data) {
+          awsUtils.asgInstancesAvailableInElb(AWS, opts.elbName, asgName, {}, function(err) {
             if (err) {
               return cb(err);
             }
-            cb();
+            
+            if (!opts.replace || currentActive.length === 0) {
+              return cb();
+            }
+            
+            var params = { Instances: currentActive, LoadBalancerName: opts.elbName };
+            elb.deregisterInstancesFromLoadBalancer(params, cb);    
+            
           });
         });
       });
     });
-    
-  }); 
+  });
 };
 
 module.exports.zettaVersion = function(AWS, stackName, keyPath, cb) {
