@@ -9,6 +9,7 @@ var AWS = require('aws-sdk');
 program
   .option('-v --verbose', 'Display packer build output')
   .option('-c, --channel [channel]', 'CoreOS update channel [alpha]', 'alpha')
+  .option('--worker', 'Build device data worker')
   .parse(process.argv);
 
 var platform = program.args[0];
@@ -66,6 +67,46 @@ function writeToFile(config, filePath) {
   fs.writeSync(fd, JSON.stringify(config, null, '\t'));
   fs.closeSync(fd);
   return packerFilePath;
+}
+
+if (program.worker) {
+  console.log('Building Device data worker');
+
+  var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_data_worker.json');
+  var packerTemplateFile = require(packerTemplateFilePath);
+  var credentials = new AWS.SharedIniFileCredentials({profile: 'default'});
+  packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID || credentials.accessKeyId;
+  packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY || credentials.secretAccessKey;
+
+  var workerConfigPath = writeToFile(packerTemplateFile, 'worker_packer.json');
+
+  async.parallel([
+    function(next) { buildBox(workerConfigPath, 'worker', next) },
+  ], function(err) {
+    if (err) {
+      throw err;
+    }
+  });
+
+  function buildBox(configPath, boxType, done) {
+    var proc = Packer.command(['build', '-only=amazon-ebs', configPath], function(code) {
+      if(code !== 0) {
+        return done(new Error('Non-Zero exit code. Build not completed'));
+      }
+      done();
+    });
+
+    if(verbose) {
+      proc.stdout.on('data', function(chunk) {
+        process.stdout.write(chunk.toString());
+      });
+      proc.stderr.on('data', function(chunk) {
+        process.stderr.write(chunk.toString());
+      });
+    }
+  }
+  
+  return;
 }
 
 if(platform === 'vagrant') {

@@ -1,0 +1,46 @@
+{
+  "variables": {
+    "aws_access_key": "@@AWS_ACCESS_KEY@@",
+    "aws_secret_key": "@@AWS_SECRET_KEY@@"
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key` }}",
+    "secret_key": "{{user `aws_secret_key` }}",
+    "region": "us-east-1",
+    "source_ami": "ami-1ecae776",
+    "instance_type": "t2.micro",
+    "ssh_username": "ec2-user",
+    "ami_name": "zetta-data-sqs-worker-{{timestamp}}",
+    "tags": {
+      "zetta:datasqs": true
+    }
+  }],
+  "provisioners":[
+    {
+      "type": "file",
+      "source": ".dockercfg",
+      "destination": "/home/ec2-user/.dockercfg"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo mv /home/ec2-user/.dockercfg /root/"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo yum update -y"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo yum install docker -y"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo service docker start"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo docker pull zetta/zetta-device-data-worker"
+    }
+  ]
+}

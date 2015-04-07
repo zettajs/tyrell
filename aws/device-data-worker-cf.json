@@ -1,0 +1,146 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Zetta SqS Data Worker",
+  "Parameters": {
+    "AMI" : {
+      "Description" : "AMI",
+      "Type": "String"
+    },
+    "InstanceType" : {
+      "Description" : "EC2 HVM instance type (m3.medium, etc).",
+      "Type" : "String",
+      "Default" : "t2.micro"
+    },
+    "KeyPair" : {
+      "Description" : "The name of an EC2 Key Pair to allow SSH access to the instance.",
+      "Type" : "String"
+    },
+    "SecurityGroups" : {
+      "Description" : "Security Group to assign to",
+      "Type": "List<AWS::EC2::SecurityGroup::Id>"
+    },
+    "ZettaStack" : {
+      "Description" : "Zetta Stack",
+      "Type" : "String"
+    },
+    "DeviceDataQueueUrl" : {
+      "Description" : "SQS Queue Url for device data",
+      "Type": "String"
+    },
+    "ZettaUsageQueueUrl" : {
+      "Description" : "SQS Queue Url for zetta usage",
+      "Type": "String"
+    },
+    "DeviceDataS3Bucket" : {
+      "Description" : "S3 Output Bucket",
+      "Type": "String"
+    },
+    "ZettaUsageS3Bucket" : {
+      "Description" : "S3 Output Bucket",
+      "Type": "String"
+    },
+    "InstanceProfile" : {
+      "Description" : "IAM Instance Profile for ec2 instances",
+      "Type" : "String"
+    }
+  },
+
+  "Resources": {
+    "DeviceDataAutoScale": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AvailabilityZones": {"Fn::GetAZs": ""},
+        "LaunchConfigurationName": {"Ref": "DeviceDataLaunchConfig"},
+        "MinSize": "0",
+        "MaxSize": "0",
+        "Tags": [
+          {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
+          {"Key": "Name", "Value": { "Fn::Join" : [ "-", [ {"Ref" : "ZettaStack" }, {"Ref" : "AWS::StackName" }, "app" ] ] }, "PropagateAtLaunch": true}
+        ]
+      }
+    },
+    "DeviceDataLaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "ImageId" : {"Ref": "AMI"},
+        "InstanceType": {"Ref": "InstanceType"},
+        "KeyName": {"Ref": "KeyPair"},
+        "SecurityGroups": {"Ref": "SecurityGroups"},
+        "IamInstanceProfile": {"Ref" : "InstanceProfile" },
+        "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
+          "#!/bin/bash\n",
+          "docker run zetta/zetta-device-data-worker --region ", { "Ref" : "AWS::Region" }, " device ", { "Ref" : "DeviceDataQueueUrl" }, " ", { "Ref" : "DeviceDataS3Bucket" }, "\n",
+          "shutdown -h now\n"
+      	]]}}
+      }
+    },
+    "DeviceDataUp": {
+      "Type": "AWS::AutoScaling::ScheduledAction",
+      "Properties": {
+        "AutoScalingGroupName": { "Ref": "DeviceDataAutoScale" },
+        "MaxSize": "1",
+        "MinSize": "1",
+        "Recurrence": "0 * * * *"
+      }
+    },
+    "DeviceDataDown": {
+      "Type": "AWS::AutoScaling::ScheduledAction",
+      "Properties": {
+        "AutoScalingGroupName": { "Ref": "DeviceDataAutoScale" },
+        "MaxSize": "0",
+        "MinSize": "0",
+        "Recurrence": "45 * * * *"
+      }
+    },
+
+
+    "ZettaUsageAutoScale": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AvailabilityZones": {"Fn::GetAZs": ""},
+        "LaunchConfigurationName": {"Ref": "ZettaUsageLaunchConfig"},
+        "MinSize": "0",
+        "MaxSize": "0",
+        "Tags": [
+          {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
+          {"Key": "Name", "Value": { "Fn::Join" : [ "-", [ {"Ref" : "ZettaStack" }, {"Ref" : "AWS::StackName" }, "app" ] ] }, "PropagateAtLaunch": true}
+        ]
+      }
+    },
+    "ZettaUsageLaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "ImageId" : {"Ref": "AMI"},
+        "InstanceType": {"Ref": "InstanceType"},
+        "KeyName": {"Ref": "KeyPair"},
+        "SecurityGroups": {"Ref": "SecurityGroups"},
+        "IamInstanceProfile": {"Ref" : "InstanceProfile" },
+        "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
+          "#!/bin/bash\n",
+          "docker run zetta/zetta-device-data-worker --region ", { "Ref" : "AWS::Region" }, " usage ", { "Ref" : "ZettaUsageQueueUrl" }, " ", { "Ref" : "ZettaUsageS3Bucket" }, "\n",
+          "shutdown -h now\n"
+      	]]}}
+      }
+    },
+    "ZettaUsageUp": {
+      "Type": "AWS::AutoScaling::ScheduledAction",
+      "Properties": {
+        "AutoScalingGroupName": { "Ref": "ZettaUsageAutoScale" },
+        "MaxSize": "1",
+        "MinSize": "1",
+        "Recurrence": "0 * * * *"
+      }
+    },
+    "ZettaUsageDown": {
+      "Type": "AWS::AutoScaling::ScheduledAction",
+      "Properties": {
+        "AutoScalingGroupName": { "Ref": "ZettaUsageAutoScale" },
+        "MaxSize": "0",
+        "MinSize": "0",
+        "Recurrence": "45 * * * *"
+      }
+    }
+
+
+  }
+}
