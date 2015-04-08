@@ -41,7 +41,8 @@ stacks.get(AWS, name, function(err, stack) {
       security_groups: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['RouterSecurityGroup'].GroupId].join(','),
       cluster_size: program.size + '',
       instance_type: program.type,
-      version: program.version
+      version: program.version,
+      zettaELB: stack.Resources['ZettaELB'].PhysicalResourceId
     }
   };
 

@@ -59,7 +59,8 @@ stacks.get(AWS, name, function(err, stack) {
     var opts = { 
       version: version,
       replace: program.replace,
-      elbName: stack.Resources['ZettaELB'].PhysicalResourceId
+      elbName: stack.Resources['ZettaELB'].PhysicalResourceId,
+      stack: name
     };
 
     traffic.route(AWS, opts, function(err) {

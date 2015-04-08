@@ -37,9 +37,9 @@ stacks.get(AWS, name, function(err, stack) {
     results.forEach(function(v) {
       console.log(v.AppVersion,
                   v.StackName,
-                  v.RouterAutoScale.MinSize,
-                  v.RouterAutoScale.MaxSize,
-                  v.RouterAutoScale.Instances.length + '/' + v.RouterAutoScale.DesiredCapacity);
+                  v.RouterAutoScale.Instances.length + '/' + v.RouterAutoScale.DesiredCapacity,
+                  v.RouterAutoScale.AddToLoadBalancer
+                 );
     });
   });
 

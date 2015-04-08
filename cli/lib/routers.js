@@ -2,6 +2,16 @@ var fs = require('fs');
 var async = require('async');
 var awsUtils = require('./aws-utils');
 
+var scale = module.exports.scale = function(AWS, asgName, desired, cb) {
+  var autoscaling = new AWS.AutoScaling();
+
+  var params = {
+    AutoScalingGroupName: asgName,
+    DesiredCapacity: Number(desired)
+  };
+  autoscaling.setDesiredCapacity(params, cb);
+};
+
 var list = module.exports.list = function(AWS, stackName, cb) {
   var cloudformation = new AWS.CloudFormation();
   var autoscaling = new AWS.AutoScaling();
@@ -10,13 +20,15 @@ var list = module.exports.list = function(AWS, stackName, cb) {
     if (err) {
       return cb(err);
     }
-
+    
+    // filter with only router cf 
     var stacks = stacks.Stacks.filter(function(stack) {
       return stack.Tags.filter(function(tag) { 
         return tag.Key === 'zetta:router:version';
       }).length > 0;
     });
-
+    
+    // filter stack name
     stacks = stacks.filter(function(stack) {
       return stack.Tags.filter(function(tag) { 
         return tag.Key === 'zetta:stack' && tag.Value === stackName;
@@ -42,6 +54,11 @@ var list = module.exports.list = function(AWS, stackName, cb) {
             return next(err);
           }
           stack.RouterAutoScale = data.AutoScalingGroups[0];
+
+          stack.RouterAutoScale.AddToLoadBalancer = stack.RouterAutoScale.SuspendedProcesses.every(function(p) {
+            return p.ProcessName !== 'AddToLoadBalancer';
+          });
+
           next(null, stack);
         });
       });
@@ -51,6 +68,7 @@ var list = module.exports.list = function(AWS, stackName, cb) {
 
 var create = module.exports.create = function(AWS, config, done) {
   var cloudformation = new AWS.CloudFormation();
+  var autoscaling = new AWS.AutoScaling();
 
   var userData = fs.readFileSync('../aws/router-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
   userData = userData.replace('@@ZETTA_VERSION@@', config.app.version);
@@ -66,10 +84,11 @@ var create = module.exports.create = function(AWS, config, done) {
     Parameters: [
       { ParameterKey: 'ZettaStack', ParameterValue: config.stack },
       { ParameterKey: 'InstanceType', ParameterValue: config.app.instance_type },
-      { ParameterKey: 'ClusterSize', ParameterValue: config.app.cluster_size },
+      { ParameterKey: 'ClusterSize', ParameterValue: '0' }, // scale after AddToElb process is suspended
       { ParameterKey: 'AMI', ParameterValue: config.app.ami },
       { ParameterKey: 'RouterSecurityGroups', ParameterValue: config.app.security_groups },
-      { ParameterKey: 'KeyPair', ParameterValue: config.keyPair }
+      { ParameterKey: 'KeyPair', ParameterValue: config.keyPair },
+      { ParameterKey: 'ZettaELB', ParameterValue: config.app.zettaELB }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: config.stack },
@@ -112,7 +131,23 @@ var create = module.exports.create = function(AWS, config, done) {
             return done(err);
           }
 
-          awsUtils.asgInstancesAvailable(AWS, asgName, {}, done);
+          var params = {
+            AutoScalingGroupName: asgName, ScalingProcesses: ['AddToLoadBalancer']
+          };
+
+          autoscaling.suspendProcesses(params, function(err, data) {
+            if (err) {
+              return done(err);
+            }
+            
+            scale(AWS, asgName, config.app.cluster_size, function(err) {
+              if (err) {
+                return done(err);
+              }
+              awsUtils.asgInstancesAvailable(AWS, asgName, {}, done);
+            });
+          });
+
         });
       });
     }
@@ -125,12 +160,4 @@ var remove = module.exports.remove = function(AWS, cfName, cb) {
   cloudformation.deleteStack({ StackName: cfName }, cb);
 };
 
-var scale = module.exports.scale = function(AWS, asgName, desired, cb) {
-  var autoscaling = new AWS.AutoScaling();
 
-  var params = {
-    AutoScalingGroupName: asgName,
-    DesiredCapacity: Number(desired)
-  };
-  autoscaling.setDesiredCapacity(params, cb);
-};
