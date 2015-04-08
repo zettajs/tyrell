@@ -1,10 +1,13 @@
 [Unit]
 Description=Zetta Target Server Health Check
 BindsTo=zetta-target@%i.service
-After=zetta-target@%i.service
+After=zetta-target@%i.service etcd.service
+Requires=etcd.service
 
 [Service]
 User=core
+Restart=always
+RestartSec=30
 EnvironmentFile=/etc/environment
 EnvironmentFile=/etc/profile.d/zetta
 ExecStartPre=/bin/sh -c '/usr/bin/etcdctl set /services/zetta/${COREOS_PRIVATE_IPV4}:%i "{\\\"type\\\":\\\"cloud-target\\\",\\\"url\\\":\\\"http://${COREOS_PRIVATE_IPV4}:%i\\\",\\\"created\\\":\\\"$(/usr/bin/date --utc +%%Y-%%m-%%dT%%T.000Z)\\\",\\\"version\\\":\\\"${ZETTA_VERSION}\\\"}"'
