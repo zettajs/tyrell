@@ -70,6 +70,10 @@ var list = module.exports.list = function(AWS, cb) {
       return cb(err);
     }
     var stacks = data.Stacks.filter(function(stack) {
+      if (stack.StackStatus !== 'CREATE_COMPLETE') {
+        return false;
+      }
+
       return stack.Tags.some(function(tag) {
         return tag.Key === 'zetta:stack:main';
       });
