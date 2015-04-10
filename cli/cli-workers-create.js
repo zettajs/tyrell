@@ -8,7 +8,7 @@ AWS.config.update({region: 'us-east-1'});
 
 program
   .option('-a, --ami <ami>', 'Existing AMI to use.')
-  .option('--type <instance type>', 'Instance type to use. [t2.micro]', 't2.micro')
+  .option('--type <instance type>', 'Instance type to use. [t2.medium]', 't2.medium')
   .option('--version <app version>', 'Logical db version of the app being deployed', crypto.randomBytes(6).toString('hex'))
   .parse(process.argv);
 
