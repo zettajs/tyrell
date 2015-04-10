@@ -2,6 +2,7 @@ var fs = require('fs');
 var async = require('async');
 var versions = require('./versions');
 var routers = require('./routers');
+var workers = require('./workers');
 
 var get = module.exports.get = function(AWS, stackName, cb) {
   var ec2 = new AWS.EC2();
@@ -168,6 +169,17 @@ var remove = module.exports.remove = function(AWS, name, cb) {
         }, next);
       });
     },
+    function(next){
+      workers.list(AWS, name, function(err, results) {
+        if (err) {
+          return next(err);
+        }
+        
+        async.each(results, function(version, next) {
+          workers.remove(AWS, version.StackName, next);
+        }, next);
+      });
+    }
   ], function(err) {
     if (err) {
       return cb(err);
