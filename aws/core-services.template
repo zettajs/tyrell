@@ -1,0 +1,16 @@
+#cloud-config
+
+coreos:
+  etcd:
+    # generate a new token for each unique cluster from https://discovery.etcd.io/new?size=3
+    # specify the intial size of your cluster with ?size=X
+    discovery: @@ETCD_DISCOVERY_URL@@
+    addr: $private_ipv4:4001
+    peer-addr: $private_ipv4:7001
+  fleet:
+    metadata: role=services
+  units:
+    - name: etcd.service
+      command: start
+    - name: fleet.service
+      command: start

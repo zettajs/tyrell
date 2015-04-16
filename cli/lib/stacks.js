@@ -87,6 +87,11 @@ var list = module.exports.list = function(AWS, cb) {
 
 var create = module.exports.create = function(AWS, config, done) {
   var cloudformation = new AWS.CloudFormation();
+  var template = require('../../aws/initial-stack-cf.json');
+  
+  // assign user-data for CoreServices
+  var userData = fs.readFileSync('../aws/core-services.template').toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
+  template.Resources['CoreServicesLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
   var stackName = config.stack;
   var params = {
@@ -96,15 +101,20 @@ var create = module.exports.create = function(AWS, config, done) {
     Parameters: [
       { ParameterKey: 'DiscoveryUrl', ParameterValue: config.discoveryUrl },
       { ParameterKey: 'KeyPair', ParameterValue: config.keyPair },
-      { ParameterKey: 'LogentriesToken', ParameterValue: config.logentriesToken }
+      { ParameterKey: 'LogentriesToken', ParameterValue: config.logentriesToken },
+      { ParameterKey: 'ZettaStack', ParameterValue: config.stack },
+      { ParameterKey: 'CoreServicesAMI', ParameterValue: config.ami },
+      { ParameterKey: 'CoreServicesInstanceType', ParameterValue: config.instanceType },
+      { ParameterKey: 'CoreServicesSize', ParameterValue: '' + config.size }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stackName },
       { Key: 'zetta:stack:main', Value: 'true' }
     ],
-    TemplateBody: JSON.stringify(require('../../aws/initial-stack-cf.json')),
+    TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 5
   };
+
 
   function checkStackStatus(cb) {
     cloudformation.describeStacks({ StackName: stackName }, function(err, data) {
