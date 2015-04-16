@@ -1,14 +1,19 @@
 var https = require('https');
+var url = require('url');
 
 var DEFAULT_BASE = 'https://discovery.etcd.io/new';
+var DEFAULT_SIZE = 3;
 
-module.exports = function(base, cb) {
-  if (typeof base === 'function') {
-    cb = base;
-    base = DEFAULT_BASE;
+module.exports = function(size, cb) {
+  if (typeof size === 'function') {
+    cb = size;
+    size = DEFAULT_SIZE;
   }
 
-  https.get(base, function(res) {
+  var urlObj = url.parse(DEFAULT_BASE);
+  urlObj.query = { size: size };
+
+  https.get(url.format(urlObj), function(res) {
     if (res.statusCode !== 200) {
       return cb(new Error('Unexpected error code'));
     }
