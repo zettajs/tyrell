@@ -2,6 +2,7 @@ var fs = require('fs');
 var async = require('async');
 var versions = require('./versions');
 var routers = require('./routers');
+var utils = require('./aws-utils');
 
 var get = module.exports.get = function(AWS, stackName, cb) {
   var ec2 = new AWS.EC2();
@@ -41,6 +42,25 @@ var get = module.exports.get = function(AWS, stackName, cb) {
             r.GroupId = id;
             next(null, r);
           });
+        } else if (r.LogicalResourceId === 'CoreServicesASG') {
+          utils.getAutoScaleInstances(AWS, r.PhysicalResourceId, function(err, instances) {
+            if (err) {
+              return next(err);
+            }
+            ec2.describeInstances({ InstanceIds: instances }, function(err, data) {
+              if (err) {
+                return next(err);
+              }
+
+              var instances = [];
+              data.Reservations.forEach(function(res) {
+                instances = instances.concat(res.Instances);
+              });
+              r.Instances = instances;
+              next(null, r);
+            });
+          });
+
         } else {
           next(null, r);
         }
@@ -52,6 +72,13 @@ var get = module.exports.get = function(AWS, stackName, cb) {
         var resources = {};
         result.forEach(function(r) {
           resources[r.LogicalResourceId] = r;
+        });
+
+        stack.etcdPeers = [];
+        resources['CoreServicesASG'].Instances.forEach(function(instance) {
+          if (instance.PrivateIpAddress) {
+            stack.etcdPeers.push(instance.PrivateIpAddress);
+          }
         });
 
         stack.Resources = resources;
