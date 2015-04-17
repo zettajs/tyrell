@@ -53,3 +53,5 @@ write_files:
       ZETTA_DEVICE_DATA_QUEUE="@@ZETTA_DEVICE_DATA_QUEUE@@"
       ZETTA_USAGE_QUEUE="@@ZETTA_USAGE_QUEUE@@"
       LOGENTRIES_TOKEN="@@LOGENTRIES_TOKEN@@"
+      # Here because /etc/profile.d/etcdctl.sh is not used in service file with etcdctl
+      ETCDCTL_PEERS="@@ETCD_PEERS@@"
