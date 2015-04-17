@@ -1,8 +1,7 @@
 [Unit]
 Description=Zetta Target Server
-After=docker.service etcd.service
+After=docker.service
 Requires=docker.service
-Requires=etcd.service
 Wants=zetta-target-check@%i.service
 
 [Service]
