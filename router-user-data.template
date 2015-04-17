@@ -31,3 +31,9 @@ coreos:
 
         [Install]
         WantedBy=sockets.target
+write_files:
+  - path: /etc/profile.d/zetta
+    permissions: 644
+    owner: root
+    content: |
+      ZETTA_VERSION="@@ZETTA_VERSION@@"
