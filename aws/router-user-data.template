@@ -47,3 +47,4 @@ write_files:
     content: |
       ZETTA_VERSION="@@ZETTA_VERSION@@"
       LOGENTRIES_TOKEN="@@LOGENTRIES_TOKEN@@"
+      ETCD_PEER_HOSTS="@@ETCD_PEER_HOSTS@@"
