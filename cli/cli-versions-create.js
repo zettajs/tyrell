@@ -31,11 +31,16 @@ stacks.get(AWS, name, function(err, stack) {
     process.exit(1);
   }
 
+  var etcdPeers = stack.etcdPeers.map(function(ip) {
+    return 'http://' + ip + ':' + 4001;
+  }).join(',');
+
   var config = {
     stack: name,
     keyPair: stack.Parameters['KeyPair'],
     discoveryUrl: stack.Parameters['DiscoveryUrl'],
     logentriesToken: stack.Parameters['LogentriesToken'],
+    etcdPeers: etcdPeers,
     app: {
       ami: program.ami, // cl arg or from previous packer task
       security_groups: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['AppSecurityGroup'].GroupId].join(','),
