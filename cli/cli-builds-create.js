@@ -9,7 +9,7 @@ var AWS = require('aws-sdk');
 program
   .option('-v --verbose', 'Display packer build output')
   .option('-c, --channel [channel]', 'CoreOS update channel [alpha]', 'alpha')
-  .option('--worker', 'Build device data worker')
+  .option('-w, --worker', 'Build device data worker')
   .parse(process.argv);
 
 var platform = program.args[0];
