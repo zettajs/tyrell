@@ -89,7 +89,7 @@
         }
       }
     },
-    
+
     "DataWorkerSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
@@ -126,7 +126,8 @@
     "DeviceDataQueue": {
        "Type": "AWS::SQS::Queue",
        "Properties": {
-          "MessageRetentionPeriod": 1209600
+          "MessageRetentionPeriod": 1209600,
+          "VisibilityTimeout": 1800
        }
     },
     "DeviceDataBucket": {
@@ -137,7 +138,8 @@
     "ZettaUsageQueue": {
        "Type": "AWS::SQS::Queue",
        "Properties": {
-          "MessageRetentionPeriod": 1209600
+          "MessageRetentionPeriod": 1209600,
+          "VisibilityTimeout": 1800
        }
     },
     "ZettaUsageBucket": {
