@@ -3,6 +3,7 @@ var async = require('async');
 var versions = require('./versions');
 var routers = require('./routers');
 var workers = require('./workers');
+var utils = require('./aws-utils');
 
 var get = module.exports.get = function(AWS, stackName, cb) {
   var ec2 = new AWS.EC2();
@@ -42,6 +43,25 @@ var get = module.exports.get = function(AWS, stackName, cb) {
             r.GroupId = id;
             next(null, r);
           });
+        } else if (r.LogicalResourceId === 'CoreServicesASG') {
+          utils.getAutoScaleInstances(AWS, r.PhysicalResourceId, function(err, instances) {
+            if (err) {
+              return next(err);
+            }
+            ec2.describeInstances({ InstanceIds: instances }, function(err, data) {
+              if (err) {
+                return next(err);
+              }
+
+              var instances = [];
+              data.Reservations.forEach(function(res) {
+                instances = instances.concat(res.Instances);
+              });
+              r.Instances = instances;
+              next(null, r);
+            });
+          });
+
         } else {
           next(null, r);
         }
@@ -53,6 +73,13 @@ var get = module.exports.get = function(AWS, stackName, cb) {
         var resources = {};
         result.forEach(function(r) {
           resources[r.LogicalResourceId] = r;
+        });
+
+        stack.etcdPeers = [];
+        resources['CoreServicesASG'].Instances.forEach(function(instance) {
+          if (instance.PrivateIpAddress) {
+            stack.etcdPeers.push(instance.PrivateIpAddress);
+          }
         });
 
         stack.Resources = resources;
@@ -88,6 +115,11 @@ var list = module.exports.list = function(AWS, cb) {
 
 var create = module.exports.create = function(AWS, config, done) {
   var cloudformation = new AWS.CloudFormation();
+  var template = require('../../aws/initial-stack-cf.json');
+  
+  // assign user-data for CoreServices
+  var userData = fs.readFileSync('../aws/core-services.template').toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
+  template.Resources['CoreServicesLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
   var stackName = config.stack;
   var params = {
@@ -97,15 +129,20 @@ var create = module.exports.create = function(AWS, config, done) {
     Parameters: [
       { ParameterKey: 'DiscoveryUrl', ParameterValue: config.discoveryUrl },
       { ParameterKey: 'KeyPair', ParameterValue: config.keyPair },
-      { ParameterKey: 'LogentriesToken', ParameterValue: config.logentriesToken }
+      { ParameterKey: 'LogentriesToken', ParameterValue: config.logentriesToken },
+      { ParameterKey: 'ZettaStack', ParameterValue: config.stack },
+      { ParameterKey: 'CoreServicesAMI', ParameterValue: config.ami },
+      { ParameterKey: 'CoreServicesInstanceType', ParameterValue: config.instanceType },
+      { ParameterKey: 'CoreServicesSize', ParameterValue: '' + config.size }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stackName },
       { Key: 'zetta:stack:main', Value: 'true' }
     ],
-    TemplateBody: JSON.stringify(require('../../aws/initial-stack-cf.json')),
+    TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 5
   };
+
 
   function checkStackStatus(cb) {
     cloudformation.describeStacks({ StackName: stackName }, function(err, data) {
@@ -190,49 +227,11 @@ var remove = module.exports.remove = function(AWS, name, cb) {
 
 // list all ec2 instances for a stack. Includes routers and versions
 var ec2List = module.exports.ec2List = function(AWS, name, cb) {
-  var ec2 = new AWS.EC2();
-  var instances = [];
-  async.parallel([
-    function(next) {
-      routers.list(AWS, name, function(err, routers) {
-        if (err) {
-          return next(err);
-        }
-        
-        instances = instances.concat.apply(instances, routers.map(function(router) { return router.RouterAutoScale.Instances; }));
-        next();
-      });
-    },
-    function(next) {
-      versions.list(AWS, name, function(err, routers) {
-        if (err) {
-          return next(err);
-        }
-        
-        instances = instances.concat.apply(instances, routers.map(function(router) { return router.ZettaAutoScale.Instances; }));
-        next();
-      });      
-    }
-  ], function(err) {
+  get(AWS, name, function(err, stack) {
     if (err) {
       return cb(err);
     }
 
-    var params = { InstanceIds: instances.map(function(i) { return i.InstanceId; }) };
-    ec2.describeInstances(params, function(err, data) {
-      if (err) {
-        return cb(err);
-      }
-      
-      var instances = [];
-      data.Reservations.forEach(function(data) {
-        data.Instances.forEach(function(instance) {
-          instances.push(instance);
-        });
-      });
-      
-      return cb(null, instances);
-    });
+    return cb(null, stack.Resources.CoreServicesASG.Instances);
   });
-
 };

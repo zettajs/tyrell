@@ -11,6 +11,7 @@
   "dependencies": {
     "async": "^0.9.0",
     "aws-sdk": "^2.1.15",
-    "commander": "2.6.0"
+    "commander": "2.6.0",
+    "coreos-amis": "^0.1.0"
   }
 }

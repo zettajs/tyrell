@@ -1,8 +1,7 @@
 [Unit]
 Description=Zetta Target Server Health Check
 BindsTo=zetta-target@%i.service
-After=zetta-target@%i.service etcd.service
-Requires=etcd.service
+After=zetta-target@%i.service
 
 [Service]
 User=core

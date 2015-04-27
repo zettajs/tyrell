@@ -55,11 +55,11 @@ var create = module.exports.create = function(AWS, config, done) {
   var cloudformation = new AWS.CloudFormation();
 
   var userData = fs.readFileSync('../aws/zetta-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
-  userData = userData.replace('@@ZETTA_VERSION@@', config.app.version);
-  userData = userData.replace('@@ZETTA_DEVICE_DATA_QUEUE@@', config.app.deviceDataQueue);
-  userData = userData.replace('@@ZETTA_USAGE_QUEUE@@', config.app.zettaUsageQueue);
-  userData = userData.replace('@@LOGENTRIES_TOKEN@@', config.logentriesToken);
-  
+  userData = userData.replace(/@@ZETTA_VERSION@@/g, config.app.version);
+  userData = userData.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/g, config.app.deviceDataQueue);
+  userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, config.logentriesToken);
+  userData = userData.replace(/@@ETCD_PEERS@@/g, config.etcdPeers);
+
   var template = JSON.parse(fs.readFileSync('../aws/zetta-asg-cf.json').toString());
   template.Resources['ZettaServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 

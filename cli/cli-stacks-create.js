@@ -3,12 +3,15 @@ var program = require('commander');
 var AWS = require('aws-sdk'); 
 var getDiscoveryUrl = require('./lib/get-discovery-url');
 var stacks = require('./lib/stacks');
+var coreosamis = require('coreos-amis');
 
 AWS.config.update({region: 'us-east-1'});
 
 program
   .option('-k, --keyPair <key_pair>', 'Specify existing keypair to use when creating future asg.')
   .option('--logToken <token>', 'Specify a log entries token for logging.', '')
+  .option('-s, --size <size>', 'Specify cluster size for core services.', 3)
+  .option('-t, --type <type>', 'Specify instance type for core services.', 't2.micro')
   .parse(process.argv);
 
 var name = program.args[0];
@@ -56,20 +59,35 @@ getKeyPair(function(err, key) {
     }  
     
     console.log('Using discovery url: ' + url);
-    var config = {
-      stack: name,
-      discoveryUrl: url,
-      keyPair: key.KeyName,
-      logentriesToken: program.logToken
-    };
 
-    stacks.create(AWS, config, function(err) {
-      if (err) {
-        console.error(err);
-        process.exit(1);
-      }
-      console.log('stack created');
-    });
+    coreosamis()
+      .channel('stable')
+      .region('us-east-1')
+      .get(function(err, ami) {
+        if (err) {
+          console.error(err);
+          process.exit(1);
+        }
+
+        var config = {
+          stack: name,
+          discoveryUrl: url,
+          keyPair: key.KeyName,
+          logentriesToken: program.logToken,
+          size: program.size,
+          instanceType: program.type,
+          ami: ami.hvm
+        };
+
+        stacks.create(AWS, config, function(err) {
+          if (err) {
+            console.error(err);
+            process.exit(1);
+          }
+          console.log('stack created');
+        });
+
+      });
   });
 });
 

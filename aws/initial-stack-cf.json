@@ -15,7 +15,24 @@
       "Description": "LogEntries Token.",
       "Type": "String",
       "Default": ""
+    },
+    "ZettaStack" : {
+      "Description" : "Zetta Stack",
+      "Type" : "String"
+    },
+    "CoreServicesAMI" : {
+      "Description" : "CoreOS AMI",
+      "Type" : "String"
+    },
+    "CoreServicesInstanceType" : {
+      "Description" : "",
+      "Type" : "String"
+    },
+    "CoreServicesSize" : {
+      "Description" : "",
+      "Type" : "Number"
     }
+
   },
 
   "Resources": {
@@ -99,6 +116,36 @@
         ]
       }
     },
+
+
+    "CoreServicesASG": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AvailabilityZones": {"Fn::GetAZs": ""},
+        "LaunchConfigurationName": {"Ref": "CoreServicesLaunchConfig"},
+        "MinSize": "3",
+        "MaxSize": "5",
+        "HealthCheckType": "EC2",
+        "DesiredCapacity": {"Ref": "CoreServicesSize"},
+        "HealthCheckGracePeriod": 60,
+        "Tags": [
+            {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
+            {"Key": "Name", "Value": { "Fn::Join" : [ "-", [ {"Ref" : "ZettaStack" }, "core-services" ] ] }, "PropagateAtLaunch": true}
+        ]
+      }
+    },
+    "CoreServicesLaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "ImageId" : {"Ref": "CoreServicesAMI"},
+        "InstanceType": {"Ref": "CoreServicesInstanceType"},
+        "KeyName": {"Ref": "KeyPair"},
+        "SecurityGroups": [{ "Fn::GetAtt" : ["CoreOsSecurityGroup", "GroupId"] }],
+        "UserData" : null
+      }
+    },
+
+
 
     "ZettaELB" : {
       "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",

@@ -71,8 +71,10 @@ var create = module.exports.create = function(AWS, config, done) {
   var autoscaling = new AWS.AutoScaling();
 
   var userData = fs.readFileSync('../aws/router-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
-  userData = userData.replace('@@ZETTA_VERSION@@', config.app.version);
-  userData = userData.replace('@@LOGENTRIES_TOKEN@@', config.logentriesToken);
+  userData = userData.replace(/@@ZETTA_VERSION@@/g, config.app.version);
+  userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, config.logentriesToken);
+  userData = userData.replace(/@@ETCD_PEERS@@/g, config.etcdPeers);
+  userData = userData.replace(/@@ETCD_PEER_HOSTS@@/g, config.etcdPeers.replace(/http:\/\//g, '') );  
 
   var template = JSON.parse(fs.readFileSync('../aws/router-asg-cf.json').toString());
   template.Resources['ServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
