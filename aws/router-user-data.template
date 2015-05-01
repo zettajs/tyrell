@@ -13,6 +13,8 @@ coreos:
       command: start
     - name: zetta-proxy.service
       command: start
+    - name: journallogs-logentries.service
+      command: start
     - name: docker-tcp.socket
       command: start
       enable: true
