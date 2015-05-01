@@ -57,6 +57,7 @@ var create = module.exports.create = function(AWS, config, done) {
   var userData = fs.readFileSync('../aws/zetta-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
   userData = userData.replace(/@@ZETTA_VERSION@@/g, config.app.version);
   userData = userData.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/g, config.app.deviceDataQueue);
+  userData = userData.replace(/@@ZETTA_USAGE_QUEUE@@/g, config.app.zettaUsageQueue);
   userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, config.logentriesToken);
   userData = userData.replace(/@@ETCD_PEERS@@/g, config.etcdPeers);
 
