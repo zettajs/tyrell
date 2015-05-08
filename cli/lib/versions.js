@@ -51,35 +51,43 @@ var list = module.exports.list = function(AWS, stackName, cb) {
   });
 };
 
-var create = module.exports.create = function(AWS, config, done) {
+// config
+//  - version
+//  - type
+//  - size
+var create = module.exports.create = function(AWS, stack, config, done) {
   var cloudformation = new AWS.CloudFormation();
 
-  var userData = fs.readFileSync('../aws/zetta-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
-  userData = userData.replace(/@@ZETTA_VERSION@@/g, config.app.version);
-  userData = userData.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/g, config.app.deviceDataQueue);
-  userData = userData.replace(/@@ZETTA_USAGE_QUEUE@@/g, config.app.zettaUsageQueue);
-  userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, config.logentriesToken);
-  userData = userData.replace(/@@ETCD_PEERS@@/g, config.etcdPeers);
+  var etcdPeers = stack.etcdPeers.map(function(ip) {
+    return 'http://' + ip + ':' + 4001;
+  }).join(',');
+  
+  var userData = fs.readFileSync('../aws/zetta-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', stack.Parameters['DiscoveryUrl']);
+  userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
+  userData = userData.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/g, stack.Resources['DeviceDataQueue'].PhysicalResourceId);
+  userData = userData.replace(/@@ZETTA_USAGE_QUEUE@@/g, stack.Resources['ZettaUsageQueue'].PhysicalResourceId);
+  userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
+  userData = userData.replace(/@@ETCD_PEERS@@/g, etcdPeers);
 
   var template = JSON.parse(fs.readFileSync('../aws/zetta-asg-cf.json').toString());
   template.Resources['ZettaServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
-  var stackName = config.stack + '-app-' + config.app.version;
+  var stackName = stack.StackName + '-app-' + config.version;
   var params = {
     StackName: stackName,
     OnFailure: 'DELETE',
     Parameters: [
-      { ParameterKey: 'ZettaStack', ParameterValue: config.stack },
-      { ParameterKey: 'InstanceType', ParameterValue: config.app.instance_type },
-      { ParameterKey: 'ClusterSize', ParameterValue: config.app.cluster_size },
-      { ParameterKey: 'AMI', ParameterValue: config.app.ami },
-      { ParameterKey: 'ZettaAppSecurityGroup', ParameterValue: config.app.security_groups },
-      { ParameterKey: 'KeyPair', ParameterValue: config.keyPair },
-      { ParameterKey: 'InstanceProfile', ParameterValue: config.app.instanceProfile }
+      { ParameterKey: 'ZettaStack', ParameterValue: stack.StackName },
+      { ParameterKey: 'InstanceType', ParameterValue: config.type },
+      { ParameterKey: 'ClusterSize', ParameterValue: config.size + '' },
+      { ParameterKey: 'AMI', ParameterValue: config.ami },
+      { ParameterKey: 'ZettaAppSecurityGroup', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['AppSecurityGroup'].GroupId].join(',') },
+      { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
+      { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['AppRoleInstanceProfile'].PhysicalResourceId }
     ],
     Tags: [
-      { Key: 'zetta:stack', Value: config.stack },
-      { Key: 'zetta:app:version', Value: config.app.version }
+      { Key: 'zetta:stack', Value: stack.StackName },
+      { Key: 'zetta:app:version', Value: config.version }
     ],
     TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 5
