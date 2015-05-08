@@ -31,29 +31,16 @@ stacks.get(AWS, name, function(err, stack) {
   }
 
   var config = {
-    stack: name,
-    keyPair: stack.Parameters['KeyPair'],
-    discoveryUrl: stack.Parameters['DiscoveryUrl'],
-    logentriesToken: stack.Parameters['LogentriesToken'],
-    app: {
-      ami: program.ami, // cl arg or from previous packer task
-      security_groups: [stack.Resources['RouterSecurityGroup'].GroupId].join(','),
-      instance_type: program.type,
-      version: program.version,
-      instanceProfile: stack.Resources['DataWorkerRoleInstanceProfile'].PhysicalResourceId,
-      deviceDataQueueUrl: stack.Resources['DeviceDataQueue'].PhysicalResourceId,
-      zettaUsageQueueUrl: stack.Resources['ZettaUsageQueue'].PhysicalResourceId,
-      zettaUsageS3Bucket: stack.Resources['ZettaUsageBucket'].PhysicalResourceId,
-      deviceDataS3Bucket: stack.Resources['DeviceDataBucket'].PhysicalResourceId
-    }
+    version: program.version,
+    type: program.type,
+    ami: program.ami
   };
 
-  console.log('Creating CF Version', config.app.version);
-  workers.create(AWS, config, function(err, stack) {
+  console.log('Creating CF Version', program.version);
+  workers.create(AWS, stack, config, function(err, stack) {
     if (err) {
       console.error(err);
       process.exit(1);
     }
   });
-
 });

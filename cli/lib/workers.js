@@ -45,30 +45,36 @@ var list = module.exports.list = function(AWS, stackName, cb) {
   });
 };
 
-var create = module.exports.create = function(AWS, config, done) {
+
+// config
+//  - version
+//  - ami
+//  - type
+
+var create = module.exports.create = function(AWS, stack, config, done) {
   var cloudformation = new AWS.CloudFormation();
   var autoscaling = new AWS.AutoScaling();
   var template = JSON.parse(fs.readFileSync('../aws/device-data-worker-cf.json').toString());
+  var stackName = stack.StackName + '-sqsworker-' + config.version;
 
-  var stackName = config.stack + '-sqsworker-' + config.app.version;
   var params = {
     StackName: stackName,
     OnFailure: 'DELETE',
     Parameters: [
-      { ParameterKey: 'ZettaStack', ParameterValue: config.stack },
-      { ParameterKey: 'InstanceType', ParameterValue: config.app.instance_type },
-      { ParameterKey: 'AMI', ParameterValue: config.app.ami },
-      { ParameterKey: 'SecurityGroups', ParameterValue: config.app.security_groups },
-      { ParameterKey: 'KeyPair', ParameterValue: config.keyPair },
-      { ParameterKey: 'InstanceProfile', ParameterValue: config.app.instanceProfile },
-      { ParameterKey: 'DeviceDataQueueUrl', ParameterValue: config.app.deviceDataQueueUrl },
-      { ParameterKey: 'DeviceDataS3Bucket', ParameterValue: config.app.deviceDataS3Bucket },
-      { ParameterKey: 'ZettaUsageQueueUrl', ParameterValue: config.app.zettaUsageQueueUrl },
-      { ParameterKey: 'ZettaUsageS3Bucket', ParameterValue: config.app.zettaUsageS3Bucket }
+      { ParameterKey: 'ZettaStack', ParameterValue: stack.StackName },
+      { ParameterKey: 'InstanceType', ParameterValue: config.type },
+      { ParameterKey: 'AMI', ParameterValue: config.ami },
+      { ParameterKey: 'SecurityGroups', ParameterValue: [stack.Resources['RouterSecurityGroup'].GroupId].join(',') },
+      { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
+      { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['DataWorkerRoleInstanceProfile'].PhysicalResourceId },
+      { ParameterKey: 'DeviceDataQueueUrl', ParameterValue: stack.Resources['DeviceDataQueue'].PhysicalResourceId },
+      { ParameterKey: 'DeviceDataS3Bucket', ParameterValue: stack.Resources['DeviceDataBucket'].PhysicalResourceId },
+      { ParameterKey: 'ZettaUsageQueueUrl', ParameterValue: stack.Resources['ZettaUsageQueue'].PhysicalResourceId },
+      { ParameterKey: 'ZettaUsageS3Bucket', ParameterValue: stack.Resources['ZettaUsageBucket'].PhysicalResourceId }
     ],
     Tags: [
-      { Key: 'zetta:stack', Value: config.stack },
-      { Key: 'zetta:sqsworker:version', Value: config.app.version }
+      { Key: 'zetta:stack', Value: stack.StackName },
+      { Key: 'zetta:sqsworker:version', Value: config.version }
     ],
     TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 5
