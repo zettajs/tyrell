@@ -28,7 +28,19 @@ var listAll = module.exports.listAll = function(AWS, filter, cb) {
     }
 
     data.Images = data.Images.filter(filter);
-    cb(null, data.Images);  
+    data.Images = data.Images.sort(function(a, b) {
+      var d1 = a.CreationDate;
+      var d2 = b.CreationDate;
+      if (d1 > d2) {
+        return 1;
+      } else if (d2 > d1) {
+        return -1;
+      } else {
+        return 0;
+      }
+    });
+
+    cb(null, data.Images);
   });  
 }
 
