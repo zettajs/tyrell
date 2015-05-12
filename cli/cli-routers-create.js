@@ -31,29 +31,15 @@ stacks.get(AWS, name, function(err, stack) {
     process.exit(1);
   }
 
-
-  var etcdPeers = stack.etcdPeers.map(function(ip) {
-    return 'http://' + ip + ':' + 4001;
-  }).join(',');
-
   var config = {
-    stack: name,
-    keyPair: stack.Parameters['KeyPair'],
-    discoveryUrl: stack.Parameters['DiscoveryUrl'],
-    logentriesToken: stack.Parameters['LogentriesToken'],
-    etcdPeers: etcdPeers,
-    app: {
-      ami: program.ami, // cl arg or from previous packer task
-      security_groups: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['RouterSecurityGroup'].GroupId].join(','),
-      cluster_size: program.size + '',
-      instance_type: program.type,
-      version: program.version,
-      zettaELB: stack.Resources['ZettaELB'].PhysicalResourceId
-    }
+    ami: program.ami,
+    size: program.size,
+    type: program.type,
+    version: program.version,
   };
 
-  console.log('Creating CF Version', config.app.version);
-  routers.create(AWS, config, function(err, stack) {
+  console.log('Creating CF Version', config.version);
+  routers.create(AWS, stack, config, function(err, stack) {
     if (err) {
       console.error(err);
       process.exit(1);

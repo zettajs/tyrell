@@ -66,35 +66,45 @@ var list = module.exports.list = function(AWS, stackName, cb) {
   });
 };
 
-var create = module.exports.create = function(AWS, config, done) {
+
+// config
+// - version
+// - type
+// - size
+// - ami
+var create = module.exports.create = function(AWS, stack, config, done) {
   var cloudformation = new AWS.CloudFormation();
   var autoscaling = new AWS.AutoScaling();
 
-  var userData = fs.readFileSync('../aws/router-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
-  userData = userData.replace(/@@ZETTA_VERSION@@/g, config.app.version);
-  userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, config.logentriesToken);
-  userData = userData.replace(/@@ETCD_PEERS@@/g, config.etcdPeers);
-  userData = userData.replace(/@@ETCD_PEER_HOSTS@@/g, config.etcdPeers.replace(/http:\/\//g, '') );  
+  var etcdPeers = stack.etcdPeers.map(function(ip) {
+    return 'http://' + ip + ':' + 4001;
+  }).join(',');
+
+  var userData = fs.readFileSync('../aws/router-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', stack.Parameters['DiscoveryUrl']);
+  userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
+  userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
+  userData = userData.replace(/@@ETCD_PEERS@@/g, etcdPeers);
+  userData = userData.replace(/@@ETCD_PEER_HOSTS@@/g, etcdPeers.replace(/http:\/\//g, '') );  
 
   var template = JSON.parse(fs.readFileSync('../aws/router-asg-cf.json').toString());
   template.Resources['ServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
-  var stackName = config.stack + '-router-' + config.app.version;
+  var stackName = stack.StackName + '-router-' + config.version;
   var params = {
     StackName: stackName,
     OnFailure: 'DELETE',
     Parameters: [
-      { ParameterKey: 'ZettaStack', ParameterValue: config.stack },
-      { ParameterKey: 'InstanceType', ParameterValue: config.app.instance_type },
+      { ParameterKey: 'ZettaStack', ParameterValue: stack.StackName },
+      { ParameterKey: 'InstanceType', ParameterValue: config.type },
       { ParameterKey: 'ClusterSize', ParameterValue: '0' }, // scale after AddToElb process is suspended
-      { ParameterKey: 'AMI', ParameterValue: config.app.ami },
-      { ParameterKey: 'RouterSecurityGroups', ParameterValue: config.app.security_groups },
-      { ParameterKey: 'KeyPair', ParameterValue: config.keyPair },
-      { ParameterKey: 'ZettaELB', ParameterValue: config.app.zettaELB }
+      { ParameterKey: 'AMI', ParameterValue: config.ami },
+      { ParameterKey: 'RouterSecurityGroups', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['RouterSecurityGroup'].GroupId].join(',') },
+      { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
+      { ParameterKey: 'ZettaELB', ParameterValue: stack.Resources['ZettaELB'].PhysicalResourceId }
     ],
     Tags: [
-      { Key: 'zetta:stack', Value: config.stack },
-      { Key: 'zetta:router:version', Value: config.app.version }
+      { Key: 'zetta:stack', Value: stack.StackName },
+      { Key: 'zetta:router:version', Value: config.version }
     ],
     TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 5
@@ -142,7 +152,7 @@ var create = module.exports.create = function(AWS, config, done) {
               return done(err);
             }
             
-            scale(AWS, asgName, config.app.cluster_size, function(err) {
+            scale(AWS, asgName, config.size, function(err) {
               if (err) {
                 return done(err);
               }
