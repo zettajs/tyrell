@@ -29,29 +29,52 @@ var homeConfigPath = path.join(process.env.HOME, '.dockercfg');
 var exists = fs.existsSync(configPath);
 
 var containerNames = {
-  ROUTER: 'docker pull zetta/zetta-cloud-proxy',
-  TARGET: 'docker pull zetta/zetta-target-server'
+  ROUTER: 'zetta/zetta-cloud-proxy',
+  TARGET: 'zetta/zetta-target-server'
 };
 
-
+var customRouter = false;
+var customTarget = false;
 
 if(program.routerTag) {
   var tagString = ':' + program.routerTag;
   containerNames.ROUTER += tagString;
+  customRouter = true;
 }
 
 if(program.targetTag) {
   var tagString = ':' + program.targetTag;
   containerNames.TARGET += tagString;
+  customTarget = true;
 }
 
 if(program.tag) {
   var tagString = ':' + program.tag;
   containerNames.TARGET += tagString;
   containerNames.ROUTER += tagString;
+  customRouter = true;
+  customTarget = true;
 }
 
-var containerCommands = [containerNames.TARGET, containerNames.ROUTER];
+var containerCommands = [];
+
+if(customRouter) {
+  var pullTag = 'docker pull ' + containerNames.ROUTER;
+  var tagContainer = 'docker tag ' + containerNames.ROUTER + ' zetta/zetta-cloud-proxy';  
+  containerCommands.push(pullTag, tagContainer);
+} else {
+  var pullTag = 'docker pull' + containerNames.ROUTER;
+  containerCommands.push(pullTag); 
+}
+
+if(customTarget) {
+  var pullTag = 'docker pull ' + containerNames.TARGET;
+  var tagContainer = 'docker tag ' + containerNames.TARGET + ' zetta/zetta-target-server';
+  containerCommands.push(pullTag, tagContainer);  
+} else {
+  var pullTag = 'docker pull ' + containerNames.TARGET;
+  containerCommands.push(pullTag);
+}
 
 if(!exists) {
   fs.createReadStream(homeConfigPath).pipe(fs.createWriteStream(configPath));
