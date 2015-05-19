@@ -10,6 +10,9 @@ program
   .option('-v --verbose', 'Display packer build output')
   .option('-c, --channel [channel]', 'CoreOS update channel [alpha]', 'alpha')
   .option('-w, --worker', 'Build device data worker')
+  .option('-t, --tag <tag>', 'Pull a specific docker container that corresponds to tag for router and proxy.')
+  .option('--router-tag <tag>', 'Pull a specfic docker container that corresponds to tag for router')
+  .option('--target-tag <tag>', 'Pull a specific docker container that corresponds to tag for target')
   .parse(process.argv);
 
 var platform = program.args[0];
@@ -24,6 +27,54 @@ var verbose = program.verbose;
 var configPath = path.join(Packer.packerPath(), '.dockercfg');
 var homeConfigPath = path.join(process.env.HOME, '.dockercfg');
 var exists = fs.existsSync(configPath);
+
+var containerNames = {
+  ROUTER: 'zetta/zetta-cloud-proxy',
+  TARGET: 'zetta/zetta-target-server'
+};
+
+var customRouter = false;
+var customTarget = false;
+
+if(program.routerTag) {
+  var tagString = ':' + program.routerTag;
+  containerNames.ROUTER += tagString;
+  customRouter = true;
+}
+
+if(program.targetTag) {
+  var tagString = ':' + program.targetTag;
+  containerNames.TARGET += tagString;
+  customTarget = true;
+}
+
+if(program.tag) {
+  var tagString = ':' + program.tag;
+  containerNames.TARGET += tagString;
+  containerNames.ROUTER += tagString;
+  customRouter = true;
+  customTarget = true;
+}
+
+var containerCommands = [];
+
+if(customRouter) {
+  var pullTag = 'docker pull ' + containerNames.ROUTER;
+  var tagContainer = 'docker tag ' + containerNames.ROUTER + ' zetta/zetta-cloud-proxy';  
+  containerCommands.push(pullTag, tagContainer);
+} else {
+  var pullTag = 'docker pull' + containerNames.ROUTER;
+  containerCommands.push(pullTag); 
+}
+
+if(customTarget) {
+  var pullTag = 'docker pull ' + containerNames.TARGET;
+  var tagContainer = 'docker tag ' + containerNames.TARGET + ' zetta/zetta-target-server';
+  containerCommands.push(pullTag, tagContainer);  
+} else {
+  var pullTag = 'docker pull ' + containerNames.TARGET;
+  containerCommands.push(pullTag);
+}
 
 if(!exists) {
   fs.createReadStream(homeConfigPath).pipe(fs.createWriteStream(configPath));
@@ -51,6 +102,18 @@ function extendProvisionsTemplate(orig, updates) {
     }
   }
 
+  return config;
+}
+
+function updateProvisioningTemplate(orig, update){
+  var config = JSON.parse(JSON.stringify(orig)); 
+  var inlineProvisioners = config.provisioners.filter(function(provisioner) {
+    return provisioner.type === 'shell' && Array.isArray(provisioner.inline);  
+  });  
+
+  var provisioner = inlineProvisioners[0];
+
+  provisioner.inline = update;
   return config;
 }
 
@@ -114,8 +177,8 @@ if(platform === 'vagrant') {
     var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_template_base.json');
     var packerTemplateFile = require(packerTemplateFilePath);
     packerTemplateFile.variables.checksum = md5;
-    
-    var zettaConfig = extendProvisionsTemplate(packerTemplateFile, require(path.join(Packer.packerPath(), 'zetta_provisions.json')));
+  var zettaProvisioningTemplate = updateProvisioningTemplate(require(path.join(Packer.packerPath(), 'zetta_provisions.json')), containerCommands);  
+    var zettaConfig = extendProvisionsTemplate(packerTemplateFile, zettaProvisioningTemplate);
     var zettaConfigPath = writeToFile(zettaConfig, 'zetta_packer.json');
 
     async.parallel([
@@ -163,8 +226,8 @@ if(platform === 'vagrant') {
   var credentials = new AWS.SharedIniFileCredentials({profile: 'default'});
   packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID || credentials.accessKeyId;
   packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY || credentials.secretAccessKey;
-
-  var zettaConfig = extendProvisionsTemplate(packerTemplateFile, require(path.join(Packer.packerPath(), 'zetta_provisions.json')));
+  var zettaProvisioningTemplate = updateProvisioningTemplate(require(path.join(Packer.packerPath(), 'zetta_provisions.json')), containerCommands);
+  var zettaConfig = extendProvisionsTemplate(packerTemplateFile, zettaProvisioningTemplate);
   var zettaConfigPath = writeToFile(zettaConfig, 'zetta_packer.json');
 
   async.parallel([
@@ -189,5 +252,4 @@ if(platform === 'vagrant') {
       });
     }
   }
-  
-}
+} 
