@@ -63,7 +63,7 @@ if(customRouter) {
   var tagContainer = 'docker tag ' + containerNames.ROUTER + ' zetta/zetta-cloud-proxy';  
   containerCommands.push(pullTag, tagContainer);
 } else {
-  var pullTag = 'docker pull' + containerNames.ROUTER;
+  var pullTag = 'docker pull ' + containerNames.ROUTER;
   containerCommands.push(pullTag); 
 }
 
