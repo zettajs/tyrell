@@ -39,6 +39,10 @@
     "ZettaELB" : {
       "Description" : "ELB for autoscale group to be assigned to",
       "Type" : "String"
+    },
+    "InstanceProfile" : {
+      "Description" : "IAM Instance Profile for ec2 instances",
+      "Type" : "String"
     }
   },
   "Resources": {
@@ -66,6 +70,7 @@
         "InstanceType": {"Ref": "InstanceType"},
         "KeyName": {"Ref": "KeyPair"},
         "SecurityGroups": {"Ref": "RouterSecurityGroups"},
+        "IamInstanceProfile": {"Ref" : "InstanceProfile" },
         "UserData" : null
       }
     }
