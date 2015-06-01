@@ -85,6 +85,11 @@
   },
   {
     "only": ["amazon-ebs"],
+    "type": "shell",
+    "inline": "docker pull zetta/link-container-metrics-collector"
+  },
+  {
+    "only": ["amazon-ebs"],
     "type": "file",
     "source": "journal2logentries.sh",
     "destination": "/home/core/journal2logentries.sh"

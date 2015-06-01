@@ -19,6 +19,8 @@ coreos:
       command: start
     - name: link-metrics-collector.service
       command: start
+    - name: link-container-metrics-collector.service
+      command: start
     - name: docker-tcp.socket
       command: start
       enable: true

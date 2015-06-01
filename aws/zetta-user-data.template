@@ -19,6 +19,10 @@ coreos:
       command: start
     - name: journallogs-logentries.service
       command: start
+    - name: statsd-cloudwatch.service
+      command: start
+    - name: link-container-metrics-collector.service
+      command: start
     - name: docker-tcp.socket
       command: start
       enable: true
