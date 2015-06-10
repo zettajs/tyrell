@@ -76,7 +76,17 @@
   {
     "only": ["amazon-ebs"],
     "type": "shell",
-    "inline": "docker pull adammagaluk/docker-stats-logentries"
+    "inline": "docker pull adammagaluk/statsd-cloudwatch"
+  },
+  {
+    "only": ["amazon-ebs"],
+    "type": "shell",
+    "inline": "docker pull zetta/link-metrics-collector"
+  },
+  {
+    "only": ["amazon-ebs"],
+    "type": "shell",
+    "inline": "docker pull zetta/link-container-metrics-collector"
   },
   {
     "only": ["amazon-ebs"],

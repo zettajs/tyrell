@@ -81,6 +81,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   }).join(',');
 
   var userData = fs.readFileSync('../aws/router-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', stack.Parameters['DiscoveryUrl']);
+  userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
   userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
   userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
   userData = userData.replace(/@@ETCD_PEERS@@/g, etcdPeers);
@@ -100,7 +101,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
       { ParameterKey: 'AMI', ParameterValue: config.ami },
       { ParameterKey: 'RouterSecurityGroups', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['RouterSecurityGroup'].GroupId].join(',') },
       { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
-      { ParameterKey: 'ZettaELB', ParameterValue: stack.Resources['ZettaELB'].PhysicalResourceId }
+      { ParameterKey: 'ZettaELB', ParameterValue: stack.Resources['ZettaELB'].PhysicalResourceId },
+      { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['RouterRoleInstanceProfile'].PhysicalResourceId }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stack.StackName },

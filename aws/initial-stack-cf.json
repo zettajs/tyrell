@@ -141,6 +141,7 @@
         "InstanceType": {"Ref": "CoreServicesInstanceType"},
         "KeyName": {"Ref": "KeyPair"},
         "SecurityGroups": [{ "Fn::GetAtt" : ["CoreOsSecurityGroup", "GroupId"] }],
+        "IamInstanceProfile": {"Ref" : "CoreServicesRoleInstanceProfile" },
         "UserData" : null
       }
     },
@@ -221,7 +222,26 @@
                           }
                       ]
                   }
+            },
+            {
+              "PolicyName": "CloudWatchMetrics",
+              "PolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                      "Action": [
+                        "cloudwatch:GetMetricStatistics",
+                        "cloudwatch:ListMetrics",
+                        "cloudwatch:PutMetricData",
+                        "ec2:DescribeTags"
+                      ],
+                      "Effect": "Allow",
+                      "Resource": "*"
+                    }
+                  ]
+                }
             }
+
           ]
         }
     },
@@ -234,6 +254,103 @@
           } ]
        }
     },
+
+
+    "RouterRole": {
+       "Type": "AWS::IAM::Role",
+       "Properties": {
+          "AssumeRolePolicyDocument": {
+             "Version" : "2012-10-17",
+             "Statement": [ {
+                "Effect": "Allow",
+                "Principal": {
+                   "Service": [ "ec2.amazonaws.com" ]
+                },
+                "Action": [ "sts:AssumeRole" ]
+             } ]
+          },
+          "Path": "/",
+          "Policies": [
+            {
+              "PolicyName": "CloudWatchMetrics",
+              "PolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                      "Action": [
+                        "cloudwatch:GetMetricStatistics",
+                        "cloudwatch:ListMetrics",
+                        "cloudwatch:PutMetricData",
+                        "ec2:DescribeTags"
+                      ],
+                      "Effect": "Allow",
+                      "Resource": "*"
+                    }
+                  ]
+                }
+            }
+
+          ]
+        }
+    },
+    "RouterRoleInstanceProfile": {
+       "Type": "AWS::IAM::InstanceProfile",
+       "Properties": {
+          "Path": "/",
+          "Roles": [ {
+             "Ref": "RouterRole"
+          } ]
+       }
+    },
+
+
+    "CoreServicesRole": {
+       "Type": "AWS::IAM::Role",
+       "Properties": {
+          "AssumeRolePolicyDocument": {
+             "Version" : "2012-10-17",
+             "Statement": [ {
+                "Effect": "Allow",
+                "Principal": {
+                   "Service": [ "ec2.amazonaws.com" ]
+                },
+                "Action": [ "sts:AssumeRole" ]
+             } ]
+          },
+          "Path": "/",
+          "Policies": [
+            {
+              "PolicyName": "CloudWatchMetrics",
+              "PolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                      "Action": [
+                        "cloudwatch:GetMetricStatistics",
+                        "cloudwatch:ListMetrics",
+                        "cloudwatch:PutMetricData",
+                        "ec2:DescribeTags"
+                      ],
+                      "Effect": "Allow",
+                      "Resource": "*"
+                    }
+                  ]
+                }
+            }
+
+          ]
+        }
+    },
+    "CoreServicesRoleInstanceProfile": {
+       "Type": "AWS::IAM::InstanceProfile",
+       "Properties": {
+          "Path": "/",
+          "Roles": [ {
+             "Ref": "CoreServicesRole"
+          } ]
+       }
+    },
+
     "DataWorkerRole": {
        "Type": "AWS::IAM::Role",
        "Properties": {
