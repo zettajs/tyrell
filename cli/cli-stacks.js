@@ -7,6 +7,7 @@ AWS.config.update({region: 'us-east-1'});
 program
   .command('create', 'create zetta stack')
   .command('remove', 'remove zetta stack')
+  .command('update', 'update zetta stack')
   .parse(process.argv)
 
 if (program.args.length) {
