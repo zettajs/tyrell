@@ -88,7 +88,7 @@ module.exports = function(AWS, opts, callback) {
                 return next(err);
               }
               
-              var version = targets.filter(function(version) {
+              var version = versions.filter(function(version) {
                 return (version.AppVersion === versionKeys.router);
               })[0];
 
