@@ -1,6 +1,6 @@
 var fs = require('fs');
 var async = require('async');
-var versions = require('./versions');
+var targets = require('./targets');
 var routers = require('./routers');
 var workers = require('./workers');
 var utils = require('./aws-utils');
@@ -185,13 +185,13 @@ var remove = module.exports.remove = function(AWS, name, cb) {
 
   async.parallel([
     function(next){
-      versions.list(AWS, name, function(err, results) {
+      targets.list(AWS, name, function(err, results) {
         if (err) {
           return next(err);
         }
         
         async.each(results, function(version, next) {
-          versions.remove(AWS, version.StackName, next);
+          targets.remove(AWS, version.StackName, next);
         }, next);
       });
     },
@@ -225,7 +225,7 @@ var remove = module.exports.remove = function(AWS, name, cb) {
   });
 };
 
-// list all ec2 instances for a stack. Includes routers and versions
+// list all ec2 instances for a stack. Includes routers and targets
 var ec2List = module.exports.ec2List = function(AWS, name, cb) {
   get(AWS, name, function(err, stack) {
     if (err) {

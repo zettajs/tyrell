@@ -1,6 +1,6 @@
 var program = require('commander');
 var AWS = require('aws-sdk'); 
-var versions = require('./lib/versions');
+var targets = require('./lib/targets');
 var stacks = require('./lib/stacks');
 
 AWS.config.update({region: 'us-east-1'});
@@ -8,7 +8,7 @@ AWS.config.update({region: 'us-east-1'});
 program
   .command('create', 'create a new version from ami')
   .command('remove', 'remove version')
-  .command('scale', 'scale versions ASG')
+  .command('scale', 'scale targets ASG')
   .parse(process.argv);
 
 if (program.args.length 
@@ -29,7 +29,7 @@ stacks.get(AWS, name, function(err, stack) {
     process.exit(1);
   }
 
-  versions.list(AWS, name, function(err, results) {
+  targets.list(AWS, name, function(err, results) {
     if (err) {
       console.error(err);
       process.exit(1);

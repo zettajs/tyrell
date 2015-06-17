@@ -2,7 +2,7 @@ var crypto = require('crypto');
 var async = require('async');
 var stacks = require('./stacks');
 var routers = require('./routers');
-var versions = require('./versions');
+var targets = require('./targets');
 var workers = require('./workers');
 var amis = require('./amis');
 var traffic = require('./traffic');
@@ -58,7 +58,7 @@ module.exports = function(AWS, opts, callback) {
 
       var versionKeys = {
         router: crypto.randomBytes(6).toString('hex'),
-        version: crypto.randomBytes(6).toString('hex'),
+        target: crypto.randomBytes(6).toString('hex'),
         worker: crypto.randomBytes(6).toString('hex')
       };
 
@@ -68,8 +68,8 @@ module.exports = function(AWS, opts, callback) {
           routers.create(AWS, stack, config, next);
         },
         function(next) {
-          var config = { ami: images[0], size: opts.versionSize, type: opts.versionType, version: versionKeys.version };
-          versions.create(AWS, stack, config, next);
+          var config = { ami: images[0], size: opts.versionSize, type: opts.versionType, version: versionKeys.target };
+          targets.create(AWS, stack, config, next);
         },
         function(next) {
           var config = { ami: images[1], type: opts.workerType, version: versionKeys.worker };
@@ -88,7 +88,7 @@ module.exports = function(AWS, opts, callback) {
                 return next(err);
               }
               
-              var version = versions.filter(function(version) {
+              var version = targets.filter(function(version) {
                 return (version.AppVersion === versionKeys.router);
               })[0];
 
@@ -99,7 +99,7 @@ module.exports = function(AWS, opts, callback) {
             });
           },
           function(next) {
-            traffic.setZettaVersion(AWS, opts.stack, versionKeys.version, opts.keyPair, next);
+            traffic.setZettaVersion(AWS, opts.stack, versionKeys.target, opts.keyPair, next);
           }
         ], function(err) {
           if (err) {

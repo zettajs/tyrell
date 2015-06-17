@@ -8,8 +8,8 @@
   Commands:
 
     stacks                 list all stacks, and sub commands
-    versions [stack-name]  list zetta versions, and sub commands
-    routers [stack-name]   list routers versions, and sub commands
+    targets [stack-name]   list targets and sub commands
+    routers [stack-name]   list routers and sub commands
     traffic [stack-name]   switch elb traffic to a specific router ASG
     builds                 build a new CoreOS image for zetta.
     local                  interact with a local CoreOS cluster.
@@ -34,20 +34,23 @@ aws_secret_access_key = your_secret_key
 
 ## Deploy Project Example
 
-```
+```bash
+
+# Provisions routers/targets/workers with the latest amis
 node cli stacks create example
+
+# Or manually
+node cli stacks create example --no-provision
 
 node cli builds
 node cli routers create example -a ami-123456
-node cli versions create example -a ami-123456
+node cli targets create example -a ami-123456
 
 node cli traffic elb example --router <router-version>
-chmod 400 zetta-kp-example.pem
 node cli traffic zetta example --version <zetta-version> -k zetta-kp-example.pem
 
 node cli builds --workers
 node cli workers create example -a ami-654321
-
 
 ```
 
@@ -74,7 +77,7 @@ Options
 
 ### Remove Stack
 
-Will a) remove all versions associated with the stack b) the stack its self.
+Will a) remove all targets/routers/workers associated with the stack b) the stack its self.
 
 `node cli stacks remove [stack name]`
 
@@ -83,23 +86,23 @@ Options
 -k, --keyPair <key_pair>  If keypair is specified it will delete it too.
 
 
-## Versions
+## Targets
 
-Versions are the concept of the Zetta-target portion of the architecture. A version is a Cloudformation stack based on `../aws/zetta-asg-cf.json` and an AMI specified. This creates a Autoscale group based on the AMI.
-
-
-### List Versions
-
-List all versions currently deployed.
-
-`node cli versions [stack name]`
+Targets are the concept of the Zetta-target portion of the architecture. A version is a Cloudformation stack based on `../aws/zetta-asg-cf.json` and an AMI specified. This creates a Autoscale group based on the AMI.
 
 
-### Create Version
+### List Targets
+
+List all targets currently deployed.
+
+`node cli targets [stack name]`
+
+
+### Create Target
 
 Create a new version, ami must be specified.
 
-`node cli versions create [stack name] -a [ami]`
+`node cli targets create [stack name] -a [ami]`
 
 Options:
 
@@ -112,17 +115,17 @@ Options:
   --version <app version>     Logical version of the app being deployed. If not specified it will generate one.
 
 
-### Remove Version
+### Remove Target
 
 Remove version
 
-`node cli versions remove [stack name] [version]`
+`node cli targets remove [stack name] [version]`
 
-### Scale Version
+### Scale Target
 
-Scale a versions Autoscale group to a desired size.
+Scale a targets Autoscale group to a desired size.
 
-`node cli versions scale [stack name] [version] -s [size]`
+`node cli targets scale [stack name] [version] -s [size]`
 
 Options:
 
@@ -135,7 +138,7 @@ Routers are an ASG of instances running multi-cloud's proxy. These are what the 
 
 ### List Routers
 
-List all versions currently deployed.
+List all routers currently deployed.
 
 `node cli routers [stack name]`
 

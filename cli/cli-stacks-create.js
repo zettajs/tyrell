@@ -107,7 +107,7 @@ getKeyPair(function(err, key) {
                 }
                 
                 console.log('Router Created:', versions.router);
-                console.log('Version Created:', versions.version);
+                console.log('Target Created:', versions.target);
                 console.log('Worker Created:', versions.worker);
               });
             }, 60000);

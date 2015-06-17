@@ -5,7 +5,7 @@ var path = require('path');
 var discoveryToken = /@@ETCD_DISCOVERY_URL@@/;
 var versionToken = /@@ZETTA_VERSION@@/;
 var Vagrant = require('./lib/vagrant');
-var versions = require('./lib/versions');
+var targets = require('./lib/targets');
 var DiscoveryUrl = require('./lib/get-discovery-url');
 var AWS = require('aws-sdk');
 
@@ -45,7 +45,7 @@ function startCluster() {
       throw new Error('Non-Zero exit code. Vagrant box not configured.');  
     }
     
-    versions.routeVagrant('core-03', version, function(err) {
+    targets.routeVagrant('core-03', version, function(err) {
       if (err) {
         throw err;
       }
