@@ -24,12 +24,12 @@ function generateConfig(cb) {
       return cb(err);
     }
 
-    var template = fs.readFileSync(path.join(Vagrant.vagrantPath(), 'zetta-user-data.template'));
+    var template = fs.readFileSync(path.join(Vagrant.vagrantPath(), 'target-user-data.template'));
     var config = template.toString().replace(discoveryToken, url);
     config = config.replace(versionToken, version);
     config = config.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/, 'http://core-01:9324/queue/device-data');
     config = config.replace(/@@ZETTA_USAGE_QUEUE@@/, 'http://core-01:9324/queue/zetta-usage');
-    fs.writeFileSync(path.join(Vagrant.vagrantPath(), 'zetta-user-data'), config);
+    fs.writeFileSync(path.join(Vagrant.vagrantPath(), 'target-user-data'), config);
 
     var template = fs.readFileSync(path.join(Vagrant.vagrantPath(), 'router-user-data.template'));
     var config = template.toString().replace(discoveryToken, url);

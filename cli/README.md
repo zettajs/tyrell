@@ -88,7 +88,7 @@ Options
 
 ## Targets
 
-Targets are the concept of the Zetta-target portion of the architecture. A version is a Cloudformation stack based on `../aws/zetta-asg-cf.json` and an AMI specified. This creates a Autoscale group based on the AMI.
+Targets are the concept of the Zetta-target portion of the architecture. A version is a Cloudformation stack based on `../aws/target-asg-cf.json` and an AMI specified. This creates a Autoscale group based on the AMI.
 
 
 ### List Targets

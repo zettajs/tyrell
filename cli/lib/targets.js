@@ -62,7 +62,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
     return 'http://' + ip + ':' + 4001;
   }).join(',');
   
-  var userData = fs.readFileSync('../aws/zetta-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', stack.Parameters['DiscoveryUrl']);
+  var userData = fs.readFileSync('../aws/target-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', stack.Parameters['DiscoveryUrl']);
   userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
   userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
   userData = userData.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/g, stack.Resources['DeviceDataQueue'].PhysicalResourceId);
@@ -70,7 +70,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
   userData = userData.replace(/@@ETCD_PEERS@@/g, etcdPeers);
 
-  var template = JSON.parse(fs.readFileSync('../aws/zetta-asg-cf.json').toString());
+  var template = JSON.parse(fs.readFileSync('../aws/target-asg-cf.json').toString());
   template.Resources['ZettaServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
   var stackName = stack.StackName + '-app-' + config.version;
@@ -82,9 +82,9 @@ var create = module.exports.create = function(AWS, stack, config, done) {
       { ParameterKey: 'InstanceType', ParameterValue: config.type },
       { ParameterKey: 'ClusterSize', ParameterValue: config.size + '' },
       { ParameterKey: 'AMI', ParameterValue: config.ami },
-      { ParameterKey: 'ZettaAppSecurityGroup', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['AppSecurityGroup'].GroupId].join(',') },
+      { ParameterKey: 'ZettaTargetSecurityGroup', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['TargetSecurityGroup'].GroupId].join(',') },
       { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
-      { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['AppRoleInstanceProfile'].PhysicalResourceId }
+      { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['TargetRoleInstanceProfile'].PhysicalResourceId }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stack.StackName },
