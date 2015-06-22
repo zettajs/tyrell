@@ -14,7 +14,7 @@ CLOUD_CONFIG_PATH = File.join(File.dirname(__FILE__))
 $num_instances_zetta=1
 $num_instances_router=1
 $instance_name_prefix = "core"
-$update_channel = "alpha"
+$update_channel = "stable"
 
 if File.exist?(CONFIG)
   require CONFIG
