@@ -71,7 +71,7 @@
       }
     },
 
-    "AppSecurityGroup": {
+    "TargetSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupDescription": "Core SecurityGroup, applies to any machine in CoreOS cluster",
@@ -80,10 +80,10 @@
         ]
       }
     },
-    "AppIngressFromRouter": {
+    "TargetIngressFromRouter": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "AppSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "3000", "ToPort": "3020", "SourceSecurityGroupId": {
+        "GroupName": {"Ref": "TargetSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "3000", "ToPort": "3020", "SourceSecurityGroupId": {
           "Fn::GetAtt" : [ "RouterSecurityGroup", "GroupId" ]
         }
       }
@@ -195,7 +195,7 @@
        "Properties" : { }
     },
 
-    "AppRole": {
+    "TargetRole": {
        "Type": "AWS::IAM::Role",
        "Properties": {
           "AssumeRolePolicyDocument": {
@@ -245,12 +245,12 @@
           ]
         }
     },
-    "AppRoleInstanceProfile": {
+    "TargetRoleInstanceProfile": {
        "Type": "AWS::IAM::InstanceProfile",
        "Properties": {
           "Path": "/",
           "Roles": [ {
-             "Ref": "AppRole"
+             "Ref": "TargetRole"
           } ]
        }
     },

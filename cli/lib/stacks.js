@@ -1,6 +1,6 @@
 var fs = require('fs');
 var async = require('async');
-var versions = require('./versions');
+var targets = require('./targets');
 var routers = require('./routers');
 var workers = require('./workers');
 var utils = require('./aws-utils');
@@ -113,11 +113,8 @@ var list = module.exports.list = function(AWS, cb) {
   });
 };
 
-var create = module.exports.create = function(AWS, config, done) {
-  var cloudformation = new AWS.CloudFormation();
+function generateStackParams(config) {
   var template = require('../../aws/initial-stack-cf.json');
-  
-  // assign user-data for CoreServices
   var userData = fs.readFileSync('../aws/core-services.template').toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
   template.Resources['CoreServicesLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
@@ -143,6 +140,14 @@ var create = module.exports.create = function(AWS, config, done) {
     TimeoutInMinutes: 5
   };
 
+  return params;
+}
+
+var create = module.exports.create = function(AWS, config, done) {
+  var cloudformation = new AWS.CloudFormation();
+
+  var stackName = config.stack;
+  var params = generateStackParams(config);
 
   function checkStackStatus(cb) {
     cloudformation.describeStacks({ StackName: stackName }, function(err, data) {
@@ -185,13 +190,13 @@ var remove = module.exports.remove = function(AWS, name, cb) {
 
   async.parallel([
     function(next){
-      versions.list(AWS, name, function(err, results) {
+      targets.list(AWS, name, function(err, results) {
         if (err) {
           return next(err);
         }
         
         async.each(results, function(version, next) {
-          versions.remove(AWS, version.StackName, next);
+          targets.remove(AWS, version.StackName, next);
         }, next);
       });
     },
@@ -225,7 +230,7 @@ var remove = module.exports.remove = function(AWS, name, cb) {
   });
 };
 
-// list all ec2 instances for a stack. Includes routers and versions
+// list all ec2 instances for a stack. Includes routers and targets
 var ec2List = module.exports.ec2List = function(AWS, name, cb) {
   get(AWS, name, function(err, stack) {
     if (err) {
@@ -233,5 +238,42 @@ var ec2List = module.exports.ec2List = function(AWS, name, cb) {
     }
 
     return cb(null, stack.Resources.CoreServicesASG.Instances);
+  });
+};
+
+
+// updates the cf template with the latest output from tyrell
+// May spin down core services instances depending on the changes of the template
+var update = module.exports.update = function(AWS, name, configUpdates, cb) {
+  get(AWS, name, function(err, stack) {
+    if (err) {
+      return cb(err);
+    }
+
+    // need discoveryUrl for user-data update
+    var config = {
+      stack: name,
+      discoveryUrl: stack.Parameters.DiscoveryUrl
+    };
+
+    Object.keys(configUpdates).forEach(function(k) {
+      config[k] = configUpdates[k];
+    });
+
+    var params = generateStackParams(config);
+    params.Parameters.forEach(function(v) {
+      if (v.ParameterValue === undefined || v.ParameterValue === 'undefined') {
+        delete v.ParameterValue;
+        v.UsePreviousValue = true;
+      }
+    });
+
+    params.UsePreviousTemplate = false;
+    delete params.Tags;
+    delete params.TimeoutInMinutes;
+    delete params.OnFailure;
+
+    var cloudformation = new AWS.CloudFormation();
+    cloudformation.updateStack(params, cb);
   });
 };

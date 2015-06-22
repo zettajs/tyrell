@@ -29,7 +29,7 @@
       "Description" : "The name of an EC2 Key Pair to allow SSH access to the instance.",
       "Type" : "String"
     },
-    "ZettaAppSecurityGroup" : {
+    "ZettaTargetSecurityGroup" : {
       "Description" : "Security Group to assign to",
       "Type": "List<AWS::EC2::SecurityGroup::Id>"
     },
@@ -65,7 +65,7 @@
         "ImageId" : { "Ref" : "AMI" },
         "InstanceType": {"Ref": "InstanceType"},
         "KeyName": {"Ref": "KeyPair"},
-        "SecurityGroups": {"Ref": "ZettaAppSecurityGroup"},
+        "SecurityGroups": {"Ref": "ZettaTargetSecurityGroup"},
         "IamInstanceProfile": {"Ref" : "InstanceProfile" },
         "UserData" : null
       }

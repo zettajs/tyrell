@@ -1,13 +1,13 @@
 var program = require('commander');
 var AWS = require('aws-sdk'); 
 var traffic = require('./lib/traffic');
-var versions = require('./lib/versions');
+var targets = require('./lib/targets');
 var stacks = require('./lib/stacks');
 
 AWS.config.update({region: 'us-east-1'});
 
 program
-  .option('--version <zetta version>', 'Logical version of the zetta asg being deployed', null)
+  .option('--target <target version>', 'Logical version of the target asg being deployed', null)
   .option('-k, --keyPair <key_pair>', 'Indentity file for sshing into box.')
   .parse(process.argv);
 
@@ -28,7 +28,7 @@ stacks.get(AWS, name, function(err, stack) {
     process.exit(1);
   }
   
-  if (!program.version) {
+  if (!program.target) {
     traffic.zettaVersion(AWS, name, program.keyPair, function(err, obj) {
       if (err) {
         throw err;
@@ -38,21 +38,21 @@ stacks.get(AWS, name, function(err, stack) {
     return;
   }
   
-  versions.list(AWS, name, function(err, versions) {
+  target.list(AWS, name, function(err, versions) {
     if (err) {
       throw err;
     }
   
     versions = versions.filter(function(version) {
-      return version.AppVersion === program.version;
+      return version.AppVersion === program.target;
     });
 
     if (versions.length === 0) {
-      console.error('Version does not exist.');
+      console.error('Target does not exist.');
       process.exit(1);
     }
 
-    traffic.setZettaVersion(AWS, name, program.version, program.keyPair, function(err, obj) {
+    traffic.setZettaVersion(AWS, name, program.target, program.keyPair, function(err, obj) {
       if (err) {
         throw err;
       }

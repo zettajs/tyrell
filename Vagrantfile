@@ -68,7 +68,7 @@ end
 Vagrant.configure(2) do |config|
 
   (1..$num_instances_zetta).each do |i|
-    init_machine(config, i, "zetta")
+    init_machine(config, i, "target")
   end
 
   (($num_instances_zetta+1)..($num_instances_router+$num_instances_zetta)).each do |i|

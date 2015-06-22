@@ -1,7 +1,7 @@
 var async = require('async');
 var awsUtils = require('./aws-utils');
 var stacks = require('./stacks');
-var versions = require('./versions');
+var targets = require('./targets');
 var routers = require('./routers');
 
 function formatTags(tags) {
@@ -173,7 +173,7 @@ module.exports.zettaVersion = function(AWS, stackName, keyPath, cb) {
     });
 
     var host = 'core@' + instances[0].PublicDnsName;
-    versions.getSSH(host, keyPath, cb);
+    targets.getSSH(host, keyPath, cb);
   });
 };
 
@@ -188,6 +188,6 @@ module.exports.setZettaVersion = function(AWS, stackName, version, keyPath, cb) 
     });
 
     var host = 'core@' + instances[0].PublicDnsName;
-    versions.routeSSH(host, keyPath, version, cb);
+    targets.routeSSH(host, keyPath, version, cb);
   });
 };

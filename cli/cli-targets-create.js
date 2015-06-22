@@ -2,7 +2,7 @@ var crypto = require('crypto');
 var program = require('commander');
 var AWS = require('aws-sdk'); 
 var stacks = require('./lib/stacks');
-var versions = require('./lib/versions');
+var targets = require('./lib/targets');
 
 AWS.config.update({region: 'us-east-1'});
 
@@ -39,7 +39,7 @@ stacks.get(AWS, name, function(err, stack) {
   };
 
   console.log('Creating CF Version', program.version);
-  versions.create(AWS, stack, config, function(err, stack) {
+  targets.create(AWS, stack, config, function(err, stack) {
     if (err) {
       console.error(err);
       process.exit(1);
