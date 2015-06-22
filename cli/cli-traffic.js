@@ -1,9 +1,4 @@
 var program = require('commander');
-var AWS = require('aws-sdk'); 
-var versions = require('./lib/versions');
-var stacks = require('./lib/stacks');
-
-AWS.config.update({region: 'us-east-1'});
 
 program
   .command('elb [stack]', 'update the elb with a router\'s ASG ')
