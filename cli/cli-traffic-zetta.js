@@ -38,7 +38,7 @@ stacks.get(AWS, name, function(err, stack) {
     return;
   }
   
-  target.list(AWS, name, function(err, versions) {
+  targets.list(AWS, name, function(err, versions) {
     if (err) {
       throw err;
     }
