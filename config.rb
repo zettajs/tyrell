@@ -9,7 +9,7 @@ $num_instances_zetta=2
 $num_instances_router=1
 
 # Official CoreOS channel from which updates should be downloaded
-$update_channel='alpha'
+$update_channel='stable'
 
 # Log the serial consoles of CoreOS VMs to log/
 # Enable by setting value to true, disable with false

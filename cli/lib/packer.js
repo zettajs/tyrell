@@ -1,7 +1,7 @@
 var spawn = require('child_process').spawn;
 var http = require('http');
 var base = 'packer';
-var isoDigestLink = 'http://alpha.release.core-os.net/amd64-usr/current/coreos_production_iso.DIGESTS';
+var isoDigestLink = 'http://stable.release.core-os.net/amd64-usr/current/coreos_production_iso.DIGESTS';
 
 function changeToPackerDirectory() {
   process.chdir(__dirname);

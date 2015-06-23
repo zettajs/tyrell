@@ -3,7 +3,7 @@
     "aws_access_key": "@@AWS_ACCESS_KEY@@",
     "aws_secret_key": "@@AWS_SECRET_KEY@@",
     "checksum": "@@COREOS_MD5_HASH@@",
-    "channel": "alpha",
+    "channel": "stable",
     "version": "current",
     "checksum_type":"md5",
     "output_name": "new"
@@ -13,10 +13,10 @@
     "access_key": "{{user `aws_access_key` }}",
     "secret_key": "{{user `aws_secret_key` }}",
     "region": "us-east-1",
-    "source_ami": "ami-c36583a8",
+    "source_ami": "ami-93ea17f8",
     "instance_type": "t2.micro",
     "ssh_username": "core",
-    "ami_name": "{{user `output_name`}}-coreos-alpha-os-{{timestamp}}",
+    "ami_name": "{{user `output_name`}}-coreos-{{timestamp}}",
     "tags": {
 
     }

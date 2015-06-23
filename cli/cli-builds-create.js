@@ -8,7 +8,7 @@ var AWS = require('aws-sdk');
 
 program
   .option('-v --verbose', 'Display packer build output')
-  .option('-c, --channel [channel]', 'CoreOS update channel [alpha]', 'alpha')
+  .option('-c, --channel [channel]', 'CoreOS update channel [stable]', 'stable')
   .option('-w, --worker', 'Build device data worker')
   .option('-t, --tag <tag>', 'Pull a specific docker container that corresponds to tag for router and proxy.')
   .option('--router-tag <tag>', 'Pull a specfic docker container that corresponds to tag for router')
