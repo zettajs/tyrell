@@ -73,7 +73,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   var template = JSON.parse(fs.readFileSync('../aws/target-asg-cf.json').toString());
   template.Resources['ZettaServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
-  var stackName = stack.StackName + '-app-' + config.version;
+  var stackName = stack.StackName + '-target-' + config.version;
   var params = {
     StackName: stackName,
     OnFailure: 'DELETE',
