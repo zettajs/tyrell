@@ -31,8 +31,32 @@
     "CoreServicesSize" : {
       "Description" : "",
       "Type" : "Number"
+    },
+    "UseExistingDeviceDataBucket" : {
+      "Type" : "String",
+      "Default" : "false",
+      "AllowedValues" : ["false", "true"],
+      "Description" : "Enter false or true."
+    },
+    "ExistingDeviceDataBucket" : {
+      "Type" : "String",
+      "Description" : "Existing s3 bucket for device data."
+    },
+    "UseExistingZettaUsageBucket" : {
+      "Type" : "String",
+      "Default" : "false",
+      "AllowedValues" : ["false", "true"],
+      "Description" : "Enter false or true."
+    },
+    "ExistingZettaUsageBucket" : {
+      "Type" : "String",
+      "Description" : "Existing s3 bucket for zetta usage data."
     }
+  },
 
+  "Conditions" : {
+    "CreateDeviceDataBucket" : {"Fn::Equals" : [{"Ref" : "UseExistingDeviceDataBucket"}, "false"]},
+    "CreateZettaUsageBucket" : {"Fn::Equals" : [{"Ref" : "UseExistingZettaUsageBucket"}, "false"]}
   },
 
   "Resources": {
@@ -179,6 +203,7 @@
        }
     },
     "DeviceDataBucket": {
+       "Condition" : "CreateDeviceDataBucket",
        "Type" : "AWS::S3::Bucket",
        "Properties" : {}
     },
@@ -191,6 +216,7 @@
        }
     },
     "ZettaUsageBucket": {
+       "Condition" : "CreateZettaUsageBucket",
        "Type" : "AWS::S3::Bucket",
        "Properties" : { }
     },
@@ -400,8 +426,8 @@
                               "s3:PutObjectVersionAcl",
                               "s3:RestoreObject"
                             ],
-                            "Resource": [ { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "DeviceDataBucket" } , "/*" ]]},
-                                          { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ZettaUsageBucket" } , "/*" ]]}
+                            "Resource": [ { "Fn::Join" : ["", ["arn:aws:s3:::", { "Fn::If" : [ "CreateDeviceDataBucket", {"Ref" : "DeviceDataBucket"}, {"Ref" : "ExistingDeviceDataBucket"} ]} , "/*" ]]},
+                                          { "Fn::Join" : ["", ["arn:aws:s3:::", { "Fn::If" : [ "CreateZettaUsageBucket", {"Ref" : "ZettaUsageBucket"}, {"Ref" : "ExistingZettaUsageBucket"} ]} , "/*" ]]}
                                         ]
                           }
                       ]
@@ -419,6 +445,14 @@
           } ]
        }
     }
+  },
 
+  "Outputs" : {
+    "DeviceDataBucket" : {
+      "Value" : { "Fn::If" : [ "CreateDeviceDataBucket", {"Ref" : "DeviceDataBucket"}, {"Ref" : "ExistingDeviceDataBucket"} ]}
+    },
+    "ZettaUsageBucket" : {
+      "Value" : { "Fn::If" : [ "CreateZettaUsageBucket", {"Ref" : "ZettaUsageBucket"}, {"Ref" : "ExistingZettaUsageBucket"} ]}
+    }
   }
 }

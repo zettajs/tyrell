@@ -5,110 +5,6 @@ var routers = require('./routers');
 var workers = require('./workers');
 var utils = require('./aws-utils');
 
-var merge = module.exports.merge = function(AWS, oldStackName, newStackName, cb) {
-  var cloudformation = new AWS.CloudFormation();
-  
-  var getStack = function(name, next) {
-    cloudformation.describeStacks({ StackName: name }, function(err, stack) {
-      if (err) {
-        return next(err);
-      }
-      var stack = stack.Stacks[0];
-      cloudformation.describeStackResources({ StackName: name }, function(err, data) {
-        if (err) {
-          return next(err);
-        }
-        var resources = {};
-        data.StackResources.forEach(function(resource) {
-          resources[resource.LogicalResourceId] = resource;
-        });
-        stack.Resources = resources;
-        next(null, stack);
-      });
-    });
-  };
-
-  getStack(oldStackName, function(err, oldStack) {
-    if (err) {
-      return cb(err);
-    }
-    getStack(newStackName, function(err, newStack) {
-      if (err) {
-        return cb(err);
-      }
-      
-      var s3 = new AWS.S3();
-
-      var getKeys = function(type, next, marker, keys) {
-        if (!keys) {
-          keys = [];
-        }
-        var params = {
-          Bucket: oldStack.Resources[type].PhysicalResourceId,
-          MaxKeys: 10000
-        };
-        if (marker) {
-          params.Marker = marker;
-        }
-        
-        s3.listObjects(params, function(err, data) {
-          if (err) {
-            return next(err);
-          }
-          data.Contents.forEach(function(obj) {
-            keys.push(obj.Key);
-          });
-
-          if (data.IsTruncated) {
-            return getKeys(type, next, keys[keys.length - 1], keys);
-          } else {
-            return next(null, keys);
-          }
-        });
-      };
-      
-      var move = function(type, key, next) {
-        var params = {
-          Bucket: newStack.Resources[type].PhysicalResourceId,
-          Key: key,
-          CopySource: encodeURI(oldStack.Resources[type].PhysicalResourceId + '/' + key),
-          MetadataDirective: 'COPY'
-        };
-        s3.copyObject(params, function(err) {
-          if (err) {
-            return next(err);
-          }
-          
-          s3.deleteObject({ Key: key, Bucket: oldStack.Resources[type].PhysicalResourceId }, next);
-        });
-      };
-
-      getKeys('DeviceDataBucket', function(err, keys) {
-        if (err) {
-          return cb(err);
-        }
-        console.log(keys.length);
-        async.eachLimit(keys, 20, move.bind(null, 'DeviceDataBucket'), function(err) {
-          if (err) {
-            return cb(err);
-          }
-
-          getKeys('ZettaUsageBucket', function(err, keys) {
-            if (err) {
-              return cb(err);
-            }
-            async.eachLimit(keys, 20, move.bind(null, 'ZettaUsageBucket'), function(err) {
-              cb(err);
-            });
-          });
-        });
-      });
-     
-
-    });
-  });
-};
-
 var get = module.exports.get = function(AWS, stackName, cb) {
   var ec2 = new AWS.EC2();
   var cloudformation = new AWS.CloudFormation();
@@ -179,6 +75,12 @@ var get = module.exports.get = function(AWS, stackName, cb) {
           resources[r.LogicalResourceId] = r;
         });
 
+        var Outputs = {};
+        stack.Outputs.forEach(function(key) {
+          Outputs[key.OutputKey] = key.OutputValue;
+        });
+        stack.Outputs = Outputs;
+
         stack.etcdPeers = [];
         resources['CoreServicesASG'].Instances.forEach(function(instance) {
           if (instance.PrivateIpAddress) {
@@ -243,6 +145,16 @@ function generateStackParams(config) {
     TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 5
   };
+
+  if (config.deviceDataBucket) {
+    params.Parameters.push({ ParameterKey: 'ExistingDeviceDataBucket', ParameterValue: '' + config.deviceDataBucket });
+    params.Parameters.push({ ParameterKey: 'UseExistingDeviceDataBucket', ParameterValue: 'true' });
+  }
+
+  if (config.zettaUsageBucket) {
+    params.Parameters.push({ ParameterKey: 'ExistingZettaUsageBucket', ParameterValue: '' + config.zettaUsageBucket });
+    params.Parameters.push({ ParameterKey: 'UseExistingZettaUsageBucket', ParameterValue: 'true' });
+  }
 
   return params;
 }
@@ -379,5 +291,108 @@ var update = module.exports.update = function(AWS, name, configUpdates, cb) {
 
     var cloudformation = new AWS.CloudFormation();
     cloudformation.updateStack(params, cb);
+  });
+};
+
+var merge = module.exports.merge = function(AWS, oldStackName, newStackName, cb) {
+  var cloudformation = new AWS.CloudFormation();
+  
+  var getStack = function(name, next) {
+    cloudformation.describeStacks({ StackName: name }, function(err, stack) {
+      if (err) {
+        return next(err);
+      }
+      var stack = stack.Stacks[0];
+      cloudformation.describeStackResources({ StackName: name }, function(err, data) {
+        if (err) {
+          return next(err);
+        }
+        var resources = {};
+        data.StackResources.forEach(function(resource) {
+          resources[resource.LogicalResourceId] = resource;
+        });
+        stack.Resources = resources;
+        next(null, stack);
+      });
+    });
+  };
+
+  getStack(oldStackName, function(err, oldStack) {
+    if (err) {
+      return cb(err);
+    }
+    getStack(newStackName, function(err, newStack) {
+      if (err) {
+        return cb(err);
+      }
+      
+      var s3 = new AWS.S3();
+
+      var getKeys = function(type, next, marker, keys) {
+        if (!keys) {
+          keys = [];
+        }
+        var params = {
+          Bucket: oldStack.Resources[type].PhysicalResourceId,
+          MaxKeys: 10000
+        };
+        if (marker) {
+          params.Marker = marker;
+        }
+        
+        s3.listObjects(params, function(err, data) {
+          if (err) {
+            return next(err);
+          }
+          data.Contents.forEach(function(obj) {
+            keys.push(obj.Key);
+          });
+
+          if (data.IsTruncated) {
+            return getKeys(type, next, keys[keys.length - 1], keys);
+          } else {
+            return next(null, keys);
+          }
+        });
+      };
+      
+      var move = function(type, key, next) {
+        var params = {
+          Bucket: newStack.Resources[type].PhysicalResourceId,
+          Key: key,
+          CopySource: encodeURI(oldStack.Resources[type].PhysicalResourceId + '/' + key),
+          MetadataDirective: 'COPY'
+        };
+        s3.copyObject(params, function(err) {
+          if (err) {
+            return next(err);
+          }
+          
+          s3.deleteObject({ Key: key, Bucket: oldStack.Resources[type].PhysicalResourceId }, next);
+        });
+      };
+
+      getKeys('DeviceDataBucket', function(err, keys) {
+        if (err) {
+          return cb(err);
+        }
+        console.log(keys.length);
+        async.eachLimit(keys, 20, move.bind(null, 'DeviceDataBucket'), function(err) {
+          if (err) {
+            return cb(err);
+          }
+
+          getKeys('ZettaUsageBucket', function(err, keys) {
+            if (err) {
+              return cb(err);
+            }
+            async.eachLimit(keys, 20, move.bind(null, 'ZettaUsageBucket'), function(err) {
+              cb(err);
+            });
+          });
+        });
+      });
+
+    });
   });
 };

@@ -68,9 +68,9 @@ var create = module.exports.create = function(AWS, stack, config, done) {
       { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
       { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['DataWorkerRoleInstanceProfile'].PhysicalResourceId },
       { ParameterKey: 'DeviceDataQueueUrl', ParameterValue: stack.Resources['DeviceDataQueue'].PhysicalResourceId },
-      { ParameterKey: 'DeviceDataS3Bucket', ParameterValue: stack.Resources['DeviceDataBucket'].PhysicalResourceId },
+      { ParameterKey: 'DeviceDataS3Bucket', ParameterValue: stack.Outputs['DeviceDataBucket'] },
       { ParameterKey: 'ZettaUsageQueueUrl', ParameterValue: stack.Resources['ZettaUsageQueue'].PhysicalResourceId },
-      { ParameterKey: 'ZettaUsageS3Bucket', ParameterValue: stack.Resources['ZettaUsageBucket'].PhysicalResourceId }
+      { ParameterKey: 'ZettaUsageS3Bucket', ParameterValue: stack.Outputs['ZettaUsageBucket'] }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stack.StackName },
