@@ -14,6 +14,8 @@ program
   .option('-s, --size <size>', 'Specify cluster size for core services.', 3)
   .option('-t, --type <type>', 'Specify instance type for core services.', 't2.micro')
   .option('--no-provision', 'Do create routers/versions/workers with the latest ami.')
+  .option('--device-data-bucket <bucket name>', 'Specify existing device data bucket')
+  .option('--zetta-usage-bucket <bucket name>', 'Specify existing device data bucket')
   .parse(process.argv);
 
 var name = program.args[0];
@@ -80,7 +82,9 @@ getKeyPair(function(err, key) {
           logentriesToken: program.logToken,
           size: program.size,
           instanceType: program.type,
-          ami: ami.hvm
+          ami: ami.hvm,
+          deviceDataBucket: program.deviceDataBucket,
+          zettaUsageBucket: program.zettaUsageBucket
         };
 
         stacks.create(AWS, config, function(err) {
