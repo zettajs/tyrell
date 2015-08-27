@@ -2,7 +2,7 @@
 
 coreos:
   fleet:
-    metadata: role=tenant-mgmn-api
+    metadata: role=tenant-mgmt-api
     etcd_servers: "@@ETCD_PEERS@@"
   locksmith:
     endpoint: "@@ETCD_PEERS@@"

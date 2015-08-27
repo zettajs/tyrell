@@ -7,70 +7,45 @@
       "Type" : "String",
       "Default" : "t2.micro"
     },
-    "ClusterSize": {
-      "Default": "0",
-      "MinValue": "0",
-      "MaxValue": "12",
-      "Description": "Number of nodes in cluster (1-12).",
-      "Type": "Number"
-    },
     "AMI": {
       "Description": "A unique AMI id for our custom CoreOS build using packer.",
-      "Type": "String"
-    },
-    "AdvertisedIPAddress": {
-      "Description": "Use 'private' if your etcd cluster is within one region or 'public' if it spans regions or cloud providers.",
-      "Default": "private",
-      "AllowedValues": ["private", "public"],
       "Type": "String"
     },
     "KeyPair" : {
       "Description" : "The name of an EC2 Key Pair to allow SSH access to the instance.",
       "Type" : "String"
     },
-    "RouterSecurityGroups" : {
-      "Description" : "Security Group to assign to",
-      "Type": "List<AWS::EC2::SecurityGroup::Id>"
-    },
     "ZettaStack" : {
       "Description" : "Zetta Stack",
       "Type" : "String"
     },
-    "ZettaELB" : {
-      "Description" : "ELB for autoscale group to be assigned to",
-      "Type" : "String"
-    },
-    "InstanceProfile" : {
-      "Description" : "IAM Instance Profile for ec2 instances",
-      "Type" : "String"
+    "CoreOsSecurityGroup" : {
+      "Description" : "Coreos security group to access etcd",
+      "Type" : "AWS::EC2::SecurityGroup::Id"
     }
   },
   "Resources": {
-    "RouterAutoScale": {
-      "Type": "AWS::AutoScaling::AutoScalingGroup",
+    "InstanceSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "AvailabilityZones": {"Fn::GetAZs": ""},
-        "LaunchConfigurationName": {"Ref": "ServerLaunchConfig"},
-        "MinSize": "0",
-        "MaxSize": "12",
-        "HealthCheckType": "EC2",
-        "DesiredCapacity": {"Ref": "ClusterSize"},
-        "HealthCheckGracePeriod": 60,
-        "LoadBalancerNames": [ {"Ref": "ZettaELB"} ],
-        "Tags": [
-            {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
-            {"Key": "Name", "Value": { "Ref" : "AWS::StackName" }, "PropagateAtLaunch": true}
+        "GroupDescription": "Instance security group.",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "CidrIp": "0.0.0.0/0"}
         ]
       }
     },
-    "ServerLaunchConfig": {
-      "Type": "AWS::AutoScaling::LaunchConfiguration",
-      "Properties": {
-        "ImageId" : { "Ref" : "AMI" },
-        "InstanceType": {"Ref": "InstanceType"},
-        "KeyName": {"Ref": "KeyPair"},
-        "SecurityGroups": {"Ref": "RouterSecurityGroups"},
-        "IamInstanceProfile": {"Ref" : "InstanceProfile" },
+    "Instance" : {
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "ImageId" : { "Ref": "AMI" },
+        "KeyName" : { "Ref": "KeyPair" },
+        "InstanceType" : { "Ref": "InstanceType" },
+        "Monitoring": true,
+        "SecurityGroupIds": [{ "Ref": "CoreOsSecurityGroup" }, {"Fn::GetAtt": ["InstanceSecurityGroup", "GroupId"]} ],
+        "Tags": [
+            {"Key": "zetta:stack", "Value": { "Ref" : "ZettaStack" } },
+            {"Key": "Name", "Value": { "Fn::Join": [ "-", [ {"Ref" : "ZettaStack"}, "tenant-mgmt-api"]] } }
+        ],
         "UserData" : null
       }
     }
