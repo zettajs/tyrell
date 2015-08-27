@@ -40,6 +40,7 @@
     },
     "ExistingDeviceDataBucket" : {
       "Type" : "String",
+      "Default" : "",
       "Description" : "Existing s3 bucket for device data."
     },
     "UseExistingZettaUsageBucket" : {
@@ -50,6 +51,7 @@
     },
     "ExistingZettaUsageBucket" : {
       "Type" : "String",
+      "Default" : "",
       "Description" : "Existing s3 bucket for zetta usage data."
     }
   },
