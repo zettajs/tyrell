@@ -1,4 +1,5 @@
 var fs = require('fs');
+var path = require('path');
 var async = require('async');
 var awsUtils = require('./aws-utils');
 var Vagrant = require('./vagrant');
