@@ -19,12 +19,12 @@ var list = module.exports.list = function(AWS, stackName, cb) {
     });
 
     stacks = stacks.filter(function(stack) {
-      return stack.Tags.filter(function(tag) { 
+      return stack.Tags.filter(function(tag) {
         return tag.Key === 'zetta:stack' && tag.Value === stackName;
       }).length > 0;
     });
 
-    
+
     async.map(stacks, function(stack, next) {
       cloudformation.describeStackResources({ StackName: stack.StackName }, function(err, data) {
         if (err) {
@@ -35,10 +35,10 @@ var list = module.exports.list = function(AWS, stackName, cb) {
         data.StackResources.forEach(function(r) {
           resources[r.LogicalResourceId] = r;
         });
-        
+
         stack.AppVersion = stack.Tags.filter(function(t) { return t.Key === 'zetta:sqsworker:version'})[0].Value;
         stack.Resources = resources;
-        
+
         next(null, stack);
       });
     }, cb);
@@ -54,7 +54,7 @@ var list = module.exports.list = function(AWS, stackName, cb) {
 var create = module.exports.create = function(AWS, stack, config, done) {
   var cloudformation = new AWS.CloudFormation();
   var autoscaling = new AWS.AutoScaling();
-  var template = JSON.parse(fs.readFileSync('../aws/device-data-worker-cf.json').toString());
+  var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/data-worker/cloudformation.json')).toString());
   var stackName = stack.StackName + '-sqsworker-' + config.version;
 
   var params = {
@@ -127,7 +127,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
             if (err) {
               return done(err);
             }
-            
+
             var params = {
               AutoScalingGroupName: resources['ZettaUsageAutoScale'].PhysicalResourceId,
               ScalingProcesses: ['ReplaceUnhealthy']
@@ -156,4 +156,3 @@ var scale = module.exports.scale = function(AWS, asgName, desired, cb) {
   };
   autoscaling.setDesiredCapacity(params, cb);
 };
-

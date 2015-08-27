@@ -1,4 +1,5 @@
 var fs = require('fs');
+var path = require('path');
 var async = require('async');
 var awsUtils = require('./aws-utils');
 
@@ -20,17 +21,17 @@ var list = module.exports.list = function(AWS, stackName, cb) {
     if (err) {
       return cb(err);
     }
-    
-    // filter with only router cf 
+
+    // filter with only router cf
     var stacks = stacks.Stacks.filter(function(stack) {
-      return stack.Tags.filter(function(tag) { 
+      return stack.Tags.filter(function(tag) {
         return tag.Key === 'zetta:router:version';
       }).length > 0;
     });
-    
+
     // filter stack name
     stacks = stacks.filter(function(stack) {
-      return stack.Tags.filter(function(tag) { 
+      return stack.Tags.filter(function(tag) {
         return tag.Key === 'zetta:stack' && tag.Value === stackName;
       }).length > 0;
     });
@@ -45,7 +46,7 @@ var list = module.exports.list = function(AWS, stackName, cb) {
         data.StackResources.forEach(function(r) {
           resources[r.LogicalResourceId] = r;
         });
-        
+
         stack.AppVersion = stack.Tags.filter(function(t) { return t.Key === 'zetta:router:version'})[0].Value;
         stack.Resources = resources;
 
@@ -80,14 +81,14 @@ var create = module.exports.create = function(AWS, stack, config, done) {
     return 'http://' + ip + ':' + 4001;
   }).join(',');
 
-  var userData = fs.readFileSync('../aws/router-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', stack.Parameters['DiscoveryUrl']);
+  var userData = fs.readFileSync(path.join(__dirname, '../../roles/router/aws-user-data.template')).toString().replace('@@ETCD_DISCOVERY_URL@@', stack.Parameters['DiscoveryUrl']);
   userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
   userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
   userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
   userData = userData.replace(/@@ETCD_PEERS@@/g, etcdPeers);
-  userData = userData.replace(/@@ETCD_PEER_HOSTS@@/g, etcdPeers.replace(/http:\/\//g, '') );  
+  userData = userData.replace(/@@ETCD_PEER_HOSTS@@/g, etcdPeers.replace(/http:\/\//g, '') );
 
-  var template = JSON.parse(fs.readFileSync('../aws/router-asg-cf.json').toString());
+  var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/router/cloudformation.json')).toString());
   template.Resources['ServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
   var stackName = stack.StackName + '-router-' + config.version;
@@ -153,7 +154,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
             if (err) {
               return done(err);
             }
-            
+
             scale(AWS, asgName, config.size, function(err) {
               if (err) {
                 return done(err);
@@ -173,5 +174,3 @@ var remove = module.exports.remove = function(AWS, cfName, cb) {
   var cloudformation = new AWS.CloudFormation();
   cloudformation.deleteStack({ StackName: cfName }, cb);
 };
-
-
