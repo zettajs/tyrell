@@ -86,8 +86,6 @@ var create = module.exports.create = function(AWS, stack, config, done) {
     TimeoutInMinutes: 5
   };
 
-  console.log(params);
-
   function checkStackStatus(cb) {
     cloudformation.describeStacks({ StackName: stackName }, function(err, data) {
       if (err) {
