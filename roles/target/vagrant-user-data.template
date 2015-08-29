@@ -17,6 +17,8 @@ coreos:
       command: start
     - name: fake-sqs.service
       command: start
+    - name: link-tenant-mgmt-api.service
+      command: start
     - name: zetta-target@3001.service
       command: start
     - name: zetta-target@3002.service
