@@ -63,6 +63,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   userData = userData.replace(/@@ZETTA_USAGE_QUEUE@@/g, stack.Resources['ZettaUsageQueue'].PhysicalResourceId);
   userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
   userData = userData.replace(/@@ETCD_PEERS@@/g, etcdPeers);
+  userData = userData.replace(/@@ETCD_PEER_HOSTS@@/g, etcdPeers.replace(/http:\/\//g, '') );
 
   var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/tenant-mgmt-api/cloudformation.json')).toString());
   template.Resources['Instance'].Properties.UserData = { 'Fn::Base64': userData };
