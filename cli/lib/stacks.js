@@ -4,6 +4,7 @@ var async = require('async');
 var targets = require('./targets');
 var routers = require('./routers');
 var workers = require('./workers');
+var tenantMgmt = require('./tenant-mgmt-api')
 var utils = require('./aws-utils');
 
 var get = module.exports.get = function(AWS, stackName, cb) {
@@ -244,6 +245,17 @@ var remove = module.exports.remove = function(AWS, name, cb) {
           workers.remove(AWS, version.StackName, next);
         }, next);
       });
+    },
+    function(next) {
+      tenantMgmt.list(AWS, name, function(err, results) {
+        if (err) {
+          return next(err);
+        }
+
+        async.each(results, function(version, next) {
+          tenantMgmt.remove(AWS, version.StackName, next);
+        }, next);
+      });      
     }
   ], function(err) {
     if (err) {

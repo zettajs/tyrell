@@ -166,7 +166,7 @@
         "ImageId" : {"Ref": "CoreServicesAMI"},
         "InstanceType": {"Ref": "CoreServicesInstanceType"},
         "KeyName": {"Ref": "KeyPair"},
-        "SecurityGroups": [],
+        "SecurityGroups": [{ "Fn::GetAtt" : ["CoreOsSecurityGroup", "GroupId"] }],
         "IamInstanceProfile": {"Ref" : "CoreServicesRoleInstanceProfile" },
         "UserData" : null
       }

@@ -138,7 +138,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
           return done(err);
         }
         if (!status) {
-          return setTimeout(check, 1000);
+          return setTimeout(check, 5000);
         }
 
         awsUtils.getAsgFromStack(AWS, stack.StackId, 'RouterAutoScale', function(err, asgName) {

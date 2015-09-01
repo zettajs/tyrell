@@ -112,7 +112,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
         }
 
         if (!status) {
-          return setTimeout(check, 1000);
+          return setTimeout(check, 5000);
         }
 
         done();
