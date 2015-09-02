@@ -3,6 +3,7 @@ var program = require('commander');
 program
   .command('elb [stack]', 'update the elb with a router\'s ASG ')
   .command('zetta [stack]', 'update the routers version')
+  .command('tenant-mgmt-api [stack]', 'update the tenant mgmt api version')
   .parse(process.argv);
 
 if (program.args.length 

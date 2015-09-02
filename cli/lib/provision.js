@@ -4,6 +4,7 @@ var stacks = require('./stacks');
 var routers = require('./routers');
 var targets = require('./targets');
 var workers = require('./workers');
+var tenantMgmt = require('./tenant-mgmt-api');
 var amis = require('./amis');
 var traffic = require('./traffic');
 
@@ -59,7 +60,8 @@ module.exports = function(AWS, opts, callback) {
       var versionKeys = {
         router: crypto.randomBytes(6).toString('hex'),
         target: crypto.randomBytes(6).toString('hex'),
-        worker: crypto.randomBytes(6).toString('hex')
+        worker: crypto.randomBytes(6).toString('hex'),
+        tenantMgmt: crypto.randomBytes(6).toString('hex')
       };
 
       async.parallel([
@@ -74,6 +76,10 @@ module.exports = function(AWS, opts, callback) {
         function(next) {
           var config = { ami: images[1], type: opts.workerType, version: versionKeys.worker };
           workers.create(AWS, stack, config, next);
+        },
+        function(next) {
+          var config = { ami: images[0], type: opts.versionType, version: versionKeys.tenantMgmt };
+          tenantMgmt.create(AWS, stack, config, next);
         }
       ], function(err) {
         if (err) {
@@ -100,6 +106,23 @@ module.exports = function(AWS, opts, callback) {
           },
           function(next) {
             traffic.setZettaVersion(AWS, opts.stack, versionKeys.target, opts.keyPair, next);
+          },
+          function(next) {
+            tenantMgmt.list(AWS, opts.stack, function(err, versions) {
+              if (err) {
+                return next(err);
+              }
+              
+              var version = versions.filter(function(version) {
+                return (version.AppVersion === versionKeys.tenantMgmt);
+              })[0];
+
+              if (!version) {
+                return next(new Error('Unable to find tenant mgmt version'));
+              }
+              stack.DnsZone = 'iot.apigee.net.';
+              traffic.tenantMgmt.route(AWS, stack, version, next);
+            });
           }
         ], function(err) {
           if (err) {
