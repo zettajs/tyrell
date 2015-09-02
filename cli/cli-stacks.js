@@ -9,7 +9,6 @@ program
   .command('remove', 'remove zetta stack')
   .command('update', 'update zetta stack')
   .command('merge [stack]', 'merge s3 buckets from one stack into another')
-  .command('provision [stack]', 'merge s3 buckets from one stack into another')
   .parse(process.argv)
 
 if (program.args.length) {
