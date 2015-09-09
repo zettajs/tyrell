@@ -9,6 +9,9 @@ coreos:
   locksmith:
     endpoint: "@@ETCD_PEERS@@"
   units:
+    - name: update-engine.service
+      command: stop
+      enable: false
     - name: etcd.service
       mask: true
     - name: fleet.service

@@ -12,6 +12,9 @@ coreos:
   fleet:
     metadata: role=services
   units:
+    - name: update-engine.service
+      command: stop
+      enable: false
     - name: etcd.service
       command: start
     - name: fleet.service

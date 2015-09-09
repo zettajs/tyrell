@@ -13,6 +13,9 @@ coreos:
     public-ip: $public_ipv4
     metadata: role=zetta
   units:
+    - name: update-engine.service
+      command: stop
+      enable: false
     - name: etcd.service
       command: start
     - name: fleet.service
