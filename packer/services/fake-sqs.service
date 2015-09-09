@@ -10,5 +10,5 @@ Restart=always
 RestartSec=5
 ExecStartPre=-/usr/bin/docker kill elasticmq
 ExecStartPre=-/usr/bin/docker rm elasticmq
-ExecStart=/usr/bin/docker run -rm --name elasticmq -p 9324:9324 adammagaluk/elasticmq
+ExecStart=/usr/bin/docker run --rm --name elasticmq -p 9324:9324 adammagaluk/elasticmq
 ExecStop=/usr/bin/docker stop elasticmq
