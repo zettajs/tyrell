@@ -1,6 +1,8 @@
 #cloud-config
 
 coreos:
+  update:
+    reboot-strategy: off
   fleet:
     metadata: role=tenant-mgmt-api
     etcd_servers: "@@ETCD_PEERS@@"
