@@ -12,5 +12,5 @@ EnvironmentFile=/etc/environment
 EnvironmentFile=/etc/profile.d/zetta
 ExecStartPre=-/usr/bin/docker kill statsd-cloudwatch
 ExecStartPre=-/usr/bin/docker rm statsd-cloudwatch
-ExecStart=/usr/bin/docker run -rm --name statsd-cloudwatch -e CLOUDWATCH_NAMESPACE=${ZETTA_STACK} -p 8125:8125/udp adammagaluk/statsd-cloudwatch
+ExecStart=/usr/bin/docker run --rm --name statsd-cloudwatch -e CLOUDWATCH_NAMESPACE=${ZETTA_STACK} -p 8125:8125/udp adammagaluk/statsd-cloudwatch
 ExecStop=/usr/bin/docker stop statsd-cloudwatch
