@@ -24,17 +24,17 @@ function generateConfig(cb) {
       return cb(err);
     }
 
-    var template = fs.readFileSync(path.join(Vagrant.vagrantPath(), 'target-user-data.template'));
+    var template = fs.readFileSync(path.join(__dirname, '../roles/target/vagrant-user-data.template'));
     var config = template.toString().replace(discoveryToken, url);
     config = config.replace(versionToken, version);
     config = config.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/, 'http://core-01:9324/queue/device-data');
     config = config.replace(/@@ZETTA_USAGE_QUEUE@@/, 'http://core-01:9324/queue/zetta-usage');
     fs.writeFileSync(path.join(Vagrant.vagrantPath(), 'target-user-data'), config);
 
-    var template = fs.readFileSync(path.join(Vagrant.vagrantPath(), 'router-user-data.template'));
+    var template = fs.readFileSync(path.join(__dirname, '../roles/router/vagrant-user-data.template'));
     var config = template.toString().replace(discoveryToken, url);
     fs.writeFileSync(path.join(Vagrant.vagrantPath(), 'router-user-data'), config);
-    
+
     cb();
   });
 }
@@ -42,14 +42,14 @@ function generateConfig(cb) {
 function startCluster() {
   var vagrant = Vagrant.command(['up'], function(code) {
     if(code !== 0) {
-      throw new Error('Non-Zero exit code. Vagrant box not configured.');  
+      throw new Error('Non-Zero exit code. Vagrant box not configured.');
     }
-    
+
     targets.routeVagrant('core-03', version, function(err) {
       if (err) {
         throw err;
       }
-      
+
       var sqs = new AWS.SQS({ region: 'us-east-1',
                               endpoint: 'http://core-01:9324',
                               accessKeyId: 'key',
@@ -65,22 +65,21 @@ function startCluster() {
 
     });
 
-  }); 
+  });
 
   if(verbose) {
     vagrant.stdout.on('data', function(chunk) {
-      process.stdout.write(chunk.toString());  
+      process.stdout.write(chunk.toString());
     });
   }
 
   vagrant.stderr.on('data', function(chunk) {
-    process.stderr.write(chunk.toString());  
+    process.stderr.write(chunk.toString());
   });
 }
 
 if(newConfig) {
   generateConfig(startCluster);
 } else {
-  startCluster();  
+  startCluster();
 }
-

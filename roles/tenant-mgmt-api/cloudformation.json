@@ -1,0 +1,53 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Zetta Router ASG",
+  "Parameters": {
+    "InstanceType" : {
+      "Description" : "EC2 HVM instance type (m3.medium, etc).",
+      "Type" : "String",
+      "Default" : "t2.micro"
+    },
+    "AMI": {
+      "Description": "A unique AMI id for our custom CoreOS build using packer.",
+      "Type": "String"
+    },
+    "KeyPair" : {
+      "Description" : "The name of an EC2 Key Pair to allow SSH access to the instance.",
+      "Type" : "String"
+    },
+    "ZettaStack" : {
+      "Description" : "Zetta Stack",
+      "Type" : "String"
+    },
+    "CoreOsSecurityGroup" : {
+      "Description" : "Coreos security group to access etcd",
+      "Type" : "AWS::EC2::SecurityGroup::Id"
+    }
+  },
+  "Resources": {
+    "InstanceSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Instance security group.",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "CidrIp": "0.0.0.0/0"}
+        ]
+      }
+    },
+    "Instance" : {
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "ImageId" : { "Ref": "AMI" },
+        "KeyName" : { "Ref": "KeyPair" },
+        "InstanceType" : { "Ref": "InstanceType" },
+        "Monitoring": true,
+        "SecurityGroupIds": [{ "Ref": "CoreOsSecurityGroup" }, {"Fn::GetAtt": ["InstanceSecurityGroup", "GroupId"]} ],
+        "Tags": [
+            {"Key": "zetta:stack", "Value": { "Ref" : "ZettaStack" } },
+            {"Key": "Name", "Value": { "Fn::Join": [ "-", [ {"Ref" : "ZettaStack"}, "tenant-mgmt-api"]] } }
+        ],
+        "UserData" : null
+      }
+    }
+  }
+}

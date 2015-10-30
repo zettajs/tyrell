@@ -1,4 +1,5 @@
 var fs = require('fs');
+var path = require('path');
 var async = require('async');
 var awsUtils = require('./aws-utils');
 var Vagrant = require('./vagrant');
@@ -19,12 +20,12 @@ var list = module.exports.list = function(AWS, stackName, cb) {
     });
 
     stacks = stacks.filter(function(stack) {
-      return stack.Tags.filter(function(tag) { 
+      return stack.Tags.filter(function(tag) {
         return tag.Key === 'zetta:stack' && tag.Value === stackName;
       }).length > 0;
     });
 
-    
+
     async.map(stacks, function(stack, next) {
       cloudformation.describeStackResources({ StackName: stack.StackName }, function(err, data) {
         if (err) {
@@ -35,7 +36,7 @@ var list = module.exports.list = function(AWS, stackName, cb) {
         data.StackResources.forEach(function(r) {
           resources[r.LogicalResourceId] = r;
         });
-        
+
         stack.AppVersion = stack.Tags.filter(function(t) { return t.Key === 'zetta:app:version'})[0].Value;
         stack.Resources = resources;
 
@@ -61,8 +62,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   var etcdPeers = stack.etcdPeers.map(function(ip) {
     return 'http://' + ip + ':' + 4001;
   }).join(',');
-  
-  var userData = fs.readFileSync('../aws/target-user-data.template').toString().replace('@@ETCD_DISCOVERY_URL@@', stack.Parameters['DiscoveryUrl']);
+
+  var userData = fs.readFileSync(path.join(__dirname, '../../roles/target/aws-user-data.template')).toString().replace('@@ETCD_DISCOVERY_URL@@', stack.Parameters['DiscoveryUrl']);
   userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
   userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
   userData = userData.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/g, stack.Resources['DeviceDataQueue'].PhysicalResourceId);
@@ -70,7 +71,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
   userData = userData.replace(/@@ETCD_PEERS@@/g, etcdPeers);
 
-  var template = JSON.parse(fs.readFileSync('../aws/target-asg-cf.json').toString());
+  var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/target/cloudformation.json')).toString());
   template.Resources['ZettaServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
   var stackName = stack.StackName + '-target-' + config.version;
@@ -119,7 +120,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
           return done(err);
         }
         if (!status) {
-          return setTimeout(check, 1000);
+          return setTimeout(check, 5000);
         }
 
         awsUtils.getAsgFromStack(AWS, stack.StackId, 'ZettaAutoScale', function(err, asgName) {
@@ -163,8 +164,8 @@ var routeAWS = module.exports.getSSH = function(host, keyPath, cb) {
   });
 
   ssh.stdout.on('data', function(chunk) {
-    buffer+=chunk.toString(); 
-  });  
+    buffer+=chunk.toString();
+  });
 
   return ssh;
 };

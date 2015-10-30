@@ -1,17 +1,22 @@
 #cloud-config
 
 coreos:
+  update:
+    reboot-strategy: off
   fleet:
-    metadata: role=router
+    metadata: role=tenant-mgmt-api
     etcd_servers: "@@ETCD_PEERS@@"
   locksmith:
     endpoint: "@@ETCD_PEERS@@"
   units:
+    - name: update-engine.service
+      command: stop
+      enable: false
     - name: etcd.service
       mask: true
     - name: fleet.service
       command: start
-    - name: zetta-proxy.service
+    - name: link-tenant-mgmt-api.service
       command: start
     - name: journallogs-logentries.service
       command: start

@@ -1,14 +1,16 @@
 var fs = require('fs');
+var path = require('path');
 var async = require('async');
 var targets = require('./targets');
 var routers = require('./routers');
 var workers = require('./workers');
+var tenantMgmt = require('./tenant-mgmt-api')
 var utils = require('./aws-utils');
 
 var get = module.exports.get = function(AWS, stackName, cb) {
   var ec2 = new AWS.EC2();
   var cloudformation = new AWS.CloudFormation();
-  
+
   cloudformation.describeStacks({ StackName: stackName }, function(err, stack) {
     if (err) {
       return cb(err);
@@ -48,18 +50,24 @@ var get = module.exports.get = function(AWS, stackName, cb) {
             if (err) {
               return next(err);
             }
-            ec2.describeInstances({ InstanceIds: instances }, function(err, data) {
-              if (err) {
-                return next(err);
-              }
 
-              var instances = [];
-              data.Reservations.forEach(function(res) {
-                instances = instances.concat(res.Instances);
+            if (instances.length > 0) {
+              ec2.describeInstances({ InstanceIds: instances }, function(err, data) {
+                if (err) {
+                  return next(err);
+                }
+
+                var instances = [];
+                data.Reservations.forEach(function(res) {
+                  instances = instances.concat(res.Instances);
+                });
+                r.Instances = instances;
+                next(null, r);
               });
-              r.Instances = instances;
+            } else {
+              r.Instances = [];
               next(null, r);
-            });
+            }
           });
 
         } else {
@@ -98,7 +106,7 @@ var get = module.exports.get = function(AWS, stackName, cb) {
 
 var list = module.exports.list = function(AWS, cb) {
   var cloudformation = new AWS.CloudFormation();
-  
+
   cloudformation.describeStacks({}, function(err, data) {
     if (err) {
       return cb(err);
@@ -120,8 +128,8 @@ var list = module.exports.list = function(AWS, cb) {
 };
 
 function generateStackParams(config) {
-  var template = require('../../aws/initial-stack-cf.json');
-  var userData = fs.readFileSync('../aws/core-services.template').toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
+  var template = require('../../roles/initial-stack-cf.json');
+  var userData = fs.readFileSync(path.join(__dirname, '../../roles/core-services/aws-user-data.template')).toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
   template.Resources['CoreServicesLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
   var stackName = config.stack;
@@ -210,7 +218,7 @@ var remove = module.exports.remove = function(AWS, name, cb) {
         if (err) {
           return next(err);
         }
-        
+
         async.each(results, function(version, next) {
           targets.remove(AWS, version.StackName, next);
         }, next);
@@ -221,7 +229,7 @@ var remove = module.exports.remove = function(AWS, name, cb) {
         if (err) {
           return next(err);
         }
-        
+
         async.each(results, function(version, next) {
           routers.remove(AWS, version.StackName, next);
         }, next);
@@ -232,11 +240,22 @@ var remove = module.exports.remove = function(AWS, name, cb) {
         if (err) {
           return next(err);
         }
-        
+
         async.each(results, function(version, next) {
           workers.remove(AWS, version.StackName, next);
         }, next);
       });
+    },
+    function(next) {
+      tenantMgmt.list(AWS, name, function(err, results) {
+        if (err) {
+          return next(err);
+        }
+
+        async.each(results, function(version, next) {
+          tenantMgmt.remove(AWS, version.StackName, next);
+        }, next);
+      });      
     }
   ], function(err) {
     if (err) {
@@ -296,7 +315,7 @@ var update = module.exports.update = function(AWS, name, configUpdates, cb) {
 
 var merge = module.exports.merge = function(AWS, oldStackName, newStackName, cb) {
   var cloudformation = new AWS.CloudFormation();
-  
+
   var getStack = function(name, next) {
     cloudformation.describeStacks({ StackName: name }, function(err, stack) {
       if (err) {
@@ -325,7 +344,7 @@ var merge = module.exports.merge = function(AWS, oldStackName, newStackName, cb)
       if (err) {
         return cb(err);
       }
-      
+
       var s3 = new AWS.S3();
 
       var getKeys = function(type, next, marker, keys) {
@@ -339,7 +358,7 @@ var merge = module.exports.merge = function(AWS, oldStackName, newStackName, cb)
         if (marker) {
           params.Marker = marker;
         }
-        
+
         s3.listObjects(params, function(err, data) {
           if (err) {
             return next(err);
@@ -355,7 +374,7 @@ var merge = module.exports.merge = function(AWS, oldStackName, newStackName, cb)
           }
         });
       };
-      
+
       var move = function(type, key, next) {
         var params = {
           Bucket: newStack.Resources[type].PhysicalResourceId,
@@ -367,7 +386,7 @@ var merge = module.exports.merge = function(AWS, oldStackName, newStackName, cb)
           if (err) {
             return next(err);
           }
-          
+
           s3.deleteObject({ Key: key, Bucket: oldStack.Resources[type].PhysicalResourceId }, next);
         });
       };

@@ -1,6 +1,8 @@
 #cloud-config
 
 coreos:
+  update:
+    reboot-strategy: off
   etcd:
     # generate a new token for each unique cluster from https://discovery.etcd.io/new
     # WARNING: replace each time you 'vagrant destroy'
@@ -11,11 +13,16 @@ coreos:
     public-ip: $public_ipv4
     metadata: role=zetta
   units:
+    - name: update-engine.service
+      command: stop
+      enable: false
     - name: etcd.service
       command: start
     - name: fleet.service
       command: start
     - name: fake-sqs.service
+      command: start
+    - name: link-tenant-mgmt-api.service
       command: start
     - name: zetta-target@3001.service
       command: start

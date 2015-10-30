@@ -1,12 +1,17 @@
 #cloud-config
 
 coreos:
+  update:
+    reboot-strategy: off
   fleet:
     metadata: role=zetta
     etcd_servers: "@@ETCD_PEERS@@"
   locksmith:
     endpoint: "@@ETCD_PEERS@@"
   units:
+    - name: update-engine.service
+      command: stop
+      enable: false
     - name: etcd.service
       mask: true
     - name: fleet.service

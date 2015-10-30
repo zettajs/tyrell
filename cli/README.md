@@ -67,7 +67,7 @@ Stacks would refer to example "Centralite", these would exist through deploying 
 
 ### Create New Stacks
 
-Will create a new stack and keypair based on the Cloudformation template in `../aws/initial-stack-cf.json`.
+Will create a new stack and keypair based on the Cloudformation template in `../roles/initial-stack-cf.json`.
 
 `node cli stacks create [stack name]`
 
@@ -88,7 +88,7 @@ Options
 
 ## Targets
 
-Targets are the concept of the Zetta-target portion of the architecture. A version is a Cloudformation stack based on `../aws/target-asg-cf.json` and an AMI specified. This creates a Autoscale group based on the AMI.
+Targets are the concept of the Zetta-target portion of the architecture. A version is a Cloudformation stack based on `../roles/target/cloudformation.json` and an AMI specified. This creates a Autoscale group based on the AMI.
 
 
 ### List Targets

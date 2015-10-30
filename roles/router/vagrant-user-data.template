@@ -1,6 +1,8 @@
 #cloud-config
 
 coreos:
+  update:
+    reboot-strategy: off
   etcd:
     # generate a new token for each unique cluster from https://discovery.etcd.io/new
     # WARNING: replace each time you 'vagrant destroy'
@@ -11,6 +13,9 @@ coreos:
     public-ip: $public_ipv4
     metadata: role=router
   units:
+    - name: update-engine.service
+      command: stop
+      enable: false
     - name: etcd.service
       command: start
     - name: fleet.service

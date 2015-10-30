@@ -12,7 +12,7 @@ function asgInstancesAvailable(AWS, asgName, opts, cb) {
         }
         
         if(!status) {
-          setTimeout(wait, 1000);
+          setTimeout(wait, 5000);
           return;
         }
         cb();
@@ -36,7 +36,7 @@ function asgInstancesAvailableInElb(AWS, elbName, asgName, opts, cb) {
         }
         
         if(!status) {
-          setTimeout(wait, 1000);
+          setTimeout(wait, 5000);
           return;
         }
         cb();
