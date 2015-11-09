@@ -10,6 +10,7 @@ program
   .option('-v --verbose', 'Display packer build output')
   .option('-c, --channel [channel]', 'CoreOS update channel [stable]', 'stable')
   .option('-w, --worker', 'Build device data worker')
+  .option('-m, --metrics', 'Build a metrics collection stack')
   .option('-t, --tag <tag>', 'Pull a specific docker container that corresponds to tag for router and proxy.')
   .option('--router-tag <tag>', 'Pull a specfic docker container that corresponds to tag for router')
   .option('--target-tag <tag>', 'Pull a specific docker container that corresponds to tag for target')
@@ -174,10 +175,96 @@ if (program.worker) {
 
 if(platform === 'vagrant') {
   Packer.isoMd5(function(err, md5) {
+    if(program.metrics){
+      var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_metrics_service.json');
+      var packerTemplateFile = require(packerTemplateFilePath);
+      packerTemplateFile.variables.checksum = md5;
+      var metricsConfigPath = writeToFile(packerTemplateFile, 'metrics_packer.json');
+      
+      async.parallel([
+        function(next) {
+          buildMetricsStack(metricsConfigPath, 'virtualbox-iso', next);    
+        }
+      ], function(err) {
+        if(err) {
+          throw err;
+        }
+      });
+    } else {
+      var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_template_base.json');
+      var packerTemplateFile = require(packerTemplateFilePath);
+      packerTemplateFile.variables.checksum = md5;
+    var zettaProvisioningTemplate = updateProvisioningTemplate(require(path.join(Packer.packerPath(), 'zetta_provisions.json')), containerCommands);  
+      var zettaConfig = extendProvisionsTemplate(packerTemplateFile, zettaProvisioningTemplate);
+      var zettaConfigPath = writeToFile(zettaConfig, 'zetta_packer.json');
+
+      async.parallel([
+        function(next) { buildBox(zettaConfigPath, 'zetta', next) },
+      ], function(err) {
+        if (err) {
+          throw err;
+        }
+      });
+
+      function buildBox(configPath, BoxType, done) {
+        var boxFilePath = path.join(Packer.packerPath(), 'builds', BoxType + '_coreos-packer.box');
+        
+        var proc = Packer.command(['build', '-only=virtualbox-iso', configPath], function(code) {
+          if(code !== 0) {
+            return done(new Error('Non-Zero exit code. Build not completed'));
+          }
+
+          var vagrant = Vagrant.command(['box', 'add', BoxType + '-coreos-' + program.channel + '-build', boxFilePath, '--force'], function(code) {
+            if(code !== 0) {
+              return done(new Error('Non-Zero exit code. Vagrant box not configured.'));
+            }
+            done();
+          }); 
+
+          if(verbose) {
+            vagrant.stdout.on('data', function(chunk) {
+              process.stdout.write(chunk.toString());
+            });
+          }
+        });
+
+        if(verbose) {
+          proc.stdout.on('data', function(chunk) {
+            process.stdout.write(chunk.toString());
+          });
+        }
+      }
+    }
+
+  });    
+} else if (platform === 'aws') {
+  if(program.metrics){
+    var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_metrics_service.json');
+    var packerTemplateFile = require(packerTemplateFilePath);
+    var credentials = new AWS.SharedIniFileCredentials({profile: 'default'});
+    packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID || credentials.accessKeyId;
+    packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY || credentials.secretAccessKey;
+    console.log(packerTemplateFile.variables);
+    
+    var metricsConfigPath = writeToFile(packerTemplateFile, 'metrics_packer.json');
+
+    
+    async.parallel([
+      function(next) {
+        buildMetricsStack(metricsConfigPath, 'amazon-ebs', next);    
+      }
+    ], function(err) {
+      if(err) {
+        throw err;
+      }
+    });
+  } else {
     var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_template_base.json');
     var packerTemplateFile = require(packerTemplateFilePath);
-    packerTemplateFile.variables.checksum = md5;
-  var zettaProvisioningTemplate = updateProvisioningTemplate(require(path.join(Packer.packerPath(), 'zetta_provisions.json')), containerCommands);  
+    var credentials = new AWS.SharedIniFileCredentials({profile: 'default'});
+    packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID || credentials.accessKeyId;
+    packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY || credentials.secretAccessKey;
+    var zettaProvisioningTemplate = updateProvisioningTemplate(require(path.join(Packer.packerPath(), 'zetta_provisions.json')), containerCommands);
     var zettaConfig = extendProvisionsTemplate(packerTemplateFile, zettaProvisioningTemplate);
     var zettaConfigPath = writeToFile(zettaConfig, 'zetta_packer.json');
 
@@ -189,26 +276,12 @@ if(platform === 'vagrant') {
       }
     });
 
-    function buildBox(configPath, BoxType, done) {
-      var boxFilePath = path.join(Packer.packerPath(), 'builds', BoxType + '_coreos-packer.box');
-      
-      var proc = Packer.command(['build', '-only=virtualbox-iso', configPath], function(code) {
+    function buildBox(configPath, boxType, done) {
+      var proc = Packer.command(['build', '-only=amazon-ebs', configPath], function(code) {
         if(code !== 0) {
           return done(new Error('Non-Zero exit code. Build not completed'));
         }
-
-        var vagrant = Vagrant.command(['box', 'add', BoxType + '-coreos-' + program.channel + '-build', boxFilePath, '--force'], function(code) {
-          if(code !== 0) {
-            return done(new Error('Non-Zero exit code. Vagrant box not configured.'));
-          }
-          done();
-        }); 
-
-        if(verbose) {
-          vagrant.stdout.on('data', function(chunk) {
-            process.stdout.write(chunk.toString());
-          });
-        }
+        done();
       });
 
       if(verbose) {
@@ -216,40 +289,46 @@ if(platform === 'vagrant') {
           process.stdout.write(chunk.toString());
         });
       }
-
     }
+  }
+} 
 
-  });    
-} else if (platform === 'aws') {
-  var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_template_base.json');
-  var packerTemplateFile = require(packerTemplateFilePath);
-  var credentials = new AWS.SharedIniFileCredentials({profile: 'default'});
-  packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID || credentials.accessKeyId;
-  packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY || credentials.secretAccessKey;
-  var zettaProvisioningTemplate = updateProvisioningTemplate(require(path.join(Packer.packerPath(), 'zetta_provisions.json')), containerCommands);
-  var zettaConfig = extendProvisionsTemplate(packerTemplateFile, zettaProvisioningTemplate);
-  var zettaConfigPath = writeToFile(zettaConfig, 'zetta_packer.json');
+function buildMetricsStack(configPath, buildType, done) {
+  var BoxType = 'new-metrics';
 
-  async.parallel([
-    function(next) { buildBox(zettaConfigPath, 'zetta', next) },
-  ], function(err) {
-    if (err) {
-      throw err;
-    }
-  });
-
-  function buildBox(configPath, boxType, done) {
-    var proc = Packer.command(['build', '-only=amazon-ebs', configPath], function(code) {
+  function buildBox(configPath, BoxType, done) {
+    var boxFilePath = path.join(Packer.packerPath(), 'builds', BoxType + '_coreos-packer.box');
+    
+    var proc = Packer.command(['build', '-only='+buildType, configPath], function(code) {
       if(code !== 0) {
         return done(new Error('Non-Zero exit code. Build not completed'));
       }
-      done();
+
+      if(buildType == 'virtualbox-iso') {
+        var vagrant = Vagrant.command(['box', 'add', BoxType + '-coreos-' + program.channel + '-build', boxFilePath, '--force'], function(code) {
+          if(code !== 0) {
+            return done(new Error('Non-Zero exit code. Vagrant box not configured.'));
+          }
+          done();
+        }); 
+        if(verbose) {
+          vagrant.stdout.on('data', function(chunk) {
+            process.stdout.write(chunk.toString());
+          });
+        }
+      } else {
+        done(); 
+      }
+
+      
     });
 
     if(verbose) {
       proc.stdout.on('data', function(chunk) {
         process.stdout.write(chunk.toString());
       });
-    }
+    }  
   }
-} 
+  
+  buildBox(configPath, BoxType, done);
+}

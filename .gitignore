@@ -15,3 +15,4 @@ packer/packer.json
 .dockercfg
 *.swp
 packer/builds
+proxy
