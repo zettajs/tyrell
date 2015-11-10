@@ -7,6 +7,7 @@ AWS.config.update({region: 'us-east-1'});
 program
   .command('create', 'create a new metrics ASG from ami')
   .command('remove', 'remove metrics ASG')
+  .command('assign', 'assign a metrics box to a domain')
   .parse(process.argv);
 
 if (program.args.length 
