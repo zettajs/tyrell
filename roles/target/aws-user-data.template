@@ -22,9 +22,9 @@ coreos:
       command: start
     - name: zetta-target@3003.service
       command: start
-    - name: journallogs-logentries.service
+    - name: journallogs-logstash.service
       command: start
-    - name: statsd-cloudwatch.service
+    - name: statsd-elasticsearch.service
       command: start
     - name: link-container-metrics-collector.service
       command: start

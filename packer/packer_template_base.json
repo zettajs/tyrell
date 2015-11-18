@@ -76,7 +76,7 @@
   {
     "only": ["amazon-ebs"],
     "type": "shell",
-    "inline": "docker pull adammagaluk/statsd-cloudwatch"
+    "inline": "docker pull mdobson/statsd-elasticsearch"
   },
   {
     "only": ["amazon-ebs"],
@@ -91,8 +91,8 @@
   {
     "only": ["amazon-ebs"],
     "type": "file",
-    "source": "journal2logentries.sh",
-    "destination": "/home/core/journal2logentries.sh"
+    "source": "journal2logstash.sh",
+    "destination": "/home/core/journal2logstash.sh"
   }
   ],
   "post-processors": [
