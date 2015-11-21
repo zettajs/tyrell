@@ -1,8 +1,9 @@
 var crypto = require('crypto');
-var program = require('commander');
-var AWS = require('aws-sdk'); 
-var bastions = require('./lib/bastions');
 var fs = require('fs');
+var AWS = require('aws-sdk'); 
+var program = require('commander');
+var bastions = require('./lib/bastions');
+//var ssh = require('./lib/ssh');
 
 AWS.config.update({region: 'us-east-1'});
 
@@ -13,12 +14,6 @@ program
   .option('-k, --keyPair <key_pair>', 'Specify existing keypair to use to create a bastion stack')
   .parse(process.argv);
 
-
-//var name = program.args[0];
-//if (!name) {
-  //program.help();
-  //process.exit(1);
-//}
 
 if (!program.keyPair) {
   program.help();
@@ -79,5 +74,9 @@ getKeyPair(function(err, key) {
       console.error(err);
       process.exit(1);
     }
+
+    //console.log('Modifying authorized_keys...');
+    
+    //ssh.
   });
 });

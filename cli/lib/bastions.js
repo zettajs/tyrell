@@ -141,8 +141,8 @@ function generateStackParams(config) {
       { ParameterKey: 'BastionSize', ParameterValue: '' + config.size }
     ],
     Tags: [
-      { Key: 'metrics:stack', Value: stackName },
-      { Key: 'metrics:stack:main', Value: 'true' }
+      { Key: 'bastions:stack', Value: stackName },
+      { Key: 'bastions:stack:main', Value: 'true' }
     ],
     TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 5
