@@ -3,10 +3,6 @@
   "Description": "Bastion Server",
 
   "Parameters": {
-    "KeyPair": {
-      "Description": "Keypair to use in ASG groups created later.",
-      "Type": "String"
-    },
     "BastionStack" : {
       "Description": "BastionStack",
       "Type": "String"  
@@ -55,7 +51,6 @@
       "Properties": {
         "ImageId" : {"Ref": "BastionAMI"},
         "InstanceType": {"Ref": "BastionInstanceType"},
-        "KeyName": {"Ref": "KeyPair"},
         "SecurityGroups": [{ "Fn::GetAtt" : ["CoreOsSecurityGroup", "GroupId"] }],
         "IamInstanceProfile": {"Ref" : "BastionRoleInstanceProfile" },
         "UserData" : null

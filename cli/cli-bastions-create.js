@@ -3,7 +3,6 @@ var fs = require('fs');
 var AWS = require('aws-sdk'); 
 var program = require('commander');
 var bastions = require('./lib/bastions');
-//var ssh = require('./lib/ssh');
 
 AWS.config.update({region: 'us-east-1'});
 
@@ -66,7 +65,7 @@ getKeyPair(function(err, key) {
     ami: program.ami,
     size: program.size,
     instanceType: program.type,
-    keyPair: key.KeyName 
+    //keyPair: key.KeyName 
   };
 
   bastions.create(AWS, config, function(err, stack) {
@@ -74,9 +73,5 @@ getKeyPair(function(err, key) {
       console.error(err);
       process.exit(1);
     }
-
-    //console.log('Modifying authorized_keys...');
-    
-    //ssh.
   });
 });

@@ -134,7 +134,6 @@ function generateStackParams(config) {
     OnFailure: 'DELETE',
     Capabilities: ['CAPABILITY_IAM'],
     Parameters: [
-      { ParameterKey: 'KeyPair', ParameterValue: config.keyPair },
       { ParameterKey: 'BastionStack', ParameterValue: config.stack },
       { ParameterKey: 'BastionAMI', ParameterValue: config.ami },
       { ParameterKey: 'BastionInstanceType', ParameterValue: config.instanceType },
