@@ -1,6 +1,6 @@
 var program = require('commander');
 var AWS = require('aws-sdk'); 
-var bastions = require('./lib/bastions');
+var bastion = require('./lib/bastion');
 
 AWS.config.update({region: 'us-east-1'});
 
@@ -21,13 +21,13 @@ if (!name) {
   process.exit(1);
 }
 
-bastions.get(AWS, name, function(err, stack) {
+bastion.get(AWS, name, function(err, stack) {
   if (err) {
     console.error(err);
     process.exit(1);
   }
 
-  bastions.list(AWS, name, function(err, results) {
+  bastion.list(AWS, name, function(err, results) {
     if (err) {
       console.error(err);
       process.exit(1);

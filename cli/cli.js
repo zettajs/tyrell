@@ -4,7 +4,7 @@ program
   .command('stacks', 'list all stacks, and sub commands')
   .command('targets [stack-name]', 'list targets and sub commands')
   .command('routers [stack-name]', 'list routers and sub commands')
-  .command('bastions [stack-name]', 'list bastions and sub commands')
+  .command('bastion [stack-name]', 'list bastion and sub commands')
   .command('traffic [stack-name]', 'switch elb traffic to a specific router ASG')
   .command('workers [stack-name]', 'sqs data workers')
   .command('tenant-mgmt-api [stack-name]', 'tenant mgmt api')

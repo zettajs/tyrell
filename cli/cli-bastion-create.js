@@ -2,7 +2,7 @@ var crypto = require('crypto');
 var fs = require('fs');
 var AWS = require('aws-sdk'); 
 var program = require('commander');
-var bastions = require('./lib/bastions');
+var bastion = require('./lib/bastion');
 
 AWS.config.update({region: 'us-east-1'});
 
@@ -60,15 +60,13 @@ getKeyPair(function(err, key) {
 
 
   var config = {
-    stack: 'bastion',
     instanceType: program.instanceType,
     ami: program.ami,
     size: program.size,
     instanceType: program.type,
-    //keyPair: key.KeyName 
   };
 
-  bastions.create(AWS, config, function(err, stack) {
+  bastion.create(AWS, config, function(err, stack) {
     if (err) {
       console.error(err);
       process.exit(1);

@@ -1,12 +1,8 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Bastion Server",
+  "Description": "Link Bastion Stack",
 
   "Parameters": {
-    "BastionStack" : {
-      "Description": "BastionStack",
-      "Type": "String"  
-    },
     "BastionAMI" : {
       "Description" : "CoreOS AMI",
       "Type" : "String"
@@ -41,8 +37,7 @@
         "DesiredCapacity": {"Ref": "BastionSize"},
         "HealthCheckGracePeriod": 60,
         "Tags": [
-            {"Key": "bastions:stack", "Value": {"Ref" : "BastionStack" }, "PropagateAtLaunch": true},
-            {"Key": "Name", "Value": { "Fn::Join" : [ "-", [ {"Ref" : "BastionStack" }, "bastions" ] ] }, "PropagateAtLaunch": true}
+            {"Key": "Name", "Value": "link-bastion", "PropagateAtLaunch": true}
         ]
       }
     },

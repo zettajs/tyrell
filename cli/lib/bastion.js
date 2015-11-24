@@ -3,7 +3,9 @@ var path = require('path');
 var async = require('async');
 var utils = require('./aws-utils');
 
-var get = module.exports.get = function(AWS, stackName, cb) {
+var stackName = 'link-bastion';
+
+var get = module.exports.get = function(AWS, cb) {
   var ec2 = new AWS.EC2();
   var cloudformation = new AWS.CloudFormation();
 
@@ -112,9 +114,7 @@ var list = module.exports.list = function(AWS, cb) {
         return false;
       }
 
-      return stack.Tags.some(function(tag) {
-        return tag.Key === 'bastions:stack:main';
-      });
+      return stack.StackName === stackName;
     }).map(function(s) {
       return s.StackName;
     });
@@ -128,20 +128,14 @@ function generateStackParams(config) {
   var userData = fs.readFileSync(path.join(__dirname, '../../roles/bastion/bastion-user-data')).toString();
   template.Resources['BastionLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
-  var stackName = config.stack;
   var params = {
     StackName: stackName,
     OnFailure: 'DELETE',
     Capabilities: ['CAPABILITY_IAM'],
     Parameters: [
-      { ParameterKey: 'BastionStack', ParameterValue: config.stack },
       { ParameterKey: 'BastionAMI', ParameterValue: config.ami },
       { ParameterKey: 'BastionInstanceType', ParameterValue: config.instanceType },
       { ParameterKey: 'BastionSize', ParameterValue: '' + config.size }
-    ],
-    Tags: [
-      { Key: 'bastions:stack', Value: stackName },
-      { Key: 'bastions:stack:main', Value: 'true' }
     ],
     TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 5
@@ -153,7 +147,6 @@ function generateStackParams(config) {
 var create = module.exports.create = function(AWS, config, done) {
   var cloudformation = new AWS.CloudFormation();
 
-  var stackName = config.stack;
   var params = generateStackParams(config);
 
   function checkStackStatus(cb) {
@@ -191,7 +184,7 @@ var create = module.exports.create = function(AWS, config, done) {
 
 };
 
-var remove = module.exports.remove = function(AWS, name, cb) {
+var remove = module.exports.remove = function(AWS, cb) {
   var cloudformation = new AWS.CloudFormation();
 
 
@@ -203,7 +196,7 @@ var remove = module.exports.remove = function(AWS, name, cb) {
     if (err) {
       return cb(err);
     }
-    cloudformation.deleteStack({ StackName: name }, cb);
+    cloudformation.deleteStack({ StackName: stackName }, cb);
   });
 };
 
