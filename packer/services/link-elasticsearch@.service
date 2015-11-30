@@ -12,5 +12,5 @@ EnvironmentFile=/etc/environment
 EnvironmentFile=/etc/profile.d/zetta
 ExecStartPre=-/usr/bin/docker kill link-elasticsearch.service.%i
 ExecStartPre=-/usr/bin/docker rm link-elasticsearch.service.%i
-ExecStart=/usr/bin/docker run --rm --name link-elasticsearch.service.%i -v /esdata:/usr/share/elasticsearch/data -p  9200:9200 -p 9300:9300 elasticsearch -Des.network.host="0.0.0.0"
+ExecStart=/usr/bin/docker run --rm --name link-elasticsearch.service.%i -v /esdata:/usr/share/elasticsearch/data -e ES_HEAP_SIZE=10g -p  9200:9200 -p 9300:9300 elasticsearch -Des.network.host="0.0.0.0"
 ExecStop=/usr/bin/docker stop link-container-metrics-collector.service
