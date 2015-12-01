@@ -138,14 +138,15 @@ function generateStackParams(config) {
       { ParameterKey: 'MetricsStack', ParameterValue: config.stack },
       { ParameterKey: 'MetricsAMI', ParameterValue: config.ami },
       { ParameterKey: 'MetricsInstanceType', ParameterValue: config.instanceType },
-      { ParameterKey: 'MetricsSize', ParameterValue: '' + config.size }
+      { ParameterKey: 'MetricsSize', ParameterValue: '' + config.size },
+      { ParameterKey: 'MetricsDiskSize', ParameterValue: '' + config.diskSize }
     ],
     Tags: [
       { Key: 'metrics:stack', Value: stackName },
       { Key: 'metrics:stack:main', Value: 'true' }
     ],
     TemplateBody: JSON.stringify(template),
-    TimeoutInMinutes: 5
+    TimeoutInMinutes: 10
   };
 
   return params;

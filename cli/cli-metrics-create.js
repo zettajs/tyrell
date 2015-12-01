@@ -11,6 +11,7 @@ program
   .option('--type <instance_type>', 'Instance type to use. [t2.micro]', 't2.micro')
   .option('-s, --size <size>', 'Specify cluster size for metrics stack', '1')
   .option('-k, --keyPair <key_pair>', 'Specify existing keypair to use to create metrics stack')
+  .option('-d, --diskSize <size>', 'Specify size of disk in GB', '40')
   .parse(process.argv);
 
 
@@ -66,7 +67,8 @@ getKeyPair(function(err, key) {
     ami: program.ami,
     size: program.size,
     instanceType: program.type,
-    keyPair: key.KeyName 
+    keyPair: key.KeyName,
+    diskSize: program.diskSize
   };
 
   metrics.create(AWS, config, function(err, stack) {

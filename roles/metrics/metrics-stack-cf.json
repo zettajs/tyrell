@@ -22,6 +22,10 @@
     "MetricsSize" : {
       "Description" : "",
       "Type" : "Number"
+    },
+    "MetricsDiskSize": {
+      "Description": "Size of the EBS disk device",
+      "Type": "Number"  
     }
   },
   "Resources": {
@@ -61,7 +65,11 @@
         "KeyName": {"Ref": "KeyPair"},
         "SecurityGroups": [{ "Fn::GetAtt" : ["CoreOsSecurityGroup", "GroupId"] }],
         "IamInstanceProfile": {"Ref" : "MetricsRoleInstanceProfile" },
-        "UserData" : null
+        "UserData" : null,
+        "BlockDeviceMappings": [{
+          "DeviceName": "/dev/xvda",
+          "Ebs": {"VolumeSize": {"Ref": "MetricsDiskSize"}}  
+        }]
       }
     },
     "MetricsRole": {
