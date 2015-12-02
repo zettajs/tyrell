@@ -2,11 +2,11 @@
   "variables": {
     "aws_access_key": "@@AWS_ACCESS_KEY@@",
     "aws_secret_key": "@@AWS_SECRET_KEY@@",
-    "checksum": "@@COREOS_MD5_HASH@@",
+    "checksum": "@@COREOS_MD5_CHECKSUM@@",
     "channel": "stable",
     "version": "current",
     "checksum_type":"md5",
-    "output_name": "new"
+    "output_name": "new-metrics"
   },
   "builders": [{
     "type": "amazon-ebs",
@@ -69,30 +69,25 @@
     "inline": "sudo rm /etc/machine-id"
   },
   {
-    "only": ["virtualbox-iso"],
     "type": "shell",
-    "inline": "docker pull adammagaluk/elasticmq"
+    "inline": "docker pull elasticsearch"
   },
   {
-    "only": ["amazon-ebs"],
     "type": "shell",
-    "inline": "docker pull mdobson/statsd-elasticsearch"
+    "inline": "docker pull kibana"
   },
   {
-    "only": ["amazon-ebs"],
     "type": "shell",
-    "inline": "docker pull zetta/link-metrics-collector"
+    "inline": "docker pull logstash"
   },
   {
-    "only": ["amazon-ebs"],
-    "type": "shell",
-    "inline": "docker pull zetta/link-container-metrics-collector"
-  },
-  {
-    "only": ["amazon-ebs"],
     "type": "file",
-    "source": "journal2logstash.sh",
-    "destination": "/home/core/journal2logstash.sh"
+    "source": "services",
+    "destination": "/home/core"
+  },
+  {
+    "type": "shell",
+    "inline": "sudo cp -R /home/core/services/* /etc/systemd/system"
   }
   ],
   "post-processors": [

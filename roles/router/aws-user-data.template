@@ -18,9 +18,9 @@ coreos:
       command: start
     - name: zetta-proxy.service
       command: start
-    - name: journallogs-logentries.service
+    - name: journallogs-logstash.service
       command: start
-    - name: statsd-cloudwatch.service
+    - name: statsd-elasticsearch.service
       command: start
     - name: link-metrics-collector.service
       command: start

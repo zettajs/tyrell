@@ -1,0 +1,118 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Metrics Stack",
+
+  "Parameters": {
+    "KeyPair": {
+      "Description": "Keypair to use in ASG groups created later.",
+      "Type": "String"
+    },
+    "MetricsStack" : {
+      "Description": "Metrics Stack",
+      "Type": "String"  
+    },
+    "MetricsAMI" : {
+      "Description" : "CoreOS AMI",
+      "Type" : "String"
+    },
+    "MetricsInstanceType" : {
+      "Description" : "",
+      "Type" : "String"
+    },
+    "MetricsSize" : {
+      "Description" : "",
+      "Type" : "Number"
+    },
+    "MetricsDiskSize": {
+      "Description": "Size of the EBS disk device",
+      "Type": "Number"  
+    }
+  },
+  "Resources": {
+    "CoreOsSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Core SecurityGroup, applies to any machine in CoreOS cluster",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"},
+          {"IpProtocol": "tcp", "FromPort": "5601", "ToPort": "5601", "CidrIp": "0.0.0.0/0"},
+          {"IpProtocol": "tcp", "FromPort": "8081", "ToPort": "8081", "CidrIp": "0.0.0.0/0"},
+          {"IpProtocol": "tcp", "FromPort": "9200", "ToPort": "9200", "CidrIp": "0.0.0.0/0"}
+        ]
+      }
+    },
+    "MetricsASG": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AvailabilityZones": {"Fn::GetAZs": ""},
+        "LaunchConfigurationName": {"Ref": "MetricsLaunchConfig"},
+        "MinSize": "1",
+        "MaxSize": "3",
+        "HealthCheckType": "EC2",
+        "DesiredCapacity": {"Ref": "MetricsSize"},
+        "HealthCheckGracePeriod": 60,
+        "Tags": [
+            {"Key": "metrics:stack", "Value": {"Ref" : "MetricsStack" }, "PropagateAtLaunch": true},
+            {"Key": "Name", "Value": { "Fn::Join" : [ "-", [ {"Ref" : "MetricsStack" }, "metrics" ] ] }, "PropagateAtLaunch": true}
+        ]
+      }
+    },
+    "MetricsLaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "ImageId" : {"Ref": "MetricsAMI"},
+        "InstanceType": {"Ref": "MetricsInstanceType"},
+        "KeyName": {"Ref": "KeyPair"},
+        "SecurityGroups": [{ "Fn::GetAtt" : ["CoreOsSecurityGroup", "GroupId"] }],
+        "IamInstanceProfile": {"Ref" : "MetricsRoleInstanceProfile" },
+        "UserData" : null,
+        "BlockDeviceMappings": [{
+          "DeviceName": "/dev/xvda",
+          "Ebs": {"VolumeSize": {"Ref": "MetricsDiskSize"}}  
+        }]
+      }
+    },
+    "MetricsRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": ["ec2.amazonaws.com"]  
+              },
+              "Action": ["sts:AssumeRole"]  
+            }
+          ]  
+        },
+        "Path": "/",
+        "Policies": [{
+          "PolicyName": "DescribeTags",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Action": [
+                  "ec2:DescribeTags" 
+                ],  
+                "Effect": "Allow",
+                "Resource": "*"
+              } 
+            ]
+          } 
+        }]
+      }  
+    },
+    "MetricsRoleInstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Path":"/",
+        "Roles": [{
+          "Ref": "MetricsRole"
+        }] 
+      }  
+    }
+  }  
+}

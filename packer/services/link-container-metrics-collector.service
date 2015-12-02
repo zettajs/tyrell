@@ -1,7 +1,7 @@
 [Unit]
 Description=Docker Memoery Usage Metrics to statsd
-After=docker.service statsd-cloudwatch.service
-Requires=docker.service statsd-cloudwatch.service
+After=docker.service statsd-elasticsearch.service
+Requires=docker.service statsd-elasticsearch.service
 
 [Service]
 User=core

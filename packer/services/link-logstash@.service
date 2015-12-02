@@ -1,0 +1,16 @@
+[Unit]
+Description=Logstash service
+After=docker.service 
+Requires=docker.service 
+
+[Service]
+User=core
+TimeoutStartSec=0
+Restart=always
+RestartSec=5
+EnvironmentFile=/etc/environment
+EnvironmentFile=/etc/profile.d/zetta
+ExecStartPre=-/usr/bin/docker kill link-logstasha.service.%i
+ExecStartPre=-/usr/bin/docker rm link-logstash.service.%i
+ExecStart=/usr/bin/docker run --rm --name link-logstash.service.%i -p %i:8081 logstash logstash -e 'input { stdin { } tcp { port => 8081 codec => "json" } } output { elasticsearch { hosts => ["${COREOS_PRIVATE_IPV4}:9200"] } stdout { codec => rubydebug } }'
+ExecStop=/usr/bin/docker stop link-logstash.service.%i
