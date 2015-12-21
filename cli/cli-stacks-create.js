@@ -66,59 +66,49 @@ getKeyPair(function(err, key) {
     
     console.log('Using discovery url: ' + url);
 
-    coreosamis()
-      .channel('stable')
-      .region('us-east-1')
-      .get(function(err, ami) {
-        if (err) {
-          console.error(err);
-          process.exit(1);
+    var config = {
+      stack: name,
+      discoveryUrl: url,
+      keyPair: key.KeyName,
+      logentriesToken: program.logToken,
+      size: program.size,
+      instanceType: program.type,
+      ami: 'ami-6b1cd400', // hard code ami to fix issues with etcd support. CoreOS (717.3.0)
+      deviceDataBucket: program.deviceDataBucket,
+      zettaUsageBucket: program.zettaUsageBucket
+    };
+
+    stacks.create(AWS, config, function(err) {
+      if (err) {
+        console.error(err);
+        process.exit(1);
+      }
+      
+      console.log('Stack Created');
+      if (program.provision) {
+        console.log('Provisioning Default Stack');
+
+        if (!keyPairPath) {
+          console.log('Cannot provision without keyPairPath');
+          return;
         }
 
-        var config = {
-          stack: name,
-          discoveryUrl: url,
-          keyPair: key.KeyName,
-          logentriesToken: program.logToken,
-          size: program.size,
-          instanceType: program.type,
-          ami: ami.hvm,
-          deviceDataBucket: program.deviceDataBucket,
-          zettaUsageBucket: program.zettaUsageBucket
-        };
-
-        stacks.create(AWS, config, function(err) {
-          if (err) {
-            console.error(err);
-            process.exit(1);
-          }
-          
-          console.log('Stack Created');
-          if (program.provision) {
-            console.log('Provisioning Default Stack');
-
-            if (!keyPairPath) {
-              console.log('Cannot provision without keyPairPath');
-              return;
+        // delay 1 minute to allow ec2 instances to be spun up for etcd
+        setTimeout(function() {
+          provision(AWS, { stack: name, keyPair: keyPairPath }, function(err, versions) {
+            if (err) {
+              console.error('errorcli stacks: ', err);
+              process.exit(1);
             }
+            
+            console.log('Router Created:', versions.router);
+            console.log('Target Created:', versions.target);
+            console.log('Worker Created:', versions.worker);
+          });
+        }, 60000);
 
-            // delay 1 minute to allow ec2 instances to be spun up for etcd
-            setTimeout(function() {
-              provision(AWS, { stack: name, keyPair: keyPairPath }, function(err, versions) {
-                if (err) {
-                  console.error('errorcli stacks: ', err);
-                  process.exit(1);
-                }
-                
-                console.log('Router Created:', versions.router);
-                console.log('Target Created:', versions.target);
-                console.log('Worker Created:', versions.worker);
-              });
-            }, 60000);
-
-          }
-        });
-      });
+      }
+    });
   });
 });
 
