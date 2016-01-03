@@ -73,7 +73,7 @@ getKeyPair(function(err, key) {
       logentriesToken: program.logToken,
       size: program.size,
       instanceType: program.type,
-      ami: 'ami-6b1cd400', // hard code ami to fix issues with etcd support. CoreOS (717.3.0)
+      ami: 'ami-cbfdb2a1', // hard code ami to fix issues with etcd support. CoreOS (717.3.0)
       deviceDataBucket: program.deviceDataBucket,
       zettaUsageBucket: program.zettaUsageBucket
     };

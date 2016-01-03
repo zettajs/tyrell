@@ -151,7 +151,7 @@ function generateStackParams(config) {
       { Key: 'zetta:stack:main', Value: 'true' }
     ],
     TemplateBody: JSON.stringify(template),
-    TimeoutInMinutes: 5
+    TimeoutInMinutes: 15
   };
 
   if (config.deviceDataBucket) {
