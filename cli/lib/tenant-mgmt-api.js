@@ -52,18 +52,12 @@ var list = module.exports.list = function(AWS, stackName, cb) {
 var create = module.exports.create = function(AWS, stack, config, done) {
   var cloudformation = new AWS.CloudFormation();
 
-  var etcdPeers = stack.etcdPeers.map(function(ip) {
-    return 'http://' + ip + ':' + 4001;
-  }).join(',');
-
   var userData = fs.readFileSync(path.join(__dirname, '../../roles/tenant-mgmt-api/aws-user-data.template')).toString().replace('@@ETCD_DISCOVERY_URL@@', stack.Parameters['DiscoveryUrl']);
   userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
   userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
   userData = userData.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/g, stack.Resources['DeviceDataQueue'].PhysicalResourceId);
   userData = userData.replace(/@@ZETTA_USAGE_QUEUE@@/g, stack.Resources['ZettaUsageQueue'].PhysicalResourceId);
   userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
-  userData = userData.replace(/@@ETCD_PEERS@@/g, etcdPeers);
-  userData = userData.replace(/@@ETCD_PEER_HOSTS@@/g, etcdPeers.replace(/http:\/\//g, '') );
 
   var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/tenant-mgmt-api/cloudformation.json')).toString());
   template.Resources['Instance'].Properties.UserData = { 'Fn::Base64': userData };

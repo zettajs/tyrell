@@ -85,7 +85,7 @@
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
         "GroupName": {"Ref": "CoreServicesSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "2380", "ToPort": "2380", "SourceSecurityGroupId": {
-          "Fn::GetAtt" : [ "CoreServicesSecurityGroup", "GroupId" ]
+          "Fn::GetAtt" : [ "CoreOsSecurityGroup", "GroupId" ]
         }
       }
     },

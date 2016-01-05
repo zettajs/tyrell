@@ -1,19 +1,24 @@
 #cloud-config
 
 coreos:
+  etcd2:
+    # generate a new token for each unique cluster from https://discovery.etcd.io/new
+    # WARNING: replace each time you 'vagrant destroy'
+    # generate a new token for each unique cluster from https://discovery.etcd.io/new?size=3
+    # specify the initial size of your cluster with ?size=X
+    discovery: @@ETCD_DISCOVERY_URL@@
+    proxy: on
+    listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
   update:
     reboot-strategy: off
   fleet:
     metadata: role=zetta
-    etcd_servers: "@@ETCD_PEERS@@"
-  locksmith:
-    endpoint: "@@ETCD_PEERS@@"
   units:
     - name: update-engine.service
       command: stop
       enable: false
-    - name: etcd.service
-      mask: true
+    - name: etcd2.service
+      command: start
     - name: fleet.service
       command: start
     - name: zetta-target@3001.service
@@ -45,19 +50,6 @@ coreos:
         [Install]
         WantedBy=sockets.target
 write_files:
-  - path: /etc/profile.d/etcdctl.sh
-    permissions: 0644
-    owner: core
-    content: |
-      # configure etcdctl to work with our etcd servers set above
-      export ETCDCTL_PEERS="@@ETCD_PEERS@@"
-  - path: /etc/profile.d/fleetctl.sh
-    permissions: 0644
-    owner: core
-    content: |
-      # configure fleetctl to work with our etcd servers set above
-      export FLEETCTL_ENDPOINT=unix:///var/run/fleet.sock
-      export FLEETCTL_EXPERIMENTAL_API=true
   - path: /etc/profile.d/zetta
     permissions: 644
     owner: root
@@ -67,5 +59,3 @@ write_files:
       ZETTA_DEVICE_DATA_QUEUE="@@ZETTA_DEVICE_DATA_QUEUE@@"
       ZETTA_USAGE_QUEUE="@@ZETTA_USAGE_QUEUE@@"
       LOGENTRIES_TOKEN="@@LOGENTRIES_TOKEN@@"
-      # Here because /etc/profile.d/etcdctl.sh is not used in service file with etcdctl
-      ETCDCTL_PEERS="@@ETCD_PEERS@@"
