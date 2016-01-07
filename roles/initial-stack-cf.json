@@ -89,14 +89,7 @@
         }
       }
     },
-    "CoreServicesIngress2379": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "GroupName": {"Ref": "CoreServicesSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "2379", "ToPort": "2379", "SourceSecurityGroupId": {
-          "Fn::GetAtt" : [ "CoreOsSecurityGroup", "GroupId" ]
-        }
-      }
-    },
+
     "CoreServicesIngress4001": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
