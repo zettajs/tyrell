@@ -26,5 +26,10 @@ coreos:
       enable: false
     - name: etcd2.service
       command: start
+      drop-ins:
+        - name: "timeout.conf"
+          content: |
+            [Service]
+            TimeoutStartSec=0
     - name: fleet.service
       command: start
