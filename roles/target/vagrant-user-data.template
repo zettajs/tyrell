@@ -3,12 +3,21 @@
 coreos:
   update:
     reboot-strategy: off
-  etcd:
+  etcd2:
     # generate a new token for each unique cluster from https://discovery.etcd.io/new
     # WARNING: replace each time you 'vagrant destroy'
+    # generate a new token for each unique cluster from https://discovery.etcd.io/new?size=3
+    # specify the initial size of your cluster with ?size=X
     discovery: @@ETCD_DISCOVERY_URL@@
-    addr: $public_ipv4:4001
-    peer-addr: $public_ipv4:7001
+
+    # listen on both the official ports and the legacy ports
+    # legacy ports can be omitted if your application doesn't depend on them
+    advertise-client-urls: http://$private_ipv4:4001
+    listen-client-urls: http://0.0.0.0:4001
+
+    # multi-region and multi-cloud deployments need to use $public_ipv4
+    initial-advertise-peer-urls: http://$private_ipv4:2380
+    listen-peer-urls: http://$private_ipv4:2380
   fleet:
     public-ip: $public_ipv4
     metadata: role=zetta
@@ -16,8 +25,10 @@ coreos:
     - name: update-engine.service
       command: stop
       enable: false
-    - name: etcd.service
-      command: start
+    # In vagrant stop etcd2 initially and let vagrant start it later
+    # Fixes cluster init process
+    - name: etcd2.service
+      command: stop
     - name: fleet.service
       command: start
     - name: fake-sqs.service

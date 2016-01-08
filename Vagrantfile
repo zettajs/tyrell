@@ -53,6 +53,7 @@ def init_machine(config, i, type)
     config.vm.provision :file, :source => "#{CLOUD_CONFIG_PATH}/#{type}-user-data", :destination => "/tmp/vagrantfile-user-data"
     config.vm.provision :shell, :inline => "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/", :privileged => true
     config.vm.provision :shell, :inline => "sudo coreos-cloudinit --from-file /var/lib/coreos-vagrant/vagrantfile-user-data", :privileged => true
+    config.vm.provision :shell, :inline => "sudo systemctl start etcd2 &", :privileged => true
 
     target_dir = ENV['TYRELL_TARGET_DIR']
     proxy_dir = ENV['TYRELL_PROXY_DIR']
