@@ -85,7 +85,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   var cloudformation = new AWS.CloudFormation();
   var autoscaling = new AWS.AutoScaling();
 
-  var userData = fs.readFileSync(path.join(__dirname, '../../roles/router/aws-user-data.template')).toString().replace('@@ETCD_DISCOVERY_URL@@', stack.Parameters['DiscoveryUrl']);
+  var userData = fs.readFileSync(path.join(__dirname, '../../roles/router/aws-user-data.template')).toString();
   userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
   userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
   userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);

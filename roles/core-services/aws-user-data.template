@@ -4,16 +4,8 @@ coreos:
   update:
     reboot-strategy: off
   etcd2:
-    # generate a new token for each unique cluster from https://discovery.etcd.io/new
-    # WARNING: replace each time you 'vagrant destroy'
-    # generate a new token for each unique cluster from https://discovery.etcd.io/new?size=3
-    # specify the initial size of your cluster with ?size=X
-    discovery: @@ETCD_DISCOVERY_URL@@
-
-    # listen on both the official ports and the legacy ports
-    # legacy ports can be omitted if your application doesn't depend on them
-    advertise-client-urls: http://$private_ipv4:4001
-    listen-client-urls: http://0.0.0.0:4001
+    advertise-client-urls: http://$private_ipv4:4001,http://$private_ipv4:2379
+    listen-client-urls: http://0.0.0.0:4001,http://0.0.0.0:2379
 
     # multi-region and multi-cloud deployments need to use $public_ipv4
     initial-advertise-peer-urls: http://$private_ipv4:2380
@@ -25,11 +17,30 @@ coreos:
       command: stop
       enable: false
     - name: etcd2.service
-      command: start
+      # Stop etcd to start. Will start it in etcd-peers.service
+      command: stop
+      # Disable systemd start timeout, causing issues when ec2 is slow to spin up.
       drop-ins:
         - name: "timeout.conf"
           content: |
             [Service]
             TimeoutStartSec=0
+        - name: "etcd_peers.conf"
+          content: |
+            [Service]
+            EnvironmentFile=/etc/sysconfig/etcd-peers
+    - name: etcd-peers.service
+      command: start
+      content: |
+        [Unit]
+        Description=Write a file with the etcd peers that we should bootstrap to
+
+        [Service]
+        TimeoutStartSec=0
+        Restart=on-failure
+        RestartSec=10
+        ExecStartPre=/usr/bin/docker pull monsantoco/etcd-aws-cluster:latest
+        ExecStartPre=/usr/bin/docker run -e ETCD_CLIENT_PORT=4001 --rm=true -v /etc/sysconfig/:/etc/sysconfig/ monsantoco/etcd-aws-cluster:latest
+        ExecStart=/usr/bin/systemctl start etcd2
     - name: fleet.service
       command: start
