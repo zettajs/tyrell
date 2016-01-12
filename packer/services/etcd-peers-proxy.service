@@ -1,0 +1,9 @@
+[Unit]
+Description=Write a file with the etcd peers that we should bootstrap to in proxy mode.
+
+[Service]
+Restart=on-failure
+RestartSec=10
+EnvironmentFile=/etc/profile.d/zetta
+ExecStartPre=/usr/bin/docker run -e PROXY_ASG=${CORE_SERVICES_ASG} --rm=true -v /etc/sysconfig/:/etc/sysconfig/ monsantoco/etcd-aws-cluster:latest
+ExecStart=/usr/bin/systemctl start etcd2

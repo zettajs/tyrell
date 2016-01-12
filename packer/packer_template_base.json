@@ -90,6 +90,11 @@
   },
   {
     "only": ["amazon-ebs"],
+    "type": "shell",
+    "inline": "docker pull monsantoco/etcd-aws-cluster:latest"
+  },
+  {
+    "only": ["amazon-ebs"],
     "type": "file",
     "source": "journal2logstash.sh",
     "destination": "/home/core/journal2logstash.sh"

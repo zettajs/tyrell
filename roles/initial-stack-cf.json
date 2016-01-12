@@ -284,8 +284,28 @@
                     }
                   ]
                 }
+            },
+            {
+            "PolicyName": "CLIROAccess",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ec2:Describe*"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "autoscaling:Describe*"
+                  ],
+                  "Resource": "*"
+                }
+              ]
             }
-
+           }
           ]
         }
     },
@@ -332,8 +352,28 @@
                     }
                   ]
                 }
+            },
+            {
+            "PolicyName": "CLIROAccess",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ec2:Describe*"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "autoscaling:Describe*"
+                  ],
+                  "Resource": "*"
+                }
+              ]
             }
-
+           }
           ]
         }
     },

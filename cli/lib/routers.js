@@ -86,9 +86,11 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   var autoscaling = new AWS.AutoScaling();
 
   var userData = fs.readFileSync(path.join(__dirname, '../../roles/router/aws-user-data.template')).toString();
+  
   userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
   userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
   userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
+  userData = userData.replace(/@@CORE_SERVICES_ASG@@/g, stack.Resources['CoreServicesASG'].PhysicalResourceId);
 
   var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/router/cloudformation.json')).toString());
   template.Resources['ServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };

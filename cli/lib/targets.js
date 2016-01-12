@@ -74,6 +74,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   userData = userData.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/g, stack.Resources['DeviceDataQueue'].PhysicalResourceId);
   userData = userData.replace(/@@ZETTA_USAGE_QUEUE@@/g, stack.Resources['ZettaUsageQueue'].PhysicalResourceId);
   userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
+  userData = userData.replace(/@@CORE_SERVICES_ASG@@/g, stack.Resources['CoreServicesASG'].PhysicalResourceId);
 
   var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/target/cloudformation.json')).toString());
   template.Resources['ZettaServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
