@@ -1,0 +1,97 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Link Bastion Stack",
+
+  "Parameters": {
+    "BastionAMI" : {
+      "Description" : "CoreOS AMI",
+      "Type" : "String"
+    },
+    "BastionInstanceType" : {
+      "Description" : "",
+      "Type" : "String"
+    },
+    "BastionSize" : {
+      "Description" : "",
+      "Type" : "Number"
+    }
+  },
+  "Resources": {
+    "CoreOsSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Core SecurityGroup, applies to any machine in CoreOS cluster",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
+        ]
+      }
+    },
+    "BastionASG": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AvailabilityZones": {"Fn::GetAZs": ""},
+        "LaunchConfigurationName": {"Ref": "BastionLaunchConfig"},
+        "MinSize": "1",
+        "MaxSize": "3",
+        "HealthCheckType": "EC2",
+        "DesiredCapacity": {"Ref": "BastionSize"},
+        "HealthCheckGracePeriod": 60,
+        "Tags": [
+            {"Key": "Name", "Value": "link-bastion", "PropagateAtLaunch": true}
+        ]
+      }
+    },
+    "BastionLaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "ImageId" : {"Ref": "BastionAMI"},
+        "InstanceType": {"Ref": "BastionInstanceType"},
+        "SecurityGroups": [{ "Fn::GetAtt" : ["CoreOsSecurityGroup", "GroupId"] }],
+        "IamInstanceProfile": {"Ref" : "BastionRoleInstanceProfile" },
+        "UserData" : null
+      }
+    },
+    "BastionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": ["ec2.amazonaws.com"]  
+              },
+              "Action": ["sts:AssumeRole"]  
+            }
+          ]  
+        },
+        "Path": "/",
+        "Policies": [{
+          "PolicyName": "DescribeTags",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Action": [
+                  "ec2:DescribeTags" 
+                ],  
+                "Effect": "Allow",
+                "Resource": "*"
+              } 
+            ]
+          } 
+        }]
+      }  
+    },
+    "BastionRoleInstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Path":"/",
+        "Roles": [{
+          "Ref": "BastionRole"
+        }] 
+      }  
+    }
+  }  
+}

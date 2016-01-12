@@ -7,10 +7,11 @@ var Vagrant = require('./lib/vagrant');
 var AWS = require('aws-sdk');
 
 program
-  .option('-v --verbose', 'Display packer build output')
+  .option('-v, --verbose', 'Display packer build output')
   .option('-c, --channel [channel]', 'CoreOS update channel [stable]', 'stable')
   .option('-w, --worker', 'Build device data worker')
   .option('-m, --metrics', 'Build a metrics collection stack')
+  .option('-b, --bastion', 'Build a bastion server')
   .option('-t, --tag <tag>', 'Pull a specific docker container that corresponds to tag for router and proxy.')
   .option('--router-tag <tag>', 'Pull a specfic docker container that corresponds to tag for router')
   .option('--target-tag <tag>', 'Pull a specific docker container that corresponds to tag for target')
@@ -190,6 +191,21 @@ if(platform === 'vagrant') {
           throw err;
         }
       });
+    } else if(program.bastion){
+      var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_bastion_server.json');
+      var packerTemplateFile = require(packerTemplateFilePath);
+      packerTemplateFile.variables.checksum = md5;
+      var bastionConfigPath = writeToFile(packerTemplateFile, 'bastion_packer.json');
+      
+      async.parallel([
+        function(next) {
+          buildBastionServer(bastionConfigPath, 'virtualbox-iso', next);    
+        }
+      ], function(err) {
+        if(err) {
+          throw err;
+        }
+      });
     } else {
       var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_template_base.json');
       var packerTemplateFile = require(packerTemplateFilePath);
@@ -238,7 +254,7 @@ if(platform === 'vagrant') {
 
   });    
 } else if (platform === 'aws') {
-  if(program.metrics){
+  if (program.metrics){
     var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_metrics_service.json');
     var packerTemplateFile = require(packerTemplateFilePath);
     var credentials = new AWS.SharedIniFileCredentials({profile: 'default'});
@@ -252,6 +268,25 @@ if(platform === 'vagrant') {
     async.parallel([
       function(next) {
         buildMetricsStack(metricsConfigPath, 'amazon-ebs', next);    
+      }
+    ], function(err) {
+      if(err) {
+        throw err;
+      }
+    });
+  } else if (program.bastion){
+    var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_bastion_server.json');
+    var packerTemplateFile = require(packerTemplateFilePath);
+    var credentials = new AWS.SharedIniFileCredentials({profile: 'default'});
+    packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID || credentials.accessKeyId;
+    packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY || credentials.secretAccessKey;
+    console.log(packerTemplateFile.variables);
+    
+    var bastionConfigPath = writeToFile(packerTemplateFile, 'bastion_packer.json');
+    
+    async.parallel([
+      function(next) {
+        buildBastionServer(bastionConfigPath, 'amazon-ebs', next);    
       }
     ], function(err) {
       if(err) {
@@ -321,6 +356,44 @@ function buildMetricsStack(configPath, buildType, done) {
       }
 
       
+    });
+
+    if(verbose) {
+      proc.stdout.on('data', function(chunk) {
+        process.stdout.write(chunk.toString());
+      });
+    }  
+  }
+  
+  buildBox(configPath, BoxType, done);
+}
+
+function buildBastionServer(configPath, buildType, done) {
+  var BoxType = 'bastion';
+
+  function buildBox(configPath, BoxType, done) {
+    var boxFilePath = path.join(Packer.packerPath(), 'builds', BoxType + '_coreos-packer.box');
+    
+    var proc = Packer.command(['build', '-only='+buildType, configPath], function(code) {
+      if(code !== 0) {
+        return done(new Error('Non-Zero exit code. Build not completed'));
+      }
+
+      if(buildType == 'virtualbox-iso') {
+        var vagrant = Vagrant.command(['box', 'add', BoxType + '-coreos-' + program.channel + '-build', boxFilePath, '--force'], function(code) {
+          if(code !== 0) {
+            return done(new Error('Non-Zero exit code. Vagrant box not configured.'));
+          }
+          done();
+        }); 
+        if(verbose) {
+          vagrant.stdout.on('data', function(chunk) {
+            process.stdout.write(chunk.toString());
+          });
+        }
+      } else {
+        done(); 
+      }
     });
 
     if(verbose) {
