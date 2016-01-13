@@ -3,7 +3,7 @@
 coreos:
   etcd2:
     proxy: on
-    listen-client-urls: http://0.0.0.0:4001,http://0.0.0.0:2379
+    listen-client-urls: http://0.0.0.0:4001
   update:
     reboot-strategy: off
   fleet:

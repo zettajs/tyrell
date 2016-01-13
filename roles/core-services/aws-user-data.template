@@ -4,8 +4,8 @@ coreos:
   update:
     reboot-strategy: off
   etcd2:
-    advertise-client-urls: http://$private_ipv4:4001,http://$private_ipv4:2379
-    listen-client-urls: http://0.0.0.0:4001,http://0.0.0.0:2379
+    advertise-client-urls: http://$private_ipv4:4001
+    listen-client-urls: http://0.0.0.0:4001
 
     # multi-region and multi-cloud deployments need to use $public_ipv4
     initial-advertise-peer-urls: http://$private_ipv4:2380
@@ -40,7 +40,7 @@ coreos:
         Restart=on-failure
         RestartSec=10
         ExecStartPre=/usr/bin/docker pull monsantoco/etcd-aws-cluster:latest
-        ExecStartPre=/usr/bin/docker run -e ETCD_CLIENT_PORT=4001 --rm=true -v /etc/sysconfig/:/etc/sysconfig/ monsantoco/etcd-aws-cluster:latest
+        ExecStartPre=/usr/bin/docker run -e ETCD_CLIENT_PORT=4001 --rm=true -v /etc/sysconfig/:/etc/sysconfig/ zetta/etcd-aws-cluster:latest
         ExecStart=/usr/bin/systemctl start etcd2
     - name: fleet.service
       command: start
