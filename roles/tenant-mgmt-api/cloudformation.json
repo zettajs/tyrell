@@ -49,14 +49,14 @@
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "ec2:Describe*"
+                    "ec2:DescribeInstances"
                   ],
                   "Resource": "*"
                 },
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "autoscaling:Describe*"
+                    "autoscaling:DescribeAutoScalingGroups"
                   ],
                   "Resource": "*"
                 }

@@ -259,38 +259,20 @@
                   }
             },
             {
-              "PolicyName": "CloudWatchMetrics",
-              "PolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                      "Action": [
-                        "cloudwatch:GetMetricStatistics",
-                        "cloudwatch:ListMetrics",
-                        "cloudwatch:PutMetricData",
-                        "ec2:DescribeTags"
-                      ],
-                      "Effect": "Allow",
-                      "Resource": "*"
-                    }
-                  ]
-                }
-            },
-            {
             "PolicyName": "CLIROAccess",
             "PolicyDocument": {
               "Statement": [
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "ec2:Describe*"
+                    "ec2:DescribeInstances"
                   ],
                   "Resource": "*"
                 },
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "autoscaling:Describe*"
+                    "autoscaling:DescribeAutoScalingGroups"
                   ],
                   "Resource": "*"
                 }
@@ -327,38 +309,20 @@
           "Path": "/",
           "Policies": [
             {
-              "PolicyName": "CloudWatchMetrics",
-              "PolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                      "Action": [
-                        "cloudwatch:GetMetricStatistics",
-                        "cloudwatch:ListMetrics",
-                        "cloudwatch:PutMetricData",
-                        "ec2:DescribeTags"
-                      ],
-                      "Effect": "Allow",
-                      "Resource": "*"
-                    }
-                  ]
-                }
-            },
-            {
             "PolicyName": "CLIROAccess",
             "PolicyDocument": {
               "Statement": [
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "ec2:Describe*"
+                    "ec2:DescribeInstances"
                   ],
                   "Resource": "*"
                 },
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "autoscaling:Describe*"
+                    "autoscaling:DescribeAutoScalingGroups"
                   ],
                   "Resource": "*"
                 }
@@ -395,38 +359,20 @@
           "Path": "/",
           "Policies": [
             {
-              "PolicyName": "CloudWatchMetrics",
-              "PolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                      "Action": [
-                        "cloudwatch:GetMetricStatistics",
-                        "cloudwatch:ListMetrics",
-                        "cloudwatch:PutMetricData",
-                        "ec2:DescribeTags"
-                      ],
-                      "Effect": "Allow",
-                      "Resource": "*"
-                    }
-                  ]
-                }
-            },
-            {
             "PolicyName": "CLIROAccess",
             "PolicyDocument": {
               "Statement": [
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "ec2:Describe*"
+                    "ec2:DescribeInstances"
                   ],
                   "Resource": "*"
                 },
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "autoscaling:Describe*"
+                    "autoscaling:DescribeAutoScalingGroups"
                   ],
                   "Resource": "*"
                 }
