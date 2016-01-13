@@ -67,6 +67,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   var params = {
     StackName: stackName,
     OnFailure: 'DO_NOTHING',
+    Capabilities: ['CAPABILITY_IAM'],
     Parameters: [
       { ParameterKey: 'InstanceType', ParameterValue: config.type },
       { ParameterKey: 'AMI', ParameterValue: config.ami },
