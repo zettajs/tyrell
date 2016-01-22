@@ -60,7 +60,7 @@
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "CidrBlock": {"Ref": "PublicCidrBlock"},
-        "AvailabilityZone": {"Fn::Select": ["0", {"Fn::GetAZs": ""}]},
+        "AvailabilityZone": "us-east-1a",
         "MapPublicIpOnLaunch": true,
         "Tags": [
           {"Key": "Name", "Value": {"Fn::Join": ["-", [{"Ref": "VPCName"}, "PublicSubnet"]]}}
@@ -71,7 +71,7 @@
     "PublicSubnet2": {
       "Type": "AWS::EC2::Subnet",
       "Properties": {
-        "CidrBlock": {"Fn::Select": ["1", {"Fn::GetAZs": ""}]},
+        "CidrBlock": {"Ref": "Public2CidrBlock"},
         "AvailabilityZone": "us-east-1b",
         "MapPublicIpOnLaunch": true,
         "Tags": [
@@ -83,7 +83,7 @@
     "PublicSubnet3": {
       "Type": "AWS::EC2::Subnet",
       "Properties": {
-        "CidrBlock": {"Fn::Select": ["2", {"Fn::GetAZs": ""}]},
+        "CidrBlock": {"Ref": "Public3CidrBlock"},
         "AvailabilityZone": "us-east-1e",
         "MapPublicIpOnLaunch": true,
         "Tags": [
@@ -96,7 +96,7 @@
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "CidrBlock": {"Ref": "Public4CidrBlock"},
-        "AvailabilityZone": {"Fn::Select": ["3", {"Fn::GetAZs": ""}]},
+        "AvailabilityZone": "us-east-1d",
         "MapPublicIpOnLaunch": true,
         "Tags": [
           {"Key": "Name", "Value": {"Fn::Join": ["-", [{"Ref": "VPCName"}, "PublicSubnet"]]}}
@@ -108,7 +108,7 @@
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "CidrBlock": {"Ref": "PrivateCidrBlock"},
-        "AvailabilityZone": {"Fn::Select": ["0", {"Fn::GetAZs": ""}]},
+        "AvailabilityZone": "us-east-1a",
         "MapPublicIpOnLaunch": false,
         "Tags": [{"Key": "Name", "Value": {"Fn::Join": ["-", [{"Ref": "VPCName"}, "PrivateSubnet"]]}}],
         "VpcId": {"Ref": "VPC"}
@@ -118,7 +118,7 @@
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "CidrBlock": {"Ref": "Private2CidrBlock"},
-        "AvailabilityZone": {"Fn::Select": ["1", {"Fn::GetAZs": ""}]},
+        "AvailabilityZone": "us-east-1b",
         "MapPublicIpOnLaunch": false,
         "Tags": [{"Key": "Name", "Value": {"Fn::Join": ["-", [{"Ref": "VPCName"}, "PrivateSubnet"]]}}],
         "VpcId": {"Ref": "VPC"}
@@ -128,7 +128,7 @@
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "CidrBlock": {"Ref": "Private3CidrBlock"},
-        "AvailabilityZone": {"Fn::Select": ["2", {"Fn::GetAZs": ""}]},
+        "AvailabilityZone": "us-east-1e",
         "MapPublicIpOnLaunch": false,
         "Tags": [{"Key": "Name", "Value": {"Fn::Join": ["-", [{"Ref": "VPCName"}, "PrivateSubnet"]]}}],
         "VpcId": {"Ref": "VPC"}
@@ -138,7 +138,7 @@
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "CidrBlock": {"Ref": "Private4CidrBlock"},
-        "AvailabilityZone": {"Fn::Select": ["3", {"Fn::GetAZs": ""}]},
+        "AvailabilityZone": "us-east-1d",
         "MapPublicIpOnLaunch": false,
         "Tags": [{"Key": "Name", "Value": {"Fn::Join": ["-", [{"Ref": "VPCName"}, "PrivateSubnet"]]}}],
         "VpcId": {"Ref": "VPC"}
