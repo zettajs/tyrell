@@ -10,6 +10,7 @@ program
   .command('tenant-mgmt-api [stack-name]', 'tenant mgmt api')
   .command('builds', 'build a new CoreOS image for zetta.')
   .command('local', 'interact with a local CoreOS cluster.')
+  .command('network', 'create a new VPC network.')
   .parse(process.argv);
 
 if (program.args.length === 0) {
