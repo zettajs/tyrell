@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "async": "^0.9.0",
+    "async": "^1.5.2",
     "aws-sdk": "^2.2.32",
     "commander": "2.6.0",
     "coreos-amis": "^0.1.0"
