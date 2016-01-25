@@ -70,7 +70,7 @@ var list = module.exports.list = function(AWS, cb) {
 };
 
 function generateStackParams(config) {
-  var template = require('./vpc-cf.json');
+  var template = require('../../roles/vpc/vpc-cf.json');
 
   var stackName = config.stack;
   var params = {

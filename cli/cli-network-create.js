@@ -5,15 +5,15 @@ AWS.config.update({ region: 'us-east-1' });
 
 
 program
-  .option('--vpccidrblock', 'CIDR block for the VPC', '10.0.0.0/16')
-  .option('--publiccidrblock', 'CIDR block for the first public subnet', '10.0.0.0/24')
-  .option('--public2cidrblock', 'CIDR block for the second public subnet', '10.0.1.0/24')
-  .option('--public3cidrblock', 'CIDR block for the third public subnet', '10.0.2.0/24')
-  .option('--public4cidrblock', 'CIDR block for the fourth public subnet', '10.0.3.0/24')
-  .option('--privatecidrblock', 'CIDR block for the first private subnet', '10.0.4.0/24')
-  .option('--private2cidrblock', 'CIDR block for the second private subnet', '10.0.5.0/24')
-  .option('--private3cidrblock', 'CIDR block for the third private subnet', '10.0.6.0/24')
-  .option('--private4cidrblock', 'CIDR block for the fourth private subnet', '10.0.7.0/24')
+  .option('--vpccidrblock [block]', 'CIDR block for the VPC', '10.0.0.0/16')
+  .option('--publiccidrblock [block]', 'CIDR block for the first public subnet', '10.0.0.0/24')
+  .option('--public2cidrblock [block]', 'CIDR block for the second public subnet', '10.0.1.0/24')
+  .option('--public3cidrblock [block]', 'CIDR block for the third public subnet', '10.0.2.0/24')
+  .option('--public4cidrblock [block]', 'CIDR block for the fourth public subnet', '10.0.3.0/24')
+  .option('--privatecidrblock [block]', 'CIDR block for the first private subnet', '10.0.4.0/24')
+  .option('--private2cidrblock [block]', 'CIDR block for the second private subnet', '10.0.5.0/24')
+  .option('--private3cidrblock [block]', 'CIDR block for the third private subnet', '10.0.6.0/24')
+  .option('--private4cidrblock [block]', 'CIDR block for the fourth private subnet', '10.0.7.0/24')
   .parse(process.argv);
 
 var stack = program.args[0];
@@ -38,10 +38,11 @@ var opts = {
   private4CidrBlock: program.private4cidrblock,
 };
 
+
 VpcTyrell.create(AWS, opts, function(err, data) {
   if(err) {
     console.log(err);
-    console.log('network not created');
+    console.log('VPC and Subnets not created');
   } else {
     VpcTyrell.get(AWS, 'vpcstack', function(err, data) {
       var ec2 = new AWS.EC2();
@@ -82,33 +83,43 @@ VpcTyrell.create(AWS, opts, function(err, data) {
             SubnetId: subnetId,
             AllocationId: eipAllocationId
           };
-          console.log('RouteTable: ', routeTableId, 'subnetId:', subnetId);
           ec2.createNatGateway(natGatewayParams, function(err, data) {
             if(err) {
               return console.log(err);
             }
             var natGatewayId = data.NatGateway.NatGatewayId;
             var createRoute = function(routeTableId, natGatewayId) {
-              var routeParams = {
-                DestinationCidrBlock: '0.0.0.0/0',
-                RouteTableId: routeTableId,
-                NatGatewayId: natGatewayId
+              var tagParams = {
+                Resources: [
+
+                ],
+                Tags: [
+                  {
+                    Key: 'Stack',
+                    Value: stack
+                  }
+                ]
               }
-
-              console.log('Creating route with params...', JSON.stringify(routeParams));
-
-              ec2.createRoute(routeParams, function(err, data) {
-                if(err) {
-                  console.log(err);
-                } else {
-                  console.log('done');
+              ec2.createTags(tagParams, function(err, data){
+                var routeParams = {
+                  DestinationCidrBlock: '0.0.0.0/0',
+                  RouteTableId: routeTableId,
+                  NatGatewayId: natGatewayId
                 }
+
+                console.log('Creating route on table: ', routeTableId, ' 0.0.0.0/0 -> ', natGatewayId);
+                ec2.createRoute(routeParams, function(err, data) {
+                  if(err) {
+                    console.log(err);
+                  }
+                });
               });
+
             }
 
             var intervalId = null;
             var searchForGateway = function() {
-              console.log('waiting for gateway...');
+              console.log('waiting for gateways to become active...');
               var params = {
                 NatGatewayIds: [
                   natGatewayId
@@ -123,7 +134,6 @@ VpcTyrell.create(AWS, opts, function(err, data) {
                 } else if (gateway.State === 'pending') {
                   console.log('Gateway found: ' + gateway.NatGatewayId + ' found, but pending.');
                 } else {
-                  console.log(data);
                   if(intervalId) {
                     clearInterval(intervalId);
                     createRoute(routeTableId, natGatewayId);
