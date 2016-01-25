@@ -44,7 +44,7 @@ VpcTyrell.create(AWS, opts, function(err, data) {
     console.log(err);
     console.log('VPC and Subnets not created');
   } else {
-    VpcTyrell.get(AWS, 'vpcstack', function(err, data) {
+    VpcTyrell.get(AWS, stack, function(err, data) {
       var ec2 = new AWS.EC2();
       if(err) {
         return console.log(err);
@@ -89,32 +89,18 @@ VpcTyrell.create(AWS, opts, function(err, data) {
             }
             var natGatewayId = data.NatGateway.NatGatewayId;
             var createRoute = function(routeTableId, natGatewayId) {
-              var tagParams = {
-                Resources: [
-
-                ],
-                Tags: [
-                  {
-                    Key: 'Stack',
-                    Value: stack
-                  }
-                ]
+              var routeParams = {
+                DestinationCidrBlock: '0.0.0.0/0',
+                RouteTableId: routeTableId,
+                NatGatewayId: natGatewayId
               }
-              ec2.createTags(tagParams, function(err, data){
-                var routeParams = {
-                  DestinationCidrBlock: '0.0.0.0/0',
-                  RouteTableId: routeTableId,
-                  NatGatewayId: natGatewayId
+
+              console.log('Creating route on table: ', routeTableId, ' 0.0.0.0/0 -> ', natGatewayId);
+              ec2.createRoute(routeParams, function(err, data) {
+                if(err) {
+                  console.log(err);
                 }
-
-                console.log('Creating route on table: ', routeTableId, ' 0.0.0.0/0 -> ', natGatewayId);
-                ec2.createRoute(routeParams, function(err, data) {
-                  if(err) {
-                    console.log(err);
-                  }
-                });
               });
-
             }
 
             var intervalId = null;
