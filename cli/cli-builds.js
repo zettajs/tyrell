@@ -47,7 +47,19 @@ function display(images) {
     }
   });
 
+  console.log(['Image ID',
+               'Build Date',
+               'zetta-cloud-proxy',
+               'zetta-target-server',
+               'tyrell'
+              ].join('\t'));
+  
   images.forEach(function(image) {
-    console.log(image.ImageId, '\t', image.CreationDate, '\t', image.Name);  
+    console.log([image.ImageId,
+                 image.CreationDate,
+                 image.Tags['versions:zetta-cloud-proxy'],
+                 image.Tags['versions:zetta-target-server'],
+                 image.Tags['versions:tyrell']
+                ].join('\t'));
   });
 }
