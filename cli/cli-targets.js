@@ -35,12 +35,20 @@ stacks.get(AWS, name, function(err, stack) {
       process.exit(1);
     }
 
+    console.log(['Version',
+                 'ASG Min/Max',
+                 'Instances',
+                 'AMI ID',
+                 'Target Version'].join('\t')
+                );
+
     results.forEach(function(v) {
-      console.log(v.AppVersion,
-                  v.StackName,
-                  v.ZettaAutoScale.MinSize,
-                  v.ZettaAutoScale.MaxSize,
-                  v.ZettaAutoScale.Instances.length + '/' + v.ZettaAutoScale.DesiredCapacity);
+      console.log([v.AppVersion,
+                   v.ZettaAutoScale.MinSize + '/' + v.ZettaAutoScale.MaxSize,
+                   v.ZettaAutoScale.Instances.length + '/' + v.ZettaAutoScale.DesiredCapacity,
+                   v.AMI.ImageId + ':' + new Date(v.AMI.CreationDate).toDateString(),
+                   v.AMI.Tags['versions:zetta-target-server']
+                  ].join('\t'));
     });
   });
 

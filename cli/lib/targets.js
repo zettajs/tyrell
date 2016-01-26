@@ -5,6 +5,7 @@ var awsUtils = require('./aws-utils');
 var Vagrant = require('./vagrant');
 var spawn = require('child_process').spawn;
 var versionToken = /@@ZETTA_VERSION@@/;
+var amis = require('./amis');
 
 var list = module.exports.list = function(AWS, stackName, cb) {
   var cloudformation = new AWS.CloudFormation();
@@ -45,7 +46,15 @@ var list = module.exports.list = function(AWS, stackName, cb) {
             return next(err);
           }
           stack.ZettaAutoScale = data.AutoScalingGroups[0];
-          next(null, stack);
+          
+          var AMI = stack.Parameters.filter(function(p) { return p.ParameterKey === 'AMI'; })[0];
+          amis.get(AWS, AMI.ParameterValue, function(err, build) {
+            if (err) {
+              return next(err);
+            }
+            stack.AMI = build;
+            next(null, stack);
+          });
         });
       });
     }, cb);

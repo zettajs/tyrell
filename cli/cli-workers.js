@@ -34,8 +34,13 @@ stacks.get(AWS, name, function(err, stack) {
       process.exit(1);
     }
 
+    console.log(['Version', 'AMI ID', 'Worker Version'].join('\t'))
     results.forEach(function(v) {
-      console.log(v.AppVersion, v.StackName);
+      
+      console.log([v.AppVersion,
+                   v.AMI.ImageId + ':' + new Date(v.AMI.CreationDate).toDateString(),
+                   v.AMI.Tags['versions:zetta-device-data-worker']
+                  ].join('\t'));
     });
   });
 });
