@@ -24,7 +24,59 @@
       "Type" : "AWS::EC2::SecurityGroup::Id"
     }
   },
+
   "Resources": {
+
+    "TenantMgmtRole": {
+       "Type": "AWS::IAM::Role",
+       "Properties": {
+          "AssumeRolePolicyDocument": {
+             "Version" : "2012-10-17",
+             "Statement": [ {
+                "Effect": "Allow",
+                "Principal": {
+                   "Service": [ "ec2.amazonaws.com" ]
+                },
+                "Action": [ "sts:AssumeRole" ]
+             } ]
+          },
+          "Path": "/",
+          "Policies": [
+            {
+            "PolicyName": "CLIROAccess",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ec2:DescribeInstances"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "autoscaling:DescribeAutoScalingGroups"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+           }
+          ]
+        }
+    },
+
+    "TenantMgmtRoleInstanceProfile": {
+       "Type": "AWS::IAM::InstanceProfile",
+       "Properties": {
+          "Path": "/",
+          "Roles": [ {
+             "Ref": "TenantMgmtRole"
+          } ]
+       }
+    },
+
     "InstanceSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
@@ -42,6 +94,7 @@
         "InstanceType" : { "Ref": "InstanceType" },
         "Monitoring": true,
         "SecurityGroupIds": [{ "Ref": "CoreOsSecurityGroup" }, {"Fn::GetAtt": ["InstanceSecurityGroup", "GroupId"]} ],
+        "IamInstanceProfile": {"Ref" : "TenantMgmtRoleInstanceProfile" },
         "Tags": [
             {"Key": "zetta:stack", "Value": { "Ref" : "ZettaStack" } },
             {"Key": "Name", "Value": { "Fn::Join": [ "-", [ {"Ref" : "ZettaStack"}, "tenant-mgmt-api"]] } }

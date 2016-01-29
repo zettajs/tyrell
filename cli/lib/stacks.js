@@ -129,7 +129,7 @@ var list = module.exports.list = function(AWS, cb) {
 
 function generateStackParams(config) {
   var template = require('../../roles/initial-stack-cf.json');
-  var userData = fs.readFileSync(path.join(__dirname, '../../roles/core-services/aws-user-data.template')).toString().replace('@@ETCD_DISCOVERY_URL@@', config.discoveryUrl);
+  var userData = fs.readFileSync(path.join(__dirname, '../../roles/core-services/aws-user-data.template')).toString();
   template.Resources['CoreServicesLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
   var stackName = config.stack;
@@ -138,7 +138,6 @@ function generateStackParams(config) {
     OnFailure: 'DELETE',
     Capabilities: ['CAPABILITY_IAM'],
     Parameters: [
-      { ParameterKey: 'DiscoveryUrl', ParameterValue: config.discoveryUrl },
       { ParameterKey: 'KeyPair', ParameterValue: config.keyPair },
       { ParameterKey: 'LogentriesToken', ParameterValue: config.logentriesToken },
       { ParameterKey: 'ZettaStack', ParameterValue: config.stack },
@@ -286,10 +285,8 @@ var update = module.exports.update = function(AWS, name, configUpdates, cb) {
       return cb(err);
     }
 
-    // need discoveryUrl for user-data update
     var config = {
       stack: name,
-      discoveryUrl: stack.Parameters.DiscoveryUrl
     };
 
     Object.keys(configUpdates).forEach(function(k) {

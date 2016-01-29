@@ -37,7 +37,7 @@ stacks.list(AWS, function(err, stacks) {
 });
 
 /*
-cli versions delete [version]
-cli versions scale [version] [n]
+  cli versions delete [version]
+  cli versions scale [version] [n]
 */
 

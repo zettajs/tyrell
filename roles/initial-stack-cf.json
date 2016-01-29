@@ -3,10 +3,6 @@
   "Description": "Initial Zetta Stack Deployment, init SG, ELB",
 
   "Parameters": {
-    "DiscoveryUrl": {
-      "Description": "An unique etcd cluster discovery URL. Grab a new token from https://discovery.etcd.io/new",
-      "Type": "String"
-    },
     "KeyPair": {
       "Description": "Keypair to use in ASG groups created later.",
       "Type": "String"
@@ -263,24 +259,26 @@
                   }
             },
             {
-              "PolicyName": "CloudWatchMetrics",
-              "PolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                      "Action": [
-                        "cloudwatch:GetMetricStatistics",
-                        "cloudwatch:ListMetrics",
-                        "cloudwatch:PutMetricData",
-                        "ec2:DescribeTags"
-                      ],
-                      "Effect": "Allow",
-                      "Resource": "*"
-                    }
-                  ]
+            "PolicyName": "CLIROAccess",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ec2:DescribeInstances"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "autoscaling:DescribeAutoScalingGroups"
+                  ],
+                  "Resource": "*"
                 }
+              ]
             }
-
+           }
           ]
         }
     },
@@ -311,24 +309,26 @@
           "Path": "/",
           "Policies": [
             {
-              "PolicyName": "CloudWatchMetrics",
-              "PolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                      "Action": [
-                        "cloudwatch:GetMetricStatistics",
-                        "cloudwatch:ListMetrics",
-                        "cloudwatch:PutMetricData",
-                        "ec2:DescribeTags"
-                      ],
-                      "Effect": "Allow",
-                      "Resource": "*"
-                    }
-                  ]
+            "PolicyName": "CLIROAccess",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ec2:DescribeInstances"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "autoscaling:DescribeAutoScalingGroups"
+                  ],
+                  "Resource": "*"
                 }
+              ]
             }
-
+           }
           ]
         }
     },
@@ -359,24 +359,26 @@
           "Path": "/",
           "Policies": [
             {
-              "PolicyName": "CloudWatchMetrics",
-              "PolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                      "Action": [
-                        "cloudwatch:GetMetricStatistics",
-                        "cloudwatch:ListMetrics",
-                        "cloudwatch:PutMetricData",
-                        "ec2:DescribeTags"
-                      ],
-                      "Effect": "Allow",
-                      "Resource": "*"
-                    }
-                  ]
+            "PolicyName": "CLIROAccess",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ec2:DescribeInstances"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "autoscaling:DescribeAutoScalingGroups"
+                  ],
+                  "Resource": "*"
                 }
+              ]
             }
-
+           }
           ]
         }
     },

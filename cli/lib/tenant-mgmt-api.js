@@ -52,12 +52,13 @@ var list = module.exports.list = function(AWS, stackName, cb) {
 var create = module.exports.create = function(AWS, stack, config, done) {
   var cloudformation = new AWS.CloudFormation();
 
-  var userData = fs.readFileSync(path.join(__dirname, '../../roles/tenant-mgmt-api/aws-user-data.template')).toString().replace('@@ETCD_DISCOVERY_URL@@', stack.Parameters['DiscoveryUrl']);
+  var userData = fs.readFileSync(path.join(__dirname, '../../roles/tenant-mgmt-api/aws-user-data.template')).toString();
   userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
   userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
   userData = userData.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/g, stack.Resources['DeviceDataQueue'].PhysicalResourceId);
   userData = userData.replace(/@@ZETTA_USAGE_QUEUE@@/g, stack.Resources['ZettaUsageQueue'].PhysicalResourceId);
   userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
+  userData = userData.replace(/@@CORE_SERVICES_ASG@@/g, stack.Resources['CoreServicesASG'].PhysicalResourceId);
 
   var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/tenant-mgmt-api/cloudformation.json')).toString());
   template.Resources['Instance'].Properties.UserData = { 'Fn::Base64': userData };
@@ -66,6 +67,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   var params = {
     StackName: stackName,
     OnFailure: 'DO_NOTHING',
+    Capabilities: ['CAPABILITY_IAM'],
     Parameters: [
       { ParameterKey: 'InstanceType', ParameterValue: config.type },
       { ParameterKey: 'AMI', ParameterValue: config.ami },

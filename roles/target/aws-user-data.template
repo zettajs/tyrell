@@ -2,11 +2,6 @@
 
 coreos:
   etcd2:
-    # generate a new token for each unique cluster from https://discovery.etcd.io/new
-    # WARNING: replace each time you 'vagrant destroy'
-    # generate a new token for each unique cluster from https://discovery.etcd.io/new?size=3
-    # specify the initial size of your cluster with ?size=X
-    discovery: @@ETCD_DISCOVERY_URL@@
     proxy: on
     listen-client-urls: http://0.0.0.0:4001
   update:
@@ -18,6 +13,17 @@ coreos:
       command: stop
       enable: false
     - name: etcd2.service
+      command: stop
+      drop-ins:
+        - name: "timeout.conf"
+          content: |
+            [Service]
+            TimeoutStartSec=0
+        - name: "etcd_peers.conf"
+          content: |
+            [Service]
+            EnvironmentFile=/etc/sysconfig/etcd-peers
+    - name: etcd-peers-proxy.service
       command: start
     - name: fleet.service
       command: start
@@ -59,3 +65,4 @@ write_files:
       ZETTA_DEVICE_DATA_QUEUE="@@ZETTA_DEVICE_DATA_QUEUE@@"
       ZETTA_USAGE_QUEUE="@@ZETTA_USAGE_QUEUE@@"
       LOGENTRIES_TOKEN="@@LOGENTRIES_TOKEN@@"
+      CORE_SERVICES_ASG="@@CORE_SERVICES_ASG@@"
