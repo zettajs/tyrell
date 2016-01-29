@@ -20,8 +20,19 @@ stacks.list(AWS, function(err, stacks) {
     console.error(err);
     process.exit(1);
   }
+
+  console.log(['Stack Name',
+               'Key Pair',
+               'Tyrell Version',
+               'Discovery URL'].join('\t'));
+  
   stacks.forEach(function(stack) {
-    console.log(stack.StackName, stack.Parameters['KeyPair'], stack.Parameters['DiscoveryUrl']);
+    var tyrellVersionTag = stack.Tags.filter(function(t) { return t.Key === 'versions:tyrell'})[0];
+    console.log([stack.StackName,
+                 stack.Parameters['KeyPair'],
+                 (tyrellVersionTag) ? tyrellVersionTag.Value : 'N/A',
+                 stack.Parameters['DiscoveryUrl'] || 'N/A'].join('\t')
+               );
   })
 });
 

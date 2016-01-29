@@ -143,7 +143,8 @@ function generateStackParams(config) {
     ],
     Tags: [
       { Key: 'metrics:stack', Value: stackName },
-      { Key: 'metrics:stack:main', Value: 'true' }
+      { Key: 'metrics:stack:main', Value: 'true' },
+      { Key: 'versions:tyrell', Value: require('../package.json').version }
     ],
     TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 10

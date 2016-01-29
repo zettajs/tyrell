@@ -148,7 +148,8 @@ function generateStackParams(config) {
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stackName },
-      { Key: 'zetta:stack:main', Value: 'true' }
+      { Key: 'zetta:stack:main', Value: 'true' },
+      { Key: 'versions:tyrell', Value: require('../package.json').version }
     ],
     TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 15

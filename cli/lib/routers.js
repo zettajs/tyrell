@@ -2,6 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var async = require('async');
 var awsUtils = require('./aws-utils');
+var amis = require('./amis');
 
 var scale = module.exports.scale = function(AWS, asgName, desired, cb) {
   var autoscaling = new AWS.AutoScaling();
@@ -59,8 +60,15 @@ var list = module.exports.list = function(AWS, stackName, cb) {
           stack.RouterAutoScale.AddToLoadBalancer = stack.RouterAutoScale.SuspendedProcesses.every(function(p) {
             return p.ProcessName !== 'AddToLoadBalancer';
           });
-
-          next(null, stack);
+          
+          var AMI = stack.Parameters.filter(function(p) { return p.ParameterKey === 'AMI'; })[0];
+          amis.get(AWS, AMI.ParameterValue, function(err, build) {
+            if (err) {
+              return next(err);
+            }
+            stack.AMI = build;
+            next(null, stack);
+          });
         });
       });
     }, cb);
@@ -101,7 +109,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stack.StackName },
-      { Key: 'zetta:router:version', Value: config.version }
+      { Key: 'zetta:router:version', Value: config.version },
+      { Key: 'versions:tyrell', Value: require('../package.json').version }
     ],
     TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 5

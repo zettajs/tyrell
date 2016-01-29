@@ -34,11 +34,22 @@ stacks.get(AWS, name, function(err, stack) {
       process.exit(1);
     }
 
+    console.log(['Version',
+                 'CF Stack Name',
+                 'Instances',
+                 'ELB Enabled',
+                 'AMI ID',
+                 'Router Version'
+                ].join('\t')
+               );    
     results.forEach(function(v) {
-      console.log(v.AppVersion,
-                  v.StackName,
-                  v.RouterAutoScale.Instances.length + '/' + v.RouterAutoScale.DesiredCapacity,
-                  v.RouterAutoScale.AddToLoadBalancer
+      console.log([v.AppVersion,
+                   v.StackName,
+                   v.RouterAutoScale.Instances.length + '/' + v.RouterAutoScale.DesiredCapacity,
+                   v.RouterAutoScale.AddToLoadBalancer,
+                   v.AMI.ImageId + ':' + new Date(v.AMI.CreationDate).toDateString(),
+                   v.AMI.Tags['versions:zetta-cloud-proxy']
+                  ].join('\t')
                  );
     });
   });

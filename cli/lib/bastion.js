@@ -137,6 +137,9 @@ function generateStackParams(config) {
       { ParameterKey: 'BastionInstanceType', ParameterValue: config.instanceType },
       { ParameterKey: 'BastionSize', ParameterValue: '' + config.size }
     ],
+    Tags: [
+      { Key: 'versions:tyrell', Value: require('../package.json').version }
+    ],
     TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 5
   };

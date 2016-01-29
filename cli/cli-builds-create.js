@@ -6,6 +6,8 @@ var Packer = require('./lib/packer');
 var Vagrant = require('./lib/vagrant');
 var AWS = require('aws-sdk');
 
+var TYRELL_VERSION = require('./package.json').version;
+
 program
   .option('-v, --verbose', 'Display packer build output')
   .option('-c, --channel [channel]', 'CoreOS update channel [stable]', 'stable')
@@ -88,7 +90,7 @@ function extendProvisionsTemplate(orig, updates) {
     config.provisioners = config.provisioners.concat(updates.provisioners); 
   }
 
-  if (typeof updates.variables.output_name === 'string') {
+  if (updates.variables && typeof updates.variables.output_name === 'string') {
     config.variables.output_name = updates.variables.output_name;
   }
 
@@ -143,7 +145,11 @@ if (program.worker) {
   packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID || credentials.accessKeyId;
   packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY || credentials.secretAccessKey;
 
-  var workerConfigPath = writeToFile(packerTemplateFile, 'worker_packer.json');
+  var config = extendProvisionsTemplate(packerTemplateFile, { ami_tags: {
+    'versions:tyrell': TYRELL_VERSION,
+    'versions:zetta-device-data-worker': 'latest'
+  }});
+  var workerConfigPath = writeToFile(config, 'worker_packer.json');
 
   async.parallel([
     function(next) { buildBox(workerConfigPath, 'worker', next) },
@@ -261,9 +267,11 @@ if(platform === 'vagrant') {
     packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID || credentials.accessKeyId;
     packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY || credentials.secretAccessKey;
     console.log(packerTemplateFile.variables);
-    
-    var metricsConfigPath = writeToFile(packerTemplateFile, 'metrics_packer.json');
 
+    var config = extendProvisionsTemplate(packerTemplateFile, { ami_tags: {
+      'versions:tyrell': TYRELL_VERSION,
+    }});
+    var metricsConfigPath = writeToFile(config, 'metrics_packer.json');
     
     async.parallel([
       function(next) {
@@ -281,8 +289,11 @@ if(platform === 'vagrant') {
     packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID || credentials.accessKeyId;
     packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY || credentials.secretAccessKey;
     console.log(packerTemplateFile.variables);
-    
-    var bastionConfigPath = writeToFile(packerTemplateFile, 'bastion_packer.json');
+
+    var config = extendProvisionsTemplate(packerTemplateFile, { ami_tags: {
+      'versions:tyrell': TYRELL_VERSION,
+    }});
+    var bastionConfigPath = writeToFile(config, 'bastion_packer.json');
     
     async.parallel([
       function(next) {
@@ -300,6 +311,15 @@ if(platform === 'vagrant') {
     packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID || credentials.accessKeyId;
     packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY || credentials.secretAccessKey;
     var zettaProvisioningTemplate = updateProvisioningTemplate(require(path.join(Packer.packerPath(), 'zetta_provisions.json')), containerCommands);
+
+    // AWS Router/Target Box
+    // Add Tags for zetta-cloud-proxy and zetta-target-server
+    // versions:zetta-cloud-proxy@latest
+    // versions:zetta-target-server@latest
+    zettaProvisioningTemplate.ami_tags['versions:tyrell'] = TYRELL_VERSION;
+    zettaProvisioningTemplate.ami_tags['versions:zetta-cloud-proxy'] = program.routerTag || 'latest';
+    zettaProvisioningTemplate.ami_tags['versions:zetta-target-server'] = program.targetTag || 'latest';
+
     var zettaConfig = extendProvisionsTemplate(packerTemplateFile, zettaProvisioningTemplate);
     var zettaConfigPath = writeToFile(zettaConfig, 'zetta_packer.json');
 

@@ -4,6 +4,7 @@ var async = require('async');
 var awsUtils = require('./aws-utils');
 var Vagrant = require('./vagrant');
 var spawn = require('child_process').spawn;
+var amis = require('./amis');
 var versionToken = /@@ZETTA_VERSION@@/;
 
 var list = module.exports.list = function(AWS, stackName, cb) {
@@ -40,7 +41,14 @@ var list = module.exports.list = function(AWS, stackName, cb) {
         stack.AppVersion = stack.Tags.filter(function(t) { return t.Key === 'zetta:sqsworker:version'})[0].Value;
         stack.Resources = resources;
 
-        next(null, stack);
+        var AMI = stack.Parameters.filter(function(p) { return p.ParameterKey === 'AMI'; })[0];
+        amis.get(AWS, AMI.ParameterValue, function(err, build) {
+          if (err) {
+            return next(err);
+          }
+          stack.AMI = build;
+          next(null, stack);
+        });
       });
     }, cb);
   });
@@ -75,7 +83,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stack.StackName },
-      { Key: 'zetta:sqsworker:version', Value: config.version }
+      { Key: 'zetta:sqsworker:version', Value: config.version },
+      { Key: 'versions:tyrell', Value: require('../package.json').version }
     ],
     TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 5

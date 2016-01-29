@@ -75,7 +75,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stack.StackName },
-      { Key: tagKey, Value: config.version }
+      { Key: tagKey, Value: config.version },
+      { Key: 'versions:tyrell', Value: require('../package.json').version }
     ],
     TemplateBody: JSON.stringify(template),
     TimeoutInMinutes: 5
