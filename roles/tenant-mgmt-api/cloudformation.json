@@ -22,6 +22,14 @@
     "CoreOsSecurityGroup" : {
       "Description" : "Coreos security group to access etcd",
       "Type" : "AWS::EC2::SecurityGroup::Id"
+    },
+    "PublicSubnetId": {
+      "Description": "Public subnet to deploy instance to.",
+      "Type": "String"
+    },
+    "TenantManagementVPC": {
+      "Description": "VPC where instance will be deployed to.",
+      "Type": "String"
     }
   },
 
@@ -83,7 +91,8 @@
         "GroupDescription": "Instance security group.",
         "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "CidrIp": "0.0.0.0/0"}
-        ]
+        ],
+        "VpcId": {"Ref": "TenantManagementVPC"}
       }
     },
     "Instance" : {
@@ -99,7 +108,8 @@
             {"Key": "zetta:stack", "Value": { "Ref" : "ZettaStack" } },
             {"Key": "Name", "Value": { "Fn::Join": [ "-", [ {"Ref" : "ZettaStack"}, "tenant-mgmt-api"]] } }
         ],
-        "UserData" : null
+        "UserData" : null,
+        "SubnetId": {"Ref": "PublicSubnetId"}
       }
     }
   }

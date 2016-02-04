@@ -60,7 +60,7 @@ var list = module.exports.list = function(AWS, stackName, cb) {
           stack.RouterAutoScale.AddToLoadBalancer = stack.RouterAutoScale.SuspendedProcesses.every(function(p) {
             return p.ProcessName !== 'AddToLoadBalancer';
           });
-          
+
           var AMI = stack.Parameters.filter(function(p) { return p.ParameterKey === 'AMI'; })[0];
           amis.get(AWS, AMI.ParameterValue, function(err, build) {
             if (err) {
@@ -86,7 +86,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   var autoscaling = new AWS.AutoScaling();
 
   var userData = fs.readFileSync(path.join(__dirname, '../../roles/router/aws-user-data.template')).toString();
-  
+
   userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
   userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
   userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
@@ -107,7 +107,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
       { ParameterKey: 'RouterSecurityGroups', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['RouterSecurityGroup'].GroupId].join(',') },
       { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
       { ParameterKey: 'ZettaELB', ParameterValue: stack.Resources['ZettaELB'].PhysicalResourceId },
-      { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['RouterRoleInstanceProfile'].PhysicalResourceId }
+      { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['RouterRoleInstanceProfile'].PhysicalResourceId },
+      { ParameterKey: 'RouterSubnets', ParameterValue: config.subnets }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stack.StackName },

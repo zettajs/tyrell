@@ -50,6 +50,36 @@ var get = module.exports.get = function(AWS, stackName, cb) {
   });
 };
 
+var subnetsForVpc = module.exports.subnetsForVpc = function(AWS, vpcId, cb) {
+  var params = {
+    Filters:[
+      {
+        Name: 'vpc-id',
+        Values: [
+          vpcId
+        ]
+      }
+    ]
+  };
+
+  var ec2 = new AWS.EC2();
+  ec2.describeSubnets(params, function(err, data) {
+    if(err) {
+      return cb(err);
+    }
+    var subnets = [];
+    data.Subnets.forEach(function(subnet) {
+      var obj = {
+        id: subnet.SubnetId,
+        public: subnet.MapPublicIpOnLaunch
+      };
+      subnets.push(obj);
+    });
+
+    cb(err, subnets);
+  });
+}
+
 var list = module.exports.list = function(AWS, cb) {
   var cloudformation = new AWS.CloudFormation();
 

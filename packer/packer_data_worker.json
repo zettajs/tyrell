@@ -19,6 +19,11 @@
   }],
   "provisioners":[
     {
+			"type": "file",
+			"source": "files/authorized_keys",
+			"destination": "/home/core/.ssh/authorized_keys"
+		},
+    {
       "type": "file",
       "source": ".dockercfg",
       "destination": "/home/ec2-user/.dockercfg"

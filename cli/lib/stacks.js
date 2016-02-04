@@ -143,7 +143,10 @@ function generateStackParams(config) {
       { ParameterKey: 'ZettaStack', ParameterValue: config.stack },
       { ParameterKey: 'CoreServicesAMI', ParameterValue: config.ami },
       { ParameterKey: 'CoreServicesInstanceType', ParameterValue: config.instanceType },
-      { ParameterKey: 'CoreServicesSize', ParameterValue: '' + config.size }
+      { ParameterKey: 'CoreServicesSize', ParameterValue: '' + config.size },
+      { ParameterKey: 'StackSubnets', ParameterValue: config.privateSubnets },
+      { ParameterKey: 'PublicStackSubnets', ParameterValue: config.publicSubnets },
+      { ParameterKey: 'StackVpc', ParameterValue: config.vpc }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stackName },
@@ -255,7 +258,7 @@ var remove = module.exports.remove = function(AWS, name, cb) {
         async.each(results, function(version, next) {
           tenantMgmt.remove(AWS, version.StackName, next);
         }, next);
-      });      
+      });
     }
   ], function(err) {
     if (err) {

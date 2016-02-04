@@ -49,6 +49,18 @@
       "Type" : "String",
       "Default" : "",
       "Description" : "Existing s3 bucket for zetta usage data."
+    },
+    "StackSubnets": {
+      "Description": "Private subnets that the ASG should distribute boxes on.",
+      "Type": "CommaDelimitedList"
+    },
+    "PublicStackSubnets": {
+      "Description": "Public subnets that the Load Balancer should distribute boxes on.",
+      "Type": "CommaDelimitedList"
+    },
+    "StackVpc": {
+      "Type": "String",
+      "Description": "The VPC to associate security groups to."
     }
   },
 
@@ -64,7 +76,8 @@
         "GroupDescription": "Zetta ELB SecurityGroup",
         "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "CidrIp": "0.0.0.0/0"}
-        ]
+        ],
+        "VpcId": {"Ref": "StackVpc"}
       }
     },
 
@@ -74,7 +87,8 @@
         "GroupDescription": "Core Services SecurityGroup, applies to core services machines in CoreOS cluster",
         "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
-        ]
+        ],
+        "VpcId": {"Ref": "StackVpc"}
       }
     },
     "CoreServicesIngress2380": {
@@ -101,7 +115,8 @@
         "GroupDescription": "Core SecurityGroup, applies to any machine in CoreOS cluster",
         "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
-        ]
+        ],
+        "VpcId": {"Ref": "StackVpc"}
       }
     },
 
@@ -111,7 +126,8 @@
         "GroupDescription": "Core SecurityGroup, applies to any machine in CoreOS cluster",
         "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
-        ]
+        ],
+        "VpcId": {"Ref": "StackVpc"}
       }
     },
     "TargetIngressFromRouter": {
@@ -129,7 +145,8 @@
         "GroupDescription": "Core SecurityGroup, applies to any machine in CoreOS cluster",
         "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
-        ]
+        ],
+        "VpcId": {"Ref": "StackVpc"}
       }
     },
     "RouterIngress80": {
@@ -147,7 +164,8 @@
         "GroupDescription": "Zetta Sqs data worker",
         "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
-        ]
+        ],
+        "VpcId": {"Ref": "StackVpc"}
       }
     },
 
@@ -166,7 +184,8 @@
         "Tags": [
             {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
             {"Key": "Name", "Value": { "Fn::Join" : [ "-", [ {"Ref" : "ZettaStack" }, "core-services" ] ] }, "PropagateAtLaunch": true}
-        ]
+        ],
+        "VPCZoneIdentifier": {"Ref": "StackSubnets"}
       }
     },
     "CoreServicesLaunchConfig": {
@@ -184,7 +203,6 @@
     "ZettaELB" : {
       "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
       "Properties" : {
-        "AvailabilityZones" : { "Fn::GetAZs" : "" },
         "CrossZone": true,
         "Listeners" : [
           { "LoadBalancerPort" : "80", "InstancePort" : "80", "Protocol" : "TCP" }
@@ -200,7 +218,8 @@
           "Enabled" : "true",
           "Timeout" : "60"
         },
-        "SecurityGroups": [ { "Fn::GetAtt" : [ "ELBSecurityGroup", "GroupId" ] } ]
+        "SecurityGroups": [ { "Fn::GetAtt" : [ "ELBSecurityGroup", "GroupId" ] } ],
+        "Subnets": {"Ref": "PublicStackSubnets"}
       }
     },
 

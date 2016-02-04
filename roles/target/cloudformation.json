@@ -40,6 +40,10 @@
     "InstanceProfile" : {
       "Description" : "IAM Instance Profile for ec2 instances",
       "Type" : "String"
+    },
+    "TargetSubnets": {
+      "Description": "Private subnets that the ASG should distribute boxes on.",
+      "Type": "CommaDelimitedList"
     }
   },
   "Resources": {
@@ -56,7 +60,8 @@
         "Tags": [
             {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
             {"Key": "Name", "Value": {"Ref" : "AWS::StackName" } , "PropagateAtLaunch": true}
-        ]
+        ],
+        "VPCZoneIdentifier": {"Ref": "TargetSubnets"}
       }
     },
     "ZettaServerLaunchConfig": {

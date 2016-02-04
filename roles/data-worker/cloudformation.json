@@ -42,6 +42,10 @@
     "InstanceProfile" : {
       "Description" : "IAM Instance Profile for ec2 instances",
       "Type" : "String"
+    },
+    "WorkerPrivateSubnets": {
+      "Description": "Private subnets that the ASG should distribute boxes on.",
+      "Type": "CommaDelimitedList"
     }
   },
 
@@ -56,7 +60,8 @@
         "Tags": [
           {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
           {"Key": "Name", "Value": { "Fn::Join" : [ "-", [ {"Ref" : "ZettaStack" }, {"Ref" : "AWS::StackName" }, "app" ] ] }, "PropagateAtLaunch": true}
-        ]
+        ],
+        "VPCZoneIdentifier": {"Ref": "WorkerPrivateSubnets"}
       }
     },
     "DeviceDataLaunchConfig": {
@@ -104,7 +109,8 @@
         "Tags": [
           {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
           {"Key": "Name", "Value": { "Fn::Join" : [ "-", [ {"Ref" : "ZettaStack" }, {"Ref" : "AWS::StackName" }, "app" ] ] }, "PropagateAtLaunch": true}
-        ]
+        ],
+        "VPCZoneIdentifier": {"Ref": "WorkerPrivateSubnets"}
       }
     },
     "ZettaUsageLaunchConfig": {

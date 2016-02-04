@@ -46,7 +46,7 @@ var list = module.exports.list = function(AWS, stackName, cb) {
             return next(err);
           }
           stack.ZettaAutoScale = data.AutoScalingGroups[0];
-          
+
           var AMI = stack.Parameters.filter(function(p) { return p.ParameterKey === 'AMI'; })[0];
           amis.get(AWS, AMI.ParameterValue, function(err, build) {
             if (err) {
@@ -90,7 +90,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
       { ParameterKey: 'AMI', ParameterValue: config.ami },
       { ParameterKey: 'ZettaTargetSecurityGroup', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['TargetSecurityGroup'].GroupId].join(',') },
       { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
-      { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['TargetRoleInstanceProfile'].PhysicalResourceId }
+      { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['TargetRoleInstanceProfile'].PhysicalResourceId },
+      { ParameterKey: 'TargetSubnets', ParameterValue: config.subnets }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stack.StackName },
