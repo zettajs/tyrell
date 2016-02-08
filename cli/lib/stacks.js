@@ -38,7 +38,7 @@ var get = module.exports.get = function(AWS, stackName, cb) {
       }
       async.map(data.StackResources, function(r, next) {
         if (r.ResourceType === 'AWS::EC2::SecurityGroup') {
-          console.log(r);
+
           getSgGroupId(r.PhysicalResourceId, function(err, id) {
             if (err) {
               return next(err);
@@ -397,7 +397,6 @@ var merge = module.exports.merge = function(AWS, oldStackName, newStackName, cb)
         if (err) {
           return cb(err);
         }
-        console.log(keys.length);
         async.eachLimit(keys, 20, move.bind(null, 'DeviceDataBucket'), function(err) {
           if (err) {
             return cb(err);
