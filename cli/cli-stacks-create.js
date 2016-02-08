@@ -3,12 +3,15 @@ var program = require('commander');
 var AWS = require('aws-sdk');
 var stacks = require('./lib/stacks');
 var provision = require('./lib/provision');
+var vpc = require('./lib/vpc');
 var coreosamis = require('coreos-amis');
+
 
 AWS.config.update({region: 'us-east-1'});
 
 program
   .option('-k, --keyPair <key_pair>', 'Specify existing keypair to use when creating future asg.')
+  .option('--keyPairPath <path>', 'Specify path to existing key')
   .option('--logToken <token>', 'Specify a log entries token for logging.', '')
   .option('-s, --size <size>', 'Specify cluster size for core services.', 3)
   .option('-t, --type <type>', 'Specify instance type for core services.', 't2.micro')
@@ -19,6 +22,7 @@ program
   .parse(process.argv);
 
 var name = program.args[0];
+
 if (!name) {
   program.help();
   process.exit(1);
@@ -62,6 +66,7 @@ getKeyPair(function(err, key) {
   var keyPairPath = null;
   if (!key.KeyMaterial) {
     console.log('Using Existing KeyPair',  key.KeyName, 'with fingerprint', key.KeyFingerprint);
+    keyPairPath = program.keyPairPath;
   } else {
     console.log('Created new KeyPair',  key.KeyName, 'with fingerprint', key.KeyFingerprint, 'wrote to disk (' + key.KeyName + '.pem)');
     fs.writeFileSync(key.KeyName + '.pem', key.KeyMaterial, { mode: 400 });
@@ -99,7 +104,7 @@ getKeyPair(function(err, key) {
       ami: 'ami-cbfdb2a1', // hard code ami to fix issues with etcd support. CoreOS (717.3.0)
       deviceDataBucket: program.deviceDataBucket,
       zettaUsageBucket: program.zettaUsageBucket,
-      vpc: program.vpcId,
+      vpc: program.vpc,
       privateSubnets: privateSubnetIdArray.join(','),
       publicSubnets: publicSubnetIdArray.join(',')
     };
@@ -122,14 +127,14 @@ getKeyPair(function(err, key) {
         var opts = {
           stack: name,
           keyPair: keyPairPath,
-          vpc: program.vpcId,
+          vpc: program.vpc,
           privateSubnets: privateSubnetIdArray.join(','),
           publicSubnets: publicSubnetIdArray.join(','),
           tenantMgmtSubnet: tenantMgmtSubnet
         };
         // delay 1 minute to allow ec2 instances to be spun up for etcd
         setTimeout(function() {
-          provision(AWS, , function(err, versions) {
+          provision(AWS, opts, function(err, versions) {
             if (err) {
               console.error('errorcli stacks: ', err);
               process.exit(1);

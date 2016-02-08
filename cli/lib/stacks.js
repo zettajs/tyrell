@@ -29,7 +29,7 @@ var get = module.exports.get = function(AWS, stackName, cb) {
       }
 
       function getSgGroupId(sgName, cb) {
-        ec2.describeSecurityGroups({ GroupNames: [sgName] }, function(err, data) {
+        ec2.describeSecurityGroups({ GroupIds: [sgName] }, function(err, data) {
           if (err) {
             return cb(err);
           }
@@ -38,6 +38,7 @@ var get = module.exports.get = function(AWS, stackName, cb) {
       }
       async.map(data.StackResources, function(r, next) {
         if (r.ResourceType === 'AWS::EC2::SecurityGroup') {
+          console.log(r);
           getSgGroupId(r.PhysicalResourceId, function(err, id) {
             if (err) {
               return next(err);

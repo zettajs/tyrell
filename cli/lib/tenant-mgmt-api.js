@@ -73,7 +73,9 @@ var create = module.exports.create = function(AWS, stack, config, done) {
       { ParameterKey: 'AMI', ParameterValue: config.ami },
       { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
       { ParameterKey: 'ZettaStack', ParameterValue: stack.StackName },
-      { ParameterKey: 'CoreOsSecurityGroup', ParameterValue: stack.Resources['CoreOsSecurityGroup'].GroupId }
+      { ParameterKey: 'CoreOsSecurityGroup', ParameterValue: stack.Resources['CoreOsSecurityGroup'].GroupId },
+      { ParameterKey: 'PublicSubnetId', ParameterValue: config.subnet },
+      { ParameterKey: 'TenantManagementVPC', ParameterValue: config.vpc }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stack.StackName },
@@ -124,4 +126,3 @@ var remove = module.exports.remove = function(AWS, cfName, cb) {
   var cloudformation = new AWS.CloudFormation();
   cloudformation.deleteStack({ StackName: cfName }, cb);
 };
-

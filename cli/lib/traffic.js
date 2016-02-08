@@ -15,13 +15,13 @@ function formatTags(tags) {
 var list = module.exports.list = function(AWS, elbName, cb) {
   var elb = new AWS.ELB();
   var ec2 = new AWS.EC2();
-  
+
   elb.describeLoadBalancers({ LoadBalancerNames: [elbName] }, function(err, data) {
     if (err) {
       return cb(err);
     }
     var lb = data.LoadBalancerDescriptions[0];
-    
+
     var params = {
       LoadBalancerName: elbName,
       Instances: lb.Instances
@@ -30,7 +30,7 @@ var list = module.exports.list = function(AWS, elbName, cb) {
     if (lb.Instances.length === 0) {
       return cb(null, []);
     }
-    
+
     elb.describeInstanceHealth(params, function(err, data) {
       if(err) {
         return cb(err);
@@ -69,7 +69,7 @@ var list = module.exports.list = function(AWS, elbName, cb) {
 };
 
 var assignRouterToElb = module.exports.assignRouterToElb = function(AWS, stackName, version, cb) {
-  var autoscaling = new AWS.AutoScaling();  
+  var autoscaling = new AWS.AutoScaling();
 
   routers.list(AWS, stackName, function(err, all) {
     if (err) {
@@ -83,7 +83,7 @@ var assignRouterToElb = module.exports.assignRouterToElb = function(AWS, stackNa
     var nonActiveASG = all.filter(function(router) {
       return router.AppVersion !== version;
     });
-    
+
 
     var params = {
       AutoScalingGroupName: activeASG.RouterAutoScale.AutoScalingGroupName,
@@ -94,8 +94,8 @@ var assignRouterToElb = module.exports.assignRouterToElb = function(AWS, stackNa
       if (err) {
         return cb(err);
       }
-      
-      
+
+
       // suspend AddToElb process on all other asgs
       async.each(nonActiveASG, function(router, next) {
         var params = {
@@ -121,24 +121,24 @@ module.exports.route = function(AWS, opts, cb) {
       if (err) {
         return cb(err);
       }
-      
+
       currentActive = currentActive.filter(function(instance) {
         return instance.Tags['zetta:router:version'] !== opts.version.AppVersion;
       }).map(function(instance) {
         return { InstanceId: instance.InstanceId };
       });
-      
+
       var asgName = opts.version.Resources['RouterAutoScale'].PhysicalResourceId;
       awsUtils.getAutoScaleInstances(AWS, asgName, function(err, instances) {
         if (err) {
           return cb(err);
         }
-        
+
         var params = {
         Instances: instances.map(function(i) { return { InstanceId: i }; }),
           LoadBalancerName: opts.elbName
         };
-        
+
         elb.registerInstancesWithLoadBalancer(params, function(err, data) {
           if (err) {
             return cb(err);
@@ -147,14 +147,14 @@ module.exports.route = function(AWS, opts, cb) {
             if (err) {
               return cb(err);
             }
-            
+
             if (!opts.replace || currentActive.length === 0) {
               return cb();
             }
-            
+
             var params = { Instances: currentActive, LoadBalancerName: opts.elbName };
-            elb.deregisterInstancesFromLoadBalancer(params, cb);    
-            
+            elb.deregisterInstancesFromLoadBalancer(params, cb);
+
           });
         });
       });
@@ -167,7 +167,7 @@ module.exports.zettaVersion = function(AWS, stackName, keyPath, cb) {
     if (err) {
       return cb(err);
     }
-    
+
     instances = instances.filter(function(instance) {
       return (instance.State.Name === 'running')
     });
@@ -182,13 +182,19 @@ module.exports.setZettaVersion = function(AWS, stackName, version, keyPath, cb) 
     if (err) {
       return cb(err);
     }
-    
+
     instances = instances.filter(function(instance) {
       return (instance.State.Name === 'running')
     });
 
     var host = 'core@' + instances[0].PublicDnsName;
-    targets.routeSSH(host, keyPath, version, cb);
+    targets.routeSSH(host, keyPath, version, function(err) {
+      if(err) {
+        cb(err);
+      } else {
+        cb();
+      }
+    });
   });
 };
 
@@ -216,7 +222,7 @@ function getTenantMgmtInstanceFromVersion(AWS, stack, version, cb) {
 
 function getTenantMgmtInstanceFromIp(AWS, stack, publicIp, cb) {
   var ec2 = new AWS.EC2();
-  
+
   var params = {
     Filters: [
       {
@@ -252,7 +258,7 @@ module.exports.tenantMgmt.get = function(AWS, stack, cb) {
     if (err) {
       return cb(err);
     }
-    
+
     var found = data.HostedZones.some(function(zone) {
       if (zone.Name === stack.DnsZone) {
         var params = {
@@ -262,7 +268,7 @@ module.exports.tenantMgmt.get = function(AWS, stack, cb) {
           if (err) {
             return cb(err);
           }
-          
+
           var recordSets = data.ResourceRecordSets.filter(function(record) {
             return record.Type === 'A' && record.Name.indexOf(prefix + stack.StackName + '.') === 0;
           });
@@ -274,7 +280,7 @@ module.exports.tenantMgmt.get = function(AWS, stack, cb) {
           if (recordSets.length === 0) {
             return cb(null, []);
           }
-          
+
           async.map(recordSets[0].ResourceRecords, function(record, next) {
             getTenantMgmtInstanceFromIp(AWS, stack, record.Value, next);
           }, cb);
@@ -302,14 +308,14 @@ module.exports.tenantMgmt.route = function(AWS, stack, version, cb) {
       if (err) {
         return cb(err);
       }
-      
+
       var found = data.HostedZones.some(function(zone) {
         if (zone.Name === stack.DnsZone) {
           var params = {
             HostedZoneId: zone.Id
           };
 
-          
+
           var recordSetName = prefix + stack.StackName + '.' + stack.DnsZone;
           var params = {
             HostedZoneId: zone.Id,
@@ -332,7 +338,7 @@ module.exports.tenantMgmt.route = function(AWS, stack, version, cb) {
 
           route53.changeResourceRecordSets(params, cb);
           return true;
-        } 
+        }
       });
 
       if (!found) {

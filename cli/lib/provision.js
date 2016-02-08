@@ -49,10 +49,10 @@ module.exports = function(AWS, opts, callback) {
   }
 
   stacks.get(AWS, opts.stack, function(err, stack) {
+
     if (err) {
       return callback(err);
     }
-
     async.parallel([
       latestAmi.bind(null, AWS, opts),
       latestWorkerAmi.bind(null, AWS, opts)
@@ -67,6 +67,7 @@ module.exports = function(AWS, opts, callback) {
         worker: crypto.randomBytes(6).toString('hex'),
         tenantMgmt: crypto.randomBytes(6).toString('hex')
       };
+
 
       async.parallel([
         function(next) {
@@ -90,7 +91,7 @@ module.exports = function(AWS, opts, callback) {
           return callback(err);
         }
 
-        console.log('Traffic setup')
+
         async.parallel([
           function(next) {
             routers.list(AWS, opts.stack, function(err, versions) {

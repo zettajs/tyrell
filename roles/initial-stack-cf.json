@@ -94,8 +94,14 @@
     "CoreServicesIngress2380": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "CoreServicesSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "2380", "ToPort": "2380", "SourceSecurityGroupId": {
+        "IpProtocol": "tcp",
+        "FromPort": "2380",
+        "ToPort": "2380",
+        "SourceSecurityGroupId": {
           "Fn::GetAtt" : [ "CoreOsSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["CoreServicesSecurityGroup", "GroupId"]
         }
       }
     },
@@ -103,8 +109,14 @@
     "CoreServicesIngress4001": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "CoreServicesSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "4001", "ToPort": "4001", "SourceSecurityGroupId": {
+        "IpProtocol": "tcp",
+        "FromPort": "4001",
+        "ToPort": "4001",
+        "SourceSecurityGroupId": {
           "Fn::GetAtt" : [ "CoreOsSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["CoreServicesSecurityGroup", "GroupId"]
         }
       }
     },
@@ -133,8 +145,14 @@
     "TargetIngressFromRouter": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "TargetSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "3000", "ToPort": "3020", "SourceSecurityGroupId": {
+        "IpProtocol": "tcp",
+        "FromPort": "3000",
+        "ToPort": "3020",
+        "SourceSecurityGroupId": {
           "Fn::GetAtt" : [ "RouterSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["TargetSecurityGroup", "GroupId"]
         }
       }
     },
@@ -152,8 +170,14 @@
     "RouterIngress80": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "RouterSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "SourceSecurityGroupId": {
+        "IpProtocol": "tcp",
+        "FromPort": "80",
+        "ToPort": "80",
+        "SourceSecurityGroupId": {
           "Fn::GetAtt" : [ "ELBSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["RouterSecurityGroup", "GroupId"]
         }
       }
     },
@@ -185,7 +209,7 @@
             {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
             {"Key": "Name", "Value": { "Fn::Join" : [ "-", [ {"Ref" : "ZettaStack" }, "core-services" ] ] }, "PropagateAtLaunch": true}
         ],
-        "VPCZoneIdentifier": {"Ref": "StackSubnets"}
+        "VPCZoneIdentifier": {"Ref": "PublicStackSubnets"}
       }
     },
     "CoreServicesLaunchConfig": {

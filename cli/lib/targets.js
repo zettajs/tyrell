@@ -181,11 +181,14 @@ var routeAWS = module.exports.routeSSH = function(host, keyPath, version, cb) {
   var cmd = "etcdctl set /zetta/version '{ \"version\": \"" + version + "\"}'";
   var ssh = spawn('ssh', ['-o', 'StrictHostKeyChecking no', '-i', keyPath, host, cmd]);
   ssh.on('exit', function(code, signal) {
+    console.log('targets.js 185', arguments);
     if (code !== 0) {
       return cb(new Error('Non-Zero exit code. Failed to initialize zetta version.'));
     }
     cb();
   });
+
+
 
   return ssh;
 };
