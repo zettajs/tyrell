@@ -48,8 +48,8 @@
       "Type": "AWS::EC2::VPC",
       "Properties": {
         "CidrBlock": {"Ref": "VPCCidrBlock"},
-        "EnableDnsSupport": false,
-        "EnableDnsHostnames": false,
+        "EnableDnsSupport": true,
+        "EnableDnsHostnames": true,
         "InstanceTenancy": "default",
         "Tags": [
           {"Key": "Name", "Value": {"Fn::Join": ["-", [{"Ref": "VPCName"}, "VPC"]]}}

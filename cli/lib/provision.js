@@ -14,18 +14,22 @@ var traffic = require('./traffic');
 
 //  opts.ami
 //  opts.workerAmi
+//  opts.vpcId
+//  opts.privateSubnets
+//  opts.publicSubnets
+//  opts.tenantMgmtSubnet
 //  opts.routerSize  - Defaults 1
 //  opts.routerType  - Defaults t2.micro
 //  opts.versionSize - Defaults 1
 //  opts.versionType - Defaults t2.micro
-//  opts.workerType  - Defaults t2.medium 
+//  opts.workerType  - Defaults t2.medium
 
 module.exports = function(AWS, opts, callback) {
 
   if (!opts.stack) {
     return callback(new Error('Must provide stack name'));
   }
-  
+
   if (opts.routerSize === undefined) {
     opts.routerSize = 1;
   }
@@ -45,10 +49,10 @@ module.exports = function(AWS, opts, callback) {
   }
 
   stacks.get(AWS, opts.stack, function(err, stack) {
+
     if (err) {
       return callback(err);
     }
-
     async.parallel([
       latestAmi.bind(null, AWS, opts),
       latestWorkerAmi.bind(null, AWS, opts)
@@ -64,21 +68,22 @@ module.exports = function(AWS, opts, callback) {
         tenantMgmt: crypto.randomBytes(6).toString('hex')
       };
 
+
       async.parallel([
         function(next) {
-          var config = { ami: images[0], size: opts.routerSize, type: opts.routerType, version: versionKeys.router  };
+          var config = { ami: images[0], size: opts.routerSize, type: opts.routerType, version: versionKeys.router, subnets: opts.privateSubnets  };
           routers.create(AWS, stack, config, next);
         },
         function(next) {
-          var config = { ami: images[0], size: opts.versionSize, type: opts.versionType, version: versionKeys.target };
+          var config = { ami: images[0], size: opts.versionSize, type: opts.versionType, version: versionKeys.target, subnets: opts.privateSubnets };
           targets.create(AWS, stack, config, next);
         },
         function(next) {
-          var config = { ami: images[1], type: opts.workerType, version: versionKeys.worker };
+          var config = { ami: images[1], type: opts.workerType, version: versionKeys.worker, subnets: opts.privateSubnets };
           workers.create(AWS, stack, config, next);
         },
         function(next) {
-          var config = { ami: images[0], type: opts.versionType, version: versionKeys.tenantMgmt };
+          var config = { ami: images[0], type: opts.versionType, version: versionKeys.tenantMgmt, subnet: opts.tenantMgmtSubnet, vpc: opts.vpc };
           tenantMgmt.create(AWS, stack, config, next);
         }
       ], function(err) {
@@ -86,14 +91,14 @@ module.exports = function(AWS, opts, callback) {
           return callback(err);
         }
 
-        console.log('Traffic setup')
+
         async.parallel([
           function(next) {
             routers.list(AWS, opts.stack, function(err, versions) {
               if (err) {
                 return next(err);
               }
-              
+
               var version = versions.filter(function(version) {
                 return (version.AppVersion === versionKeys.router);
               })[0];
@@ -112,7 +117,7 @@ module.exports = function(AWS, opts, callback) {
               if (err) {
                 return next(err);
               }
-              
+
               var version = versions.filter(function(version) {
                 return (version.AppVersion === versionKeys.tenantMgmt);
               })[0];
@@ -160,4 +165,3 @@ function latestWorkerAmi(AWS, opts, cb) {
     });
   }
 };
-

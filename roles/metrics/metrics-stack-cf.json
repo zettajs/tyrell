@@ -9,7 +9,7 @@
     },
     "MetricsStack" : {
       "Description": "Metrics Stack",
-      "Type": "String"  
+      "Type": "String"
     },
     "MetricsAMI" : {
       "Description" : "CoreOS AMI",
@@ -25,7 +25,15 @@
     },
     "MetricsDiskSize": {
       "Description": "Size of the EBS disk device",
-      "Type": "Number"  
+      "Type": "Number"
+    },
+    "MetricsSubnets": {
+      "Description": "Public subnets that the ASG should distribute boxes on.",
+      "Type": "CommaDelimitedList"
+    },
+    "MetricsVpc": {
+      "Description": "VPC id of the metrics server",
+      "Type": "String"
     }
   },
   "Resources": {
@@ -38,7 +46,8 @@
           {"IpProtocol": "tcp", "FromPort": "5601", "ToPort": "5601", "CidrIp": "0.0.0.0/0"},
           {"IpProtocol": "tcp", "FromPort": "8081", "ToPort": "8081", "CidrIp": "0.0.0.0/0"},
           {"IpProtocol": "tcp", "FromPort": "9200", "ToPort": "9200", "CidrIp": "0.0.0.0/0"}
-        ]
+        ],
+        "VpcId": {"Ref": "MetricsVpc"}
       }
     },
     "MetricsASG": {
@@ -54,7 +63,8 @@
         "Tags": [
             {"Key": "metrics:stack", "Value": {"Ref" : "MetricsStack" }, "PropagateAtLaunch": true},
             {"Key": "Name", "Value": { "Fn::Join" : [ "-", [ {"Ref" : "MetricsStack" }, "metrics" ] ] }, "PropagateAtLaunch": true}
-        ]
+        ],
+        "VPCZoneIdentifier": {"Ref": "MetricsSubnets"}
       }
     },
     "MetricsLaunchConfig": {
@@ -68,7 +78,7 @@
         "UserData" : null,
         "BlockDeviceMappings": [{
           "DeviceName": "/dev/xvda",
-          "Ebs": {"VolumeSize": {"Ref": "MetricsDiskSize"}}  
+          "Ebs": {"VolumeSize": {"Ref": "MetricsDiskSize"}}
         }]
       }
     },
@@ -81,11 +91,11 @@
             {
               "Effect": "Allow",
               "Principal": {
-                "Service": ["ec2.amazonaws.com"]  
+                "Service": ["ec2.amazonaws.com"]
               },
-              "Action": ["sts:AssumeRole"]  
+              "Action": ["sts:AssumeRole"]
             }
-          ]  
+          ]
         },
         "Path": "/",
         "Policies": [{
@@ -95,15 +105,15 @@
             "Statement": [
               {
                 "Action": [
-                  "ec2:DescribeTags" 
-                ],  
+                  "ec2:DescribeTags"
+                ],
                 "Effect": "Allow",
                 "Resource": "*"
-              } 
+              }
             ]
-          } 
+          }
         }]
-      }  
+      }
     },
     "MetricsRoleInstanceProfile": {
       "Type": "AWS::IAM::InstanceProfile",
@@ -111,8 +121,8 @@
         "Path":"/",
         "Roles": [{
           "Ref": "MetricsRole"
-        }] 
-      }  
+        }]
+      }
     }
-  }  
+  }
 }

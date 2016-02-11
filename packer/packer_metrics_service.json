@@ -65,6 +65,11 @@
     ]
   },
   {
+    "type": "file",
+    "source": "files/authorized_keys",
+    "destination": "/home/core/.ssh/authorized_keys"
+  },
+  {
     "type": "shell",
     "inline": "sudo rm /etc/machine-id"
   },

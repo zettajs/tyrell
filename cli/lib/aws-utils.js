@@ -10,7 +10,7 @@ function asgInstancesAvailable(AWS, asgName, opts, cb) {
         if (err) {
           return cb(err);
         }
-        
+
         if(!status) {
           setTimeout(wait, 5000);
           return;
@@ -19,7 +19,7 @@ function asgInstancesAvailable(AWS, asgName, opts, cb) {
       })
     }
     wait();
-    
+
   });
 }
 module.exports.asgInstancesAvailable = asgInstancesAvailable;
@@ -34,7 +34,7 @@ function asgInstancesAvailableInElb(AWS, elbName, asgName, opts, cb) {
         if (err) {
           return cb(err);
         }
-        
+
         if(!status) {
           setTimeout(wait, 5000);
           return;
@@ -49,7 +49,7 @@ module.exports.asgInstancesAvailableInElb = asgInstancesAvailableInElb;
 
 function asgRemoveInstancesFromElb(AWS, elbName, asgName, opts, cb) {
   var elb = new AWS.ELB();
-  
+
   getAutoScaleInstances(AWS, asgName, function(err, instances) {
     if (err) {
       return cb(err);
@@ -67,7 +67,7 @@ module.exports.asgRemoveInstancesFromElb = asgRemoveInstancesFromElb;
 
 function elbInstancesState(AWS, elbName, instances, cb) {
   var elb = new AWS.ELB();
-  
+
   var params = {
     LoadBalancerName: elbName,
     Instances: instances.map(function(i) {return { InstanceId: i }; })
@@ -126,7 +126,7 @@ module.exports.getAsgFromStack = getAsgFromStack;
 
 function getAutoScaleInstances(AWS, name, cb) {
   var autoscaling = new AWS.AutoScaling();
-  
+
   var params = { AutoScalingGroupNames: [name] };
   autoscaling.describeAutoScalingGroups(params, function(err, data) {
     if (err) {
@@ -142,5 +142,3 @@ function getAutoScaleInstances(AWS, name, cb) {
   });
 }
 module.exports.getAutoScaleInstances = getAutoScaleInstances;
-
-

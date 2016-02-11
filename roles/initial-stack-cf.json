@@ -49,6 +49,18 @@
       "Type" : "String",
       "Default" : "",
       "Description" : "Existing s3 bucket for zetta usage data."
+    },
+    "StackSubnets": {
+      "Description": "Private subnets that the ASG should distribute boxes on.",
+      "Type": "CommaDelimitedList"
+    },
+    "PublicStackSubnets": {
+      "Description": "Public subnets that the Load Balancer should distribute boxes on.",
+      "Type": "CommaDelimitedList"
+    },
+    "StackVpc": {
+      "Type": "String",
+      "Description": "The VPC to associate security groups to."
     }
   },
 
@@ -64,7 +76,8 @@
         "GroupDescription": "Zetta ELB SecurityGroup",
         "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "CidrIp": "0.0.0.0/0"}
-        ]
+        ],
+        "VpcId": {"Ref": "StackVpc"}
       }
     },
 
@@ -74,14 +87,21 @@
         "GroupDescription": "Core Services SecurityGroup, applies to core services machines in CoreOS cluster",
         "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
-        ]
+        ],
+        "VpcId": {"Ref": "StackVpc"}
       }
     },
     "CoreServicesIngress2380": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "CoreServicesSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "2380", "ToPort": "2380", "SourceSecurityGroupId": {
+        "IpProtocol": "tcp",
+        "FromPort": "2380",
+        "ToPort": "2380",
+        "SourceSecurityGroupId": {
           "Fn::GetAtt" : [ "CoreOsSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["CoreServicesSecurityGroup", "GroupId"]
         }
       }
     },
@@ -89,8 +109,14 @@
     "CoreServicesIngress4001": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "CoreServicesSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "4001", "ToPort": "4001", "SourceSecurityGroupId": {
+        "IpProtocol": "tcp",
+        "FromPort": "4001",
+        "ToPort": "4001",
+        "SourceSecurityGroupId": {
           "Fn::GetAtt" : [ "CoreOsSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["CoreServicesSecurityGroup", "GroupId"]
         }
       }
     },
@@ -101,7 +127,8 @@
         "GroupDescription": "Core SecurityGroup, applies to any machine in CoreOS cluster",
         "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
-        ]
+        ],
+        "VpcId": {"Ref": "StackVpc"}
       }
     },
 
@@ -111,14 +138,21 @@
         "GroupDescription": "Core SecurityGroup, applies to any machine in CoreOS cluster",
         "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
-        ]
+        ],
+        "VpcId": {"Ref": "StackVpc"}
       }
     },
     "TargetIngressFromRouter": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "TargetSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "3000", "ToPort": "3020", "SourceSecurityGroupId": {
+        "IpProtocol": "tcp",
+        "FromPort": "3000",
+        "ToPort": "3020",
+        "SourceSecurityGroupId": {
           "Fn::GetAtt" : [ "RouterSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["TargetSecurityGroup", "GroupId"]
         }
       }
     },
@@ -129,14 +163,21 @@
         "GroupDescription": "Core SecurityGroup, applies to any machine in CoreOS cluster",
         "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
-        ]
+        ],
+        "VpcId": {"Ref": "StackVpc"}
       }
     },
     "RouterIngress80": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "RouterSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "SourceSecurityGroupId": {
+        "IpProtocol": "tcp",
+        "FromPort": "80",
+        "ToPort": "80",
+        "SourceSecurityGroupId": {
           "Fn::GetAtt" : [ "ELBSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["RouterSecurityGroup", "GroupId"]
         }
       }
     },
@@ -147,7 +188,8 @@
         "GroupDescription": "Zetta Sqs data worker",
         "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
-        ]
+        ],
+        "VpcId": {"Ref": "StackVpc"}
       }
     },
 
@@ -166,7 +208,8 @@
         "Tags": [
             {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
             {"Key": "Name", "Value": { "Fn::Join" : [ "-", [ {"Ref" : "ZettaStack" }, "core-services" ] ] }, "PropagateAtLaunch": true}
-        ]
+        ],
+        "VPCZoneIdentifier": {"Ref": "PublicStackSubnets"}
       }
     },
     "CoreServicesLaunchConfig": {
@@ -184,7 +227,6 @@
     "ZettaELB" : {
       "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
       "Properties" : {
-        "AvailabilityZones" : { "Fn::GetAZs" : "" },
         "CrossZone": true,
         "Listeners" : [
           { "LoadBalancerPort" : "80", "InstancePort" : "80", "Protocol" : "TCP" }
@@ -200,7 +242,8 @@
           "Enabled" : "true",
           "Timeout" : "60"
         },
-        "SecurityGroups": [ { "Fn::GetAtt" : [ "ELBSecurityGroup", "GroupId" ] } ]
+        "SecurityGroups": [ { "Fn::GetAtt" : [ "ELBSecurityGroup", "GroupId" ] } ],
+        "Subnets": {"Ref": "PublicStackSubnets"}
       }
     },
 

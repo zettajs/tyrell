@@ -79,7 +79,9 @@ var create = module.exports.create = function(AWS, stack, config, done) {
       { ParameterKey: 'DeviceDataQueueUrl', ParameterValue: stack.Resources['DeviceDataQueue'].PhysicalResourceId },
       { ParameterKey: 'DeviceDataS3Bucket', ParameterValue: stack.Outputs['DeviceDataBucket'] },
       { ParameterKey: 'ZettaUsageQueueUrl', ParameterValue: stack.Resources['ZettaUsageQueue'].PhysicalResourceId },
-      { ParameterKey: 'ZettaUsageS3Bucket', ParameterValue: stack.Outputs['ZettaUsageBucket'] }
+      { ParameterKey: 'ZettaUsageS3Bucket', ParameterValue: stack.Outputs['ZettaUsageBucket'] },
+      { ParameterKey: 'WorkerPrivateSubnets', ParameterValue: config.subnets }
+
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stack.StackName },

@@ -3,9 +3,9 @@ var path = require('path');
 var async = require('async');
 var utils = require('./aws-utils');
 
-var stackName = 'link-bastion';
+//var stackName = 'link-bastion';
 
-var get = module.exports.get = function(AWS, cb) {
+var get = module.exports.get = function(AWS, stackName, cb) {
   var ec2 = new AWS.EC2();
   var cloudformation = new AWS.CloudFormation();
 
@@ -123,7 +123,7 @@ var list = module.exports.list = function(AWS, cb) {
   });
 };
 
-function generateStackParams(config) {
+function generateStackParams(stackName, config) {
   var template = require('../../roles/bastion/bastion-server-cf.json');
   var userData = fs.readFileSync(path.join(__dirname, '../../roles/bastion/bastion-user-data')).toString();
   template.Resources['BastionLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
@@ -131,11 +131,14 @@ function generateStackParams(config) {
   var params = {
     StackName: stackName,
     OnFailure: 'DELETE',
+    //DisableRollback: true,
     Capabilities: ['CAPABILITY_IAM'],
     Parameters: [
       { ParameterKey: 'BastionAMI', ParameterValue: config.ami },
       { ParameterKey: 'BastionInstanceType', ParameterValue: config.instanceType },
-      { ParameterKey: 'BastionSize', ParameterValue: '' + config.size }
+      { ParameterKey: 'BastionSize', ParameterValue: '' + config.size },
+      { ParameterKey: 'BastionSubnets', ParameterValue: config.subnets },
+      { ParameterKey: 'BastionVpc', ParameterValue: config.vpc }
     ],
     Tags: [
       { Key: 'versions:tyrell', Value: require('../package.json').version }
@@ -147,10 +150,10 @@ function generateStackParams(config) {
   return params;
 }
 
-var create = module.exports.create = function(AWS, config, done) {
+var create = module.exports.create = function(AWS, stackName, config, done) {
   var cloudformation = new AWS.CloudFormation();
 
-  var params = generateStackParams(config);
+  var params = generateStackParams(stackName, config);
 
   function checkStackStatus(cb) {
     cloudformation.describeStacks({ StackName: stackName }, function(err, data) {
@@ -187,7 +190,7 @@ var create = module.exports.create = function(AWS, config, done) {
 
 };
 
-var remove = module.exports.remove = function(AWS, cb) {
+var remove = module.exports.remove = function(AWS, stackName, cb) {
   var cloudformation = new AWS.CloudFormation();
 
 

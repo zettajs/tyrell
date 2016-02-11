@@ -29,7 +29,7 @@ var get = module.exports.get = function(AWS, stackName, cb) {
       }
 
       function getSgGroupId(sgName, cb) {
-        ec2.describeSecurityGroups({ GroupNames: [sgName] }, function(err, data) {
+        ec2.describeSecurityGroups({ GroupIds: [sgName] }, function(err, data) {
           if (err) {
             return cb(err);
           }
@@ -38,6 +38,7 @@ var get = module.exports.get = function(AWS, stackName, cb) {
       }
       async.map(data.StackResources, function(r, next) {
         if (r.ResourceType === 'AWS::EC2::SecurityGroup') {
+
           getSgGroupId(r.PhysicalResourceId, function(err, id) {
             if (err) {
               return next(err);
@@ -143,7 +144,10 @@ function generateStackParams(config) {
       { ParameterKey: 'ZettaStack', ParameterValue: config.stack },
       { ParameterKey: 'CoreServicesAMI', ParameterValue: config.ami },
       { ParameterKey: 'CoreServicesInstanceType', ParameterValue: config.instanceType },
-      { ParameterKey: 'CoreServicesSize', ParameterValue: '' + config.size }
+      { ParameterKey: 'CoreServicesSize', ParameterValue: '' + config.size },
+      { ParameterKey: 'StackSubnets', ParameterValue: config.privateSubnets },
+      { ParameterKey: 'PublicStackSubnets', ParameterValue: config.publicSubnets },
+      { ParameterKey: 'StackVpc', ParameterValue: config.vpc }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stackName },
@@ -255,7 +259,7 @@ var remove = module.exports.remove = function(AWS, name, cb) {
         async.each(results, function(version, next) {
           tenantMgmt.remove(AWS, version.StackName, next);
         }, next);
-      });      
+      });
     }
   ], function(err) {
     if (err) {
@@ -393,7 +397,6 @@ var merge = module.exports.merge = function(AWS, oldStackName, newStackName, cb)
         if (err) {
           return cb(err);
         }
-        console.log(keys.length);
         async.eachLimit(keys, 20, move.bind(null, 'DeviceDataBucket'), function(err) {
           if (err) {
             return cb(err);
