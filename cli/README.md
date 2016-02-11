@@ -75,6 +75,8 @@ Options
 
 -k, --keyPair <key_pair>  Specify existing keypair to use when creating future asg. If not specified it will generate and download one for you.
 
+-v, --vpc <vpc> Indicate which VPC to deploy to.
+
 ### Remove Stack
 
 Will a) remove all targets/routers/workers associated with the stack b) the stack its self.
@@ -114,6 +116,7 @@ Options:
 
   --version <app version>     Logical version of the app being deployed. If not specified it will generate one.
 
+  -v, --vpc <vpc> Indicate which VPC to deploy to.
 
 ### Remove Target
 
@@ -159,6 +162,7 @@ Options:
 
   --version <app version>     Logical version of the app being deployed. If not specified it will generate one.
 
+  -v, --vpc <vpc> Indicate which VPC to deploy to.
 
 ### Remove Router
 
@@ -175,7 +179,6 @@ Scale a versions Autoscale group to a desired size.
 Options:
 
   -s, --size <cluster stize>  Size of Autoscale group.
-
 
 
 ## Traffic
