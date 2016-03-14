@@ -66,6 +66,7 @@
   },
   {
     "type": "file",
+    "only": ["amazon-ebs"],
     "source": "files/authorized_keys",
     "destination": "/home/core/.ssh/authorized_keys"
   },
