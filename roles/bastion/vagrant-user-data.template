@@ -7,6 +7,12 @@ coreos:
     - name: update-engine.service
       command: stop
       enable: false
+    - name: docker.service
+      drop-ins:
+        - name: 10-logs-driver.conf
+          content: |
+            [Service]
+            Environment="DOCKER_OPTS=--log-opt max-size=1m --log-opt max-file=10"
     - name: docker-tcp.socket
       command: start
       enable: true
