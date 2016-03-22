@@ -22,8 +22,8 @@
   {
     "type": "shell",
     "inline": [
-      "docker pull zetta/zetta-target-server",
-      "docker pull zetta/zetta-cloud-proxy",
+      "docker pull zetta/link-zetta-target",
+      "docker pull zetta/link-router",
       "docker pull zetta/link-tenant-mgmt-api"
     ]
   }
