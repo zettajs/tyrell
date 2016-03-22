@@ -41,6 +41,12 @@ coreos:
       command: start
     - name: link-container-metrics-collector.service
       command: start
+    - name: docker.service
+      drop-ins:
+        - name: 10-logs-driver.conf
+          content: |
+            [Service]
+            Environment="DOCKER_OPTS=--log-opt max-size=1m --log-opt max-file=10"
     - name: docker-tcp.socket
       command: start
       enable: true
