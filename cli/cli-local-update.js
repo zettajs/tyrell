@@ -28,9 +28,9 @@ function runOnBox(box, cmd, cb) {
   return run;
 }
 
-var targetDockerCmd = 'docker build -t zetta/zetta-target-server /home/core/target/';
+var targetDockerCmd = 'docker build -t zetta/link-zetta-target /home/core/target/';
 var targetRestartCmd = 'sudo systemctl restart zetta-target@{3001..3003}.service';
-var proxyDockerCmd = 'docker build -t zetta/zetta-cloud-proxy /home/core/proxy/';
+var proxyDockerCmd = 'docker build -t zetta/link-router /home/core/proxy/';
 var proxyRestartCmd = 'sudo systemctl restart zetta-proxy.service';
 
 if (!component || component == 'target') {
