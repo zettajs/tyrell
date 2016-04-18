@@ -5,6 +5,10 @@ var targets = require('./targets');
 var routers = require('./routers');
 var workers = require('./workers');
 var tenantMgmt = require('./tenant-mgmt-api')
+var databases = require('./databases');
+var rabbitmq = require('./rabbitmq');
+var mqttbrokers = require('./mqttbrokers');
+var credentialApi = require('./credential-api');
 var utils = require('./aws-utils');
 
 var get = module.exports.get = function(AWS, stackName, cb) {
@@ -29,7 +33,13 @@ var get = module.exports.get = function(AWS, stackName, cb) {
       }
 
       function getSgGroupId(sgName, cb) {
-        ec2.describeSecurityGroups({ GroupIds: [sgName] }, function(err, data) {
+        var opts = {};
+        if (sgName.indexOf('sg-') === 0) {
+          opts = { GroupIds: [sgName] };
+        } else {
+          opts = { GroupNames: [sgName] };
+        }
+        ec2.describeSecurityGroups(opts, function(err, data) {
           if (err) {
             return cb(err);
           }
@@ -38,7 +48,6 @@ var get = module.exports.get = function(AWS, stackName, cb) {
       }
       async.map(data.StackResources, function(r, next) {
         if (r.ResourceType === 'AWS::EC2::SecurityGroup') {
-
           getSgGroupId(r.PhysicalResourceId, function(err, id) {
             if (err) {
               return next(err);
@@ -124,7 +133,8 @@ var list = module.exports.list = function(AWS, cb) {
       return s.StackName;
     });
 
-    async.map(stacks, get.bind(null, AWS), cb);
+    async.mapSeries(stacks, get.bind(null, AWS), cb);
+    //    async.map(stacks, get.bind(null, AWS), cb);
   });
 };
 
@@ -155,7 +165,7 @@ function generateStackParams(config) {
       { Key: 'versions:tyrell', Value: require('../package.json').version }
     ],
     TemplateBody: JSON.stringify(template),
-    TimeoutInMinutes: 15
+    TimeoutInMinutes: 30
   };
 
   if (config.deviceDataBucket) {
@@ -166,6 +176,10 @@ function generateStackParams(config) {
   if (config.zettaUsageBucket) {
     params.Parameters.push({ ParameterKey: 'ExistingZettaUsageBucket', ParameterValue: '' + config.zettaUsageBucket });
     params.Parameters.push({ ParameterKey: 'UseExistingZettaUsageBucket', ParameterValue: 'true' });
+  }
+
+  if (config.deviceToCloud) {
+    params.Parameters.push({ ParameterKey: 'EnableDeviceToCloud', ParameterValue: 'true' });
   }
 
   return params;
@@ -216,51 +230,29 @@ var remove = module.exports.remove = function(AWS, name, cb) {
   var cloudformation = new AWS.CloudFormation();
 
 
+  var removeFunc = function(type) {
+    return function(done) {
+      type.list(AWS, name, function(err, results) {
+        if (err) {
+          return done(err);
+        }
+
+        async.each(results, function(version, next) {
+          type.remove(AWS, version.StackName, next);
+        }, done);
+      });
+    };
+  };
+  
   async.parallel([
-    function(next){
-      targets.list(AWS, name, function(err, results) {
-        if (err) {
-          return next(err);
-        }
-
-        async.each(results, function(version, next) {
-          targets.remove(AWS, version.StackName, next);
-        }, next);
-      });
-    },
-    function(next){
-      routers.list(AWS, name, function(err, results) {
-        if (err) {
-          return next(err);
-        }
-
-        async.each(results, function(version, next) {
-          routers.remove(AWS, version.StackName, next);
-        }, next);
-      });
-    },
-    function(next){
-      workers.list(AWS, name, function(err, results) {
-        if (err) {
-          return next(err);
-        }
-
-        async.each(results, function(version, next) {
-          workers.remove(AWS, version.StackName, next);
-        }, next);
-      });
-    },
-    function(next) {
-      tenantMgmt.list(AWS, name, function(err, results) {
-        if (err) {
-          return next(err);
-        }
-
-        async.each(results, function(version, next) {
-          tenantMgmt.remove(AWS, version.StackName, next);
-        }, next);
-      });
-    }
+    removeFunc(targets),
+    removeFunc(routers),
+    removeFunc(workers),
+    removeFunc(tenantMgmt),
+    removeFunc(databases),
+    removeFunc(rabbitmq),
+    removeFunc(mqttbrokers),
+    removeFunc(credentialApi)
   ], function(err) {
     if (err) {
       return cb(err);

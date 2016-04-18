@@ -68,10 +68,12 @@ var list = module.exports.list = function(AWS, elbName, cb) {
   });
 };
 
-var assignRouterToElb = module.exports.assignRouterToElb = function(AWS, stackName, version, cb) {
+
+// Turn on version's AddToLoadBalancer process and turn off all other versions AddToLoadBalancer process
+var assignRouterToElb = module.exports.assignRouterToElb = function(AWS, type, asg, stackName, version, cb) {
   var autoscaling = new AWS.AutoScaling();
 
-  routers.list(AWS, stackName, function(err, all) {
+  type.list(AWS, stackName, function(err, all) {
     if (err) {
       return cb(err);
     }
@@ -84,9 +86,8 @@ var assignRouterToElb = module.exports.assignRouterToElb = function(AWS, stackNa
       return router.AppVersion !== version;
     });
 
-
     var params = {
-      AutoScalingGroupName: activeASG.RouterAutoScale.AutoScalingGroupName,
+      AutoScalingGroupName: activeASG.Resources[asg].PhysicalResourceId,
       ScalingProcesses: ['AddToLoadBalancer']
     };
     // start AddToELB process on active asg
@@ -95,11 +96,10 @@ var assignRouterToElb = module.exports.assignRouterToElb = function(AWS, stackNa
         return cb(err);
       }
 
-
       // suspend AddToElb process on all other asgs
       async.each(nonActiveASG, function(router, next) {
         var params = {
-          AutoScalingGroupName: router.RouterAutoScale.AutoScalingGroupName,
+          AutoScalingGroupName: router.Resources[asg].PhysicalResourceId,
           ScalingProcesses: ['AddToLoadBalancer']
         };
         autoscaling.suspendProcesses(params, next);
@@ -109,57 +109,111 @@ var assignRouterToElb = module.exports.assignRouterToElb = function(AWS, stackNa
   });
 };
 
-module.exports.route = function(AWS, opts, cb) {
+// type = routers || credential-api
+// tag = ''
+function routeELB(AWS, type, opts, cb) {
   var elb = new AWS.ELB();
+  
+  var types = {
+    'routers': {
+      type: require('./routers'),
+      tag: 'zetta:router:version',
+      asg: 'RouterAutoScale'
+    },
+    'credential-api': {
+      type: require('./credential-api'),
+      tag: 'zetta:credential-api:version',
+      asg: 'AutoScale'
+    },
+    'rabbitmq': {
+      type: require('./rabbitmq'),
+      tag: 'zetta:rabbitmq:version',
+      asg: 'AutoScale'
+    },
+    'mqttbroker': {
+      type: require('./mqttbrokers'),
+      tag: 'zetta:mqttbroker:version',
+      asg: 'AutoScale'
+    }
+  };
 
-  assignRouterToElb(AWS, opts.stack, opts.version.AppVersion, function(err) {
+  if (!types[type]) {
+    return cb(new Error('Type not valid'));
+  }
+
+  var type = types[type];
+
+  // Turn on AddToLoadBalancer for ASG and turn off all other versions AddToLoadBalancer process
+  assignRouterToElb(AWS, type.type, type.asg, opts.stack, opts.version.AppVersion, function(err) {
     if (err) {
       return cb(err);
     }
 
-    list(AWS, opts.elbName, function(err, currentActive) {
-      if (err) {
-        return cb(err);
-      }
+    // Handle singleELB and multiple
+    if (typeof opts.elbName === 'string') {
+      opts.elbName = [opts.elbName];
+    }
 
-      currentActive = currentActive.filter(function(instance) {
-        return instance.Tags['zetta:router:version'] !== opts.version.AppVersion;
-      }).map(function(instance) {
-        return { InstanceId: instance.InstanceId };
-      });
-
-      var asgName = opts.version.Resources['RouterAutoScale'].PhysicalResourceId;
-      awsUtils.getAutoScaleInstances(AWS, asgName, function(err, instances) {
+    async.each(opts.elbName, function(elbName, next) {
+      list(AWS, elbName, function(err, currentActive) {
         if (err) {
-          return cb(err);
+          return next(err);
         }
 
-        var params = {
-        Instances: instances.map(function(i) { return { InstanceId: i }; }),
-          LoadBalancerName: opts.elbName
-        };
+        currentActive = currentActive.filter(function(instance) {
+          return instance.Tags[type.tag] !== opts.version.AppVersion;
+        }).map(function(instance) {
+          return { InstanceId: instance.InstanceId };
+        });
 
-        elb.registerInstancesWithLoadBalancer(params, function(err, data) {
+        var asgName = opts.version.Resources[type.asg].PhysicalResourceId;
+        awsUtils.getAutoScaleInstances(AWS, asgName, function(err, instances) {
           if (err) {
-            return cb(err);
+            return next(err);
           }
-          awsUtils.asgInstancesAvailableInElb(AWS, opts.elbName, asgName, {}, function(err) {
+
+          var params = {
+            Instances: instances.map(function(i) { return { InstanceId: i }; }),
+            LoadBalancerName: elbName
+          };
+
+          elb.registerInstancesWithLoadBalancer(params, function(err, data) {
             if (err) {
-              return cb(err);
+              return next(err);
             }
+            awsUtils.asgInstancesAvailableInElb(AWS, elbName, asgName, {}, function(err) {
+              if (err) {
+                return next(err);
+              }
 
-            if (!opts.replace || currentActive.length === 0) {
-              return cb();
-            }
+              if (!opts.replace || currentActive.length === 0) {
+                return next();
+              }
 
-            var params = { Instances: currentActive, LoadBalancerName: opts.elbName };
-            elb.deregisterInstancesFromLoadBalancer(params, cb);
-
+              var params = { Instances: currentActive, LoadBalancerName: elbName };
+              elb.deregisterInstancesFromLoadBalancer(params, next);
+            });
           });
         });
       });
-    });
+    }, cb);
   });
+}
+
+module.exports.routeMqttBroker = function(AWS, opts, cb) {
+  return routeELB(AWS, 'mqttbroker', opts, cb);
+};
+
+module.exports.routeRabbitMq = function(AWS, opts, cb) {
+  return routeELB(AWS, 'rabbitmq', opts, cb);
+};
+
+module.exports.routeCredentialApi = function(AWS, opts, cb) {
+  return routeELB(AWS, 'credential-api', opts, cb);
+};
+
+module.exports.route = function(AWS, opts, cb) {
+  return routeELB(AWS, 'routers', opts, cb);
 };
 
 module.exports.zettaVersion = function(AWS, stackName, keyPath, cb) {

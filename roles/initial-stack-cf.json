@@ -61,12 +61,18 @@
     "StackVpc": {
       "Type": "String",
       "Description": "The VPC to associate security groups to."
+    },
+    "EnableDeviceToCloud" : {
+      "Type" : "String",
+      "Default" : "false",
+      "Description" : "Enable MQTT Device to Cloud"
     }
   },
 
   "Conditions" : {
     "CreateDeviceDataBucket" : {"Fn::Equals" : [{"Ref" : "UseExistingDeviceDataBucket"}, "false"]},
-    "CreateZettaUsageBucket" : {"Fn::Equals" : [{"Ref" : "UseExistingZettaUsageBucket"}, "false"]}
+    "CreateZettaUsageBucket" : {"Fn::Equals" : [{"Ref" : "UseExistingZettaUsageBucket"}, "false"]},
+    "CreateDeviceToCloud" : {"Fn::Equals" : [{"Ref" : "EnableDeviceToCloud"}, "true"]}
   },
 
   "Resources": {
@@ -78,6 +84,156 @@
           {"IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "CidrIp": "0.0.0.0/0"}
         ],
         "VpcId": {"Ref": "StackVpc"}
+      }
+    },
+
+    "RabbitMqELBSecurityGroup": {
+      "Condition" : "CreateDeviceToCloud",
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "RabbitMQ Security Group",
+        "SecurityGroupIngress": [],
+        "VpcId": {"Ref": "StackVpc"}
+      }
+    },
+
+    "RabbitMQIngress5672": {
+      "Condition" : "CreateDeviceToCloud",
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "5672",
+        "ToPort": "5672",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "MQTTBrokerSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["RabbitMqELBSecurityGroup", "GroupId"]
+        }
+      }
+    },
+
+    "CredentialAPISecurityGroup": {
+      "Condition" : "CreateDeviceToCloud",
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Credential API Security Group",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
+        ],
+        "VpcId": {"Ref": "StackVpc"}
+      }
+    },
+
+    "CredentialAPIELBSecurityGroup": {
+      "Condition" : "CreateDeviceToCloud",
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Credential API ELB Security Group",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "CidrIp": "0.0.0.0/0"}
+        ],
+        "VpcId": {"Ref": "StackVpc"}
+      }
+    },
+
+    "CredentialAPIIngress2000": {
+      "Condition" : "CreateDeviceToCloud",
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "2000",
+        "ToPort": "2000",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "CredentialAPIELBSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["CredentialAPISecurityGroup", "GroupId"]
+        }
+      }
+    },
+
+    "ExternalMQTTELBSecurityGroup": {
+      "Condition" : "CreateDeviceToCloud",
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "External MQTT ELB SecurityGroup",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "1883", "ToPort": "1883", "CidrIp": "0.0.0.0/0"},
+          {"IpProtocol": "tcp", "FromPort": "8883", "ToPort": "8883", "CidrIp": "0.0.0.0/0"}
+        ],
+        "VpcId": {"Ref": "StackVpc"}
+      }
+    },
+
+    "InternalMQTTELBSecurityGroup": {
+      "Condition" : "CreateDeviceToCloud",
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Internal MQTT ELB SecurityGroup",
+        "SecurityGroupIngress": [
+        ],
+        "VpcId": {"Ref": "StackVpc"}
+      }
+    },
+
+    "MQTTInternalIngress2883": {
+      "Condition" : "CreateDeviceToCloud",
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "2883",
+        "ToPort": "2883",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "TargetSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["InternalMQTTELBSecurityGroup", "GroupId"]
+        }
+      }
+    },
+
+    "MQTTBrokerSecurityGroup": {
+      "Condition" : "CreateDeviceToCloud",
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "MQTT Broker Security Group",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
+        ],
+        "VpcId": {"Ref": "StackVpc"}
+      }
+    },
+
+    "MQTTBrokerIngress1883": {
+      "Condition" : "CreateDeviceToCloud",
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "1883",
+        "ToPort": "1883",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "ExternalMQTTELBSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["MQTTBrokerSecurityGroup", "GroupId"]
+        }
+      }
+    },
+
+    "MQTTBrokerIngress2883": {
+      "Condition" : "CreateDeviceToCloud",
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "2883",
+        "ToPort": "2883",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "InternalMQTTELBSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["MQTTBrokerSecurityGroup", "GroupId"]
+        }
       }
     },
 
@@ -150,6 +306,21 @@
         "ToPort": "3020",
         "SourceSecurityGroupId": {
           "Fn::GetAtt" : [ "RouterSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["TargetSecurityGroup", "GroupId"]
+        }
+      }
+    },
+    "TargetIngressFromMQTTBroker": {
+      "Condition" : "CreateDeviceToCloud",
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "3000",
+        "ToPort": "3020",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "MQTTBrokerSecurityGroup", "GroupId" ]
         },
         "GroupId": {
           "Fn::GetAtt" : ["TargetSecurityGroup", "GroupId"]
@@ -246,6 +417,113 @@
         "Subnets": {"Ref": "PublicStackSubnets"}
       }
     },
+
+    "ExternalMQTTELB" : {
+      "Condition" : "CreateDeviceToCloud",
+      "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties" : {
+        "CrossZone": true,
+        "Listeners" : [
+          { "LoadBalancerPort" : "1883", "InstancePort" : "1883", "Protocol" : "TCP" }
+        ],
+        "ConnectionSettings": {
+           "IdleTimeout" : 3600
+        },
+        "HealthCheck" : {
+          "Target": "TCP:1883",
+          "HealthyThreshold": "2",
+          "UnhealthyThreshold": "5",
+          "Interval": "30",
+          "Timeout": "5"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled" : "true",
+          "Timeout" : "60"
+        },
+        "SecurityGroups": [ { "Fn::GetAtt" : [ "ExternalMQTTELBSecurityGroup", "GroupId" ] } ],
+        "Subnets": {"Ref": "PublicStackSubnets"}
+      }
+    },
+    "InternalMQTTELB" : {
+      "Condition" : "CreateDeviceToCloud",
+      "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties" : {
+        "CrossZone": true,
+        "Listeners" : [
+          { "LoadBalancerPort" : "2883", "InstancePort" : "2883", "Protocol" : "TCP" }
+        ],
+        "ConnectionSettings": {
+           "IdleTimeout" : 3600
+        },
+        "HealthCheck" : {
+          "Target": "TCP:2883",
+          "HealthyThreshold": "2",
+          "UnhealthyThreshold": "5",
+          "Interval": "30",
+          "Timeout": "5"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled" : "true",
+          "Timeout" : "60"
+        },
+        "SecurityGroups": [ { "Fn::GetAtt" : [ "InternalMQTTELBSecurityGroup", "GroupId" ] } ],
+        "Subnets": {"Ref": "StackSubnets"},
+        "Scheme": "internal"
+      }
+    },
+
+    "RabbitMQELB" : {
+      "Condition" : "CreateDeviceToCloud",
+      "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties" : {
+        "CrossZone": true,
+        "Listeners" : [
+          { "LoadBalancerPort" : "5672", "InstancePort" : "5672", "Protocol" : "TCP" }
+        ],
+        "ConnectionSettings": {
+           "IdleTimeout" : 3600
+        },
+        "HealthCheck" : {
+          "Target": "TCP:5672",
+          "HealthyThreshold": "2",
+          "UnhealthyThreshold": "5",
+          "Interval": "30",
+          "Timeout": "5"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled" : "true",
+          "Timeout" : "60"
+        },
+        "SecurityGroups": [ { "Fn::GetAtt" : [ "RabbitMqELBSecurityGroup", "GroupId" ] } ],
+        "Subnets": {"Ref": "StackSubnets"},
+        "Scheme": "internal"
+      }
+    },
+
+    "CredentialAPIELB" : {
+      "Condition" : "CreateDeviceToCloud",
+      "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties" : {
+        "CrossZone": true,
+        "Listeners" : [
+          { "LoadBalancerPort" : "80", "InstancePort" : "2000", "Protocol" : "HTTP" }
+        ],
+        "HealthCheck" : {
+          "Target": "HTTP:2000/",
+          "HealthyThreshold": "2",
+          "UnhealthyThreshold": "5",
+          "Interval": "30",
+          "Timeout": "5"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled" : "true",
+          "Timeout" : "60"
+        },
+        "SecurityGroups": [ { "Fn::GetAtt" : [ "CredentialAPIELBSecurityGroup", "GroupId" ] } ],
+        "Subnets": {"Ref": "PublicStackSubnets"}
+      }
+    },
+
 
     "DeviceDataQueue": {
        "Type": "AWS::SQS::Queue",

@@ -33,6 +33,16 @@ coreos:
       command: start
     - name: zetta-proxy.service
       command: start
+    - name: rabbitmq.service
+      command: start
+    - name: mock-postgres.service
+      command: start
+    - name: link-mqtt-internal-broker.service
+      command: start
+    - name: link-mqtt-external-broker.service
+      command: start
+    - name: link-credential-api.service
+      command: start
     - name: docker.service
       drop-ins:
         - name: 10-logs-driver.conf
@@ -59,3 +69,6 @@ write_files:
     owner: root
     content: |
       ZETTA_VERSION="@@ZETTA_VERSION@@"
+      CREDENTIAL_DB_CONNECTION_URL="@@CREDENTIAL_DB_CONNECTION_URL@@"
+      RABBITMQ_URL="@@RABBITMQ_URL@@"
+      CREDENTIAL_API_URL="@@CREDENTIAL_API_URL@@"

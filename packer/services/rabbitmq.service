@@ -1,0 +1,16 @@
+[Unit]
+Description=RabbitMQ Broker
+After=docker.service
+Requires=docker.service
+
+[Service]
+User=core
+TimeoutStartSec=0
+Restart=always
+RestartSec=5
+EnvironmentFile=/etc/environment
+EnvironmentFile=/etc/profile.d/zetta
+ExecStartPre=-/usr/bin/docker kill rabbitmq
+ExecStartPre=-/usr/bin/docker rm rabbitmq
+ExecStart=/usr/bin/docker run --rm --name rabbitmq --hostname rabbit -e RABBITMQ_NODENAME=rabbit -p 8080:15672 -p 5672:5672 rabbitmq:3-management
+ExecStop=/usr/bin/docker stop rabbitmq

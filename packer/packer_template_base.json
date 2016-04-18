@@ -17,6 +17,12 @@
     "instance_type": "t2.micro",
     "ssh_username": "core",
     "ami_name": "{{user `output_name`}}-coreos-{{timestamp}}",
+    "ami_block_device_mappings": [
+      {
+        "device_name": "/dev/xvda",
+        "virtual_name": 20
+      }
+    ],
     "tags": {
 
     }
@@ -75,9 +81,18 @@
     "inline": "sudo rm /etc/machine-id"
   },
   {
+    "type": "shell",
+    "inline": "docker pull rabbitmq:3-management"
+  },
+  {
     "only": ["virtualbox-iso"],
     "type": "shell",
     "inline": "docker pull adammagaluk/elasticmq"
+  },
+  {
+    "only": ["virtualbox-iso"],
+    "type": "shell",
+    "inline": "docker pull postgres"
   },
   {
     "only": ["amazon-ebs"],
@@ -97,13 +112,30 @@
   {
     "only": ["amazon-ebs"],
     "type": "shell",
-    "inline": "docker pull zetta/etcd-aws-cluster:latest"
+    "inline": "docker pull zetta/etcd-aws-cluster"
+  },
+  {
+    "only": ["amazon-ebs"],
+    "type": "shell",
+    "inline": "docker pull logstash"
   },
   {
     "only": ["amazon-ebs"],
     "type": "file",
     "source": "journal2logstash.sh",
     "destination": "/home/core/journal2logstash.sh"
+  },
+  {
+    "type": "shell",
+    "inline": "docker pull zetta/zetta-mqtt-external-broker"
+  },
+  {
+    "type": "shell",
+    "inline": "docker pull zetta/zetta-mqtt-internal-broker"
+  },
+  {
+    "type": "shell",
+    "inline": "docker pull zetta/link-credential-api"
   }
   ],
   "post-processors": [

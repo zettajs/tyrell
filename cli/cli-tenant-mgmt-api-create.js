@@ -3,6 +3,7 @@ var program = require('commander');
 var AWS = require('aws-sdk');
 var stacks = require('./lib/stacks');
 var tenantMgmt = require('./lib/tenant-mgmt-api');
+var vpc = require('./lib/vpc');
 
 AWS.config.update({region: 'us-east-1'});
 

@@ -1,0 +1,130 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Credential API ASG",
+  "Parameters": {
+    "InstanceType" : {
+      "Description" : "EC2 HVM instance type (m3.medium, etc).",
+      "Type" : "String",
+      "Default" : "t2.micro"
+    },
+    "AMI": {
+      "Description": "A unique AMI id for our custom CoreOS build using packer.",
+      "Type": "String"
+    },
+    "KeyPair" : {
+      "Description" : "The name of an EC2 Key Pair to allow SSH access to the instance.",
+      "Type" : "String"
+    },
+    "ZettaStack" : {
+      "Description" : "Zetta Stack",
+      "Type" : "String"
+    },
+    "Subnets": {
+      "Description": "Private subnets that the ASG should distribute boxes on.",
+      "Type": "CommaDelimitedList"
+    },
+    "SecurityGroups" : {
+      "Description" : "Security Group to assign to",
+      "Type": "List<AWS::EC2::SecurityGroup::Id>"
+    },
+    "ClusterSize": {
+      "Default": "0",
+      "MinValue": "0",
+      "MaxValue": "12",
+      "Description": "Number of nodes in cluster (1-12).",
+      "Type": "Number"
+    },
+    "ELB" : {
+      "Description" : "ELB for autoscale group to be assigned to",
+      "Type" : "String"
+    }
+  },
+
+  "Resources": {
+
+    "Role": {
+       "Type": "AWS::IAM::Role",
+       "Properties": {
+          "AssumeRolePolicyDocument": {
+             "Version" : "2012-10-17",
+             "Statement": [ {
+                "Effect": "Allow",
+                "Principal": {
+                   "Service": [ "ec2.amazonaws.com" ]
+                },
+                "Action": [ "sts:AssumeRole" ]
+             } ]
+          },
+          "Path": "/",
+          "Policies": [
+            {
+            "PolicyName": "CLIROAccess",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ec2:DescribeInstances"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "autoscaling:DescribeAutoScalingGroups"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+           }
+          ]
+        }
+    },
+    "InstanceProfile": {
+       "Type": "AWS::IAM::InstanceProfile",
+       "Properties": {
+          "Path": "/",
+          "Roles": [ {
+             "Ref": "Role"
+          } ]
+       }
+    },
+
+    "AutoScale": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AvailabilityZones": {"Fn::GetAZs": ""},
+        "LaunchConfigurationName": {"Ref": "ServerLaunchConfig"},
+        "MinSize": "0",
+        "MaxSize": "12",
+        "DesiredCapacity": {"Ref": "ClusterSize"},
+        "HealthCheckType": "EC2",
+        "HealthCheckGracePeriod": 60,
+        "LoadBalancerNames": [ {"Ref": "ELB"} ],
+        "Tags": [
+            {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
+            {"Key": "Name", "Value": {"Ref" : "AWS::StackName" } , "PropagateAtLaunch": true}
+        ],
+        "VPCZoneIdentifier": {"Ref": "Subnets"}
+      }
+    },
+
+    "ServerLaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "ImageId" : { "Ref" : "AMI" },
+        "InstanceType": {"Ref": "InstanceType"},
+        "KeyName": {"Ref": "KeyPair"},
+        "SecurityGroups": {"Ref": "SecurityGroups"},
+        "IamInstanceProfile": {"Ref" : "InstanceProfile" },
+        "BlockDeviceMappings": [{
+          "DeviceName": "/dev/xvda",
+          "Ebs" : { "VolumeSize": "20" }
+        }],
+        "UserData" : null
+      }
+    }
+
+  }
+}

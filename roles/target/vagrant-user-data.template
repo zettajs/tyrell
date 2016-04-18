@@ -71,3 +71,4 @@ write_files:
       ZETTA_USAGE_QUEUE="@@ZETTA_USAGE_QUEUE@@"
       AWS_ACCESSKEY="fakekey"
       AWS_SECRET="fakesecret"
+      MQTT_INTERNAL_BROKER_URL="@@MQTT_INTERNAL_BROKER_URL@@"

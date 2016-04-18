@@ -19,6 +19,7 @@ program
   .option('--device-data-bucket <bucket name>', 'Specify existing device data bucket')
   .option('--zetta-usage-bucket <bucket name>', 'Specify existing device data bucket')
   .option('-v --vpc <vpc>', 'VPC to deploy the stack onto')
+  .option('--device-to-cloud', 'Create device to cloud resources.')
   .parse(process.argv);
 
 var name = program.args[0];
@@ -27,6 +28,12 @@ if (!name) {
   program.help();
   process.exit(1);
 }
+
+if (program.vpc === undefined) {
+  console.error('Must provide vpc');
+  process.exit(1);
+}
+
 
 function getSubnets(cb) {
   vpc.subnetsForVpc(AWS, program.vpc, function(err, data){
@@ -106,7 +113,8 @@ getKeyPair(function(err, key) {
       zettaUsageBucket: program.zettaUsageBucket,
       vpc: program.vpc,
       privateSubnets: privateSubnetIdArray.join(','),
-      publicSubnets: publicSubnetIdArray.join(',')
+      publicSubnets: publicSubnetIdArray.join(','),
+      deviceToCloud: program.deviceToCloud
     };
 
     stacks.create(AWS, config, function(err) {
@@ -128,10 +136,12 @@ getKeyPair(function(err, key) {
           stack: name,
           keyPair: keyPairPath,
           vpc: program.vpc,
-          privateSubnets: privateSubnetIdArray.join(','),
-          publicSubnets: publicSubnetIdArray.join(','),
-          tenantMgmtSubnet: tenantMgmtSubnet
+          privateSubnets: privateSubnetIdArray,
+          publicSubnets: publicSubnetIdArray,
+          tenantMgmtSubnet: tenantMgmtSubnet,
+          deviceToCloud: program.deviceToCloud
         };
+        
         // delay 1 minute to allow ec2 instances to be spun up for etcd
         setTimeout(function() {
           provision(AWS, opts, function(err, versions) {
@@ -143,6 +153,14 @@ getKeyPair(function(err, key) {
             console.log('Router Created:', versions.router);
             console.log('Target Created:', versions.target);
             console.log('Worker Created:', versions.worker);
+            console.log('Tenant Management Created:', versions.tenantMgmt);
+            
+            if (program.deviceToCloud) {
+              console.log('Database Created:', versions.database);
+              console.log('Credential Api Created:', versions.credentialApi);
+              console.log('Rabbitmq Created:', versions.rabbitmq);
+              console.log('MqttBroker Created:', versions.mqttbroker);
+            }
           });
         }, 60000);
 

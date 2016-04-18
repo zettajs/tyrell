@@ -4,13 +4,15 @@
   "description": "",
   "main": "cli.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "cd ../roles/database/sql/ && npm install "
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "archiver": "^0.21.0",
     "async": "^1.5.2",
-    "aws-sdk": "^2.2.32",
+    "aws-sdk": "^2.2.48",
     "commander": "2.6.0",
     "coreos-amis": "^0.1.0"
   }

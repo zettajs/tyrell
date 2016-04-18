@@ -91,6 +91,10 @@ var list = module.exports.list = function(AWS, cb) {
       if (stack.StackStatus !== 'CREATE_COMPLETE') {
         return false;
       }
+
+      return stack.Tags.some(function(tag) {
+        return tag.Key === 'VPCName';
+      });
     }).map(function(s) {
       return s.StackName;
     });

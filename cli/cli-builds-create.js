@@ -317,8 +317,8 @@ if(platform === 'vagrant') {
     // versions:zetta-cloud-proxy@latest
     // versions:zetta-target-server@latest
     zettaProvisioningTemplate.ami_tags['versions:tyrell'] = TYRELL_VERSION;
-    zettaProvisioningTemplate.ami_tags['versions:zetta-cloud-proxy'] = program.routerTag || 'latest';
-    zettaProvisioningTemplate.ami_tags['versions:zetta-target-server'] = program.targetTag || 'latest';
+    zettaProvisioningTemplate.ami_tags['versions:zetta-cloud-proxy'] = program.tag || program.routerTag || 'latest';
+    zettaProvisioningTemplate.ami_tags['versions:zetta-target-server'] = program.tag || program.targetTag || 'latest';
 
     var zettaConfig = extendProvisionsTemplate(packerTemplateFile, zettaProvisioningTemplate);
     var zettaConfigPath = writeToFile(zettaConfig, 'zetta_packer.json');

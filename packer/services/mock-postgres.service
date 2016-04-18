@@ -1,0 +1,16 @@
+[Unit]
+Description=Local Postgres Service for Vagrant Deployment
+After=docker.service
+Requires=docker.service
+
+[Service]
+User=core
+TimeoutStartSec=0
+Restart=always
+RestartSec=5
+ExecStartPre=-/usr/bin/docker kill postgres
+ExecStartPre=-/usr/bin/docker rm postgres
+ExecStart=/usr/bin/docker run --rm --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=mysecretpassword postgres
+ExecStartPost=-/usr/bin/sleep 10
+ExecStartPost=-/usr/bin/docker run --name create-table --rm -v /home/core/sql:/sql -e PGPASSWORD="mysecretpassword" postgres sh -c "exec psql -h \"%H\" -U postgres -1 -f /sql/create_credential_table.sql"
+ExecStop=/usr/bin/docker stop postgres

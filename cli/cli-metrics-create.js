@@ -3,6 +3,7 @@ var program = require('commander');
 var AWS = require('aws-sdk');
 var metrics = require('./lib/metrics');
 var fs = require('fs');
+var vpc = require('./lib/vpc');
 
 AWS.config.update({region: 'us-east-1'});
 

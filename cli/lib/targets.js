@@ -61,6 +61,28 @@ var list = module.exports.list = function(AWS, stackName, cb) {
   });
 };
 
+
+function getInternalMQTTElb(AWS, stack, cb) {
+  var elb = new AWS.ELB();
+
+  // ELB is not always created with stack
+  if (!stack.Resources['InternalMQTTELB']) {
+    return cb();
+  }
+  
+  var elbName = stack.Resources['InternalMQTTELB'].PhysicalResourceId;
+  elb.describeLoadBalancers({ LoadBalancerNames: [ elbName ] }, function(err, data) {
+    if (err) {
+      return cb(err);
+    }
+    function retDns(obj) { return obj.DNSName; }
+    function byName(name, obj) { return obj.LoadBalancerName === name; }
+    
+    var elbDnsName = data.LoadBalancerDescriptions.filter(byName.bind(null, elbName)).map(retDns)[0];
+    return cb(null, elbDnsName);
+  });
+}
+
 // config
 //  - version
 //  - type
@@ -68,78 +90,90 @@ var list = module.exports.list = function(AWS, stackName, cb) {
 var create = module.exports.create = function(AWS, stack, config, done) {
   var cloudformation = new AWS.CloudFormation();
 
-  var userData = fs.readFileSync(path.join(__dirname, '../../roles/target/aws-user-data.template')).toString();
-  userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
-  userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
-  userData = userData.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/g, stack.Resources['DeviceDataQueue'].PhysicalResourceId);
-  userData = userData.replace(/@@ZETTA_USAGE_QUEUE@@/g, stack.Resources['ZettaUsageQueue'].PhysicalResourceId);
-  userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
-  userData = userData.replace(/@@CORE_SERVICES_ASG@@/g, stack.Resources['CoreServicesASG'].PhysicalResourceId);
-
-  var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/target/cloudformation.json')).toString());
-  template.Resources['ZettaServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
-
-  var stackName = stack.StackName + '-target-' + config.version;
-  var params = {
-    StackName: stackName,
-    OnFailure: 'DELETE',
-    Parameters: [
-      { ParameterKey: 'ZettaStack', ParameterValue: stack.StackName },
-      { ParameterKey: 'InstanceType', ParameterValue: config.type },
-      { ParameterKey: 'ClusterSize', ParameterValue: config.size + '' },
-      { ParameterKey: 'AMI', ParameterValue: config.ami },
-      { ParameterKey: 'ZettaTargetSecurityGroup', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['TargetSecurityGroup'].GroupId].join(',') },
-      { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
-      { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['TargetRoleInstanceProfile'].PhysicalResourceId },
-      { ParameterKey: 'TargetSubnets', ParameterValue: config.subnets }
-    ],
-    Tags: [
-      { Key: 'zetta:stack', Value: stack.StackName },
-      { Key: 'zetta:app:version', Value: config.version },
-      { Key: 'versions:tyrell', Value: require('../package.json').version }
-    ],
-    TemplateBody: JSON.stringify(template),
-    TimeoutInMinutes: 5
-  };
-
-  function checkStackStatus(cb) {
-    cloudformation.describeStacks({ StackName: stackName }, function(err, data) {
-      if (err) {
-        return cb(new Error(err.code + ' ' + err.message));
-      }
-
-      if (!data.Stacks[0]) {
-        return cb(new Error('Stack does not exist'));
-      }
-
-      return cb(null, data.Stacks[0].StackStatus === 'CREATE_COMPLETE', data.Stacks[0]);
-    });
-  }
-
-  cloudformation.createStack(params, function(err, data) {
+  // Get the MQTT ELB if it exists on stack
+  getInternalMQTTElb(AWS, stack, function(err, mqttDnsName) {
     if (err) {
-      return done(new Error(err.code + ' ' + err.message));
+      return done(err);
+    }
+    
+    var userData = fs.readFileSync(path.join(__dirname, '../../roles/target/aws-user-data.template')).toString();
+    userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
+    userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
+    userData = userData.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/g, stack.Resources['DeviceDataQueue'].PhysicalResourceId);
+    userData = userData.replace(/@@ZETTA_USAGE_QUEUE@@/g, stack.Resources['ZettaUsageQueue'].PhysicalResourceId);
+    userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
+    userData = userData.replace(/@@CORE_SERVICES_ASG@@/g, stack.Resources['CoreServicesASG'].PhysicalResourceId);
+
+    
+    if (mqttDnsName) {
+      userData = userData.replace(/@@MQTT_INTERNAL_BROKER_URL@@/g, 'mqtt://' + mqttDnsName + ':2883'); 
     }
 
-    function check() {
-      checkStackStatus(function(err, status, stack) {
+    var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/target/cloudformation.json')).toString());
+    template.Resources['ZettaServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
+    
+    var stackName = stack.StackName + '-target-' + config.version;
+    var params = {
+      StackName: stackName,
+      OnFailure: 'DELETE',
+      Parameters: [
+        { ParameterKey: 'ZettaStack', ParameterValue: stack.StackName },
+        { ParameterKey: 'InstanceType', ParameterValue: config.type },
+        { ParameterKey: 'ClusterSize', ParameterValue: config.size + '' },
+        { ParameterKey: 'AMI', ParameterValue: config.ami },
+        { ParameterKey: 'ZettaTargetSecurityGroup', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['TargetSecurityGroup'].GroupId].join(',') },
+        { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
+        { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['TargetRoleInstanceProfile'].PhysicalResourceId },
+        { ParameterKey: 'TargetSubnets', ParameterValue: config.subnets.join(',') }
+      ],
+      Tags: [
+        { Key: 'zetta:stack', Value: stack.StackName },
+        { Key: 'zetta:app:version', Value: config.version },
+        { Key: 'versions:tyrell', Value: require('../package.json').version }
+      ],
+      TemplateBody: JSON.stringify(template),
+      TimeoutInMinutes: 5
+    };
+
+    function checkStackStatus(cb) {
+      cloudformation.describeStacks({ StackName: stackName }, function(err, data) {
         if (err) {
-          return done(err);
-        }
-        if (!status) {
-          return setTimeout(check, 5000);
+          return cb(new Error(err.code + ' ' + err.message));
         }
 
-        awsUtils.getAsgFromStack(AWS, stack.StackId, 'ZettaAutoScale', function(err, asgName) {
+        if (!data.Stacks[0]) {
+          return cb(new Error('Stack does not exist'));
+        }
+
+        return cb(null, data.Stacks[0].StackStatus === 'CREATE_COMPLETE', data.Stacks[0]);
+      });
+    }
+
+    cloudformation.createStack(params, function(err, data) {
+      if (err) {
+        return done(new Error(err.code + ' ' + err.message));
+      }
+
+      function check() {
+        checkStackStatus(function(err, status, stack) {
           if (err) {
             return done(err);
           }
+          if (!status) {
+            return setTimeout(check, 5000);
+          }
 
-          awsUtils.asgInstancesAvailable(AWS, asgName, {}, done);
+          awsUtils.getAsgFromStack(AWS, stack.StackId, 'ZettaAutoScale', function(err, asgName) {
+            if (err) {
+              return done(err);
+            }
+
+            awsUtils.asgInstancesAvailable(AWS, asgName, {}, done);
+          });
         });
-      });
-    }
-    check();
+      }
+      check();
+    });
   });
 };
 
