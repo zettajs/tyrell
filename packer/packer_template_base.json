@@ -20,7 +20,7 @@
     "ami_block_device_mappings": [
       {
         "device_name": "/dev/xvda",
-        "virtual_name": 20
+        "volume_size": 20
       }
     ],
     "tags": {
@@ -136,6 +136,10 @@
   {
     "type": "shell",
     "inline": "docker pull zetta/link-credential-api"
+  },
+  {
+    "type": "shell",
+    "inline": "docker pull zetta/link-tenant-mgmt-api"
   }
   ],
   "post-processors": [

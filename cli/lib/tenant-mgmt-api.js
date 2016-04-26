@@ -73,9 +73,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
       { ParameterKey: 'AMI', ParameterValue: config.ami },
       { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
       { ParameterKey: 'ZettaStack', ParameterValue: stack.StackName },
-      { ParameterKey: 'CoreOsSecurityGroup', ParameterValue: stack.Resources['CoreOsSecurityGroup'].GroupId },
-      { ParameterKey: 'PublicSubnetId', ParameterValue: config.subnet },
-      { ParameterKey: 'TenantManagementVPC', ParameterValue: config.vpc }
+      { ParameterKey: 'SecurityGroups', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['TenantMgmtSecurityGroup'].GroupId].join(',') },
+      { ParameterKey: 'PublicSubnetId', ParameterValue: config.subnet }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stack.StackName },

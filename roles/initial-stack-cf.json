@@ -327,6 +327,20 @@
         }
       }
     },
+    "TargetIngressFromTenantMgmt": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "3000",
+        "ToPort": "3020",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "TenantMgmtSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["TargetSecurityGroup", "GroupId"]
+        }
+      }
+    },
 
     "RouterSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
@@ -359,6 +373,17 @@
         "GroupDescription": "Zetta Sqs data worker",
         "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
+        ],
+        "VpcId": {"Ref": "StackVpc"}
+      }
+    },
+
+    "TenantMgmtSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Tenant Management API SG",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "CidrIp": "0.0.0.0/0"}
         ],
         "VpcId": {"Ref": "StackVpc"}
       }

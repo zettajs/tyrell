@@ -133,8 +133,7 @@ var list = module.exports.list = function(AWS, cb) {
       return s.StackName;
     });
 
-    async.mapSeries(stacks, get.bind(null, AWS), cb);
-    //    async.map(stacks, get.bind(null, AWS), cb);
+    async.map(stacks, get.bind(null, AWS), cb);
   });
 };
 
