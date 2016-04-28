@@ -122,7 +122,7 @@ var list = module.exports.list = function(AWS, cb) {
       return cb(err);
     }
     var stacks = data.Stacks.filter(function(stack) {
-      if (stack.StackStatus !== 'CREATE_COMPLETE') {
+      if (stack.StackStatus !== 'CREATE_COMPLETE' && stack.StackStatus !== 'UPDATE_COMPLETE') {
         return false;
       }
 
