@@ -37,7 +37,7 @@
     "http_directory": "files",
     "ssh_port": 22,
     "ssh_username": "core",
-    "ssh_key_path": "files/vagrant",
+    "ssh_private_key_file": "files/vagrant",
     "ssh_wait_timeout": "10m",
     "guest_os_type": "Linux26_64",
     "disk_size": 40960,
