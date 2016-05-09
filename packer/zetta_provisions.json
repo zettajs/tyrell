@@ -6,20 +6,6 @@
   },
   "provisioners": [
   {
-    "type": "file",
-    "source": "services",
-    "destination": "/home/core"
-  },
-  {
-    "type": "shell",
-    "inline": "sudo cp -R /home/core/services/* /etc/systemd/system"
-  },
-  {
-    "type": "file",
-    "source": ".dockercfg",
-    "destination": "/home/core/.dockercfg"
-  },
-  {
     "type": "shell",
     "inline": [
       "docker pull zetta/link-zetta-target",
