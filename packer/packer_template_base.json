@@ -104,7 +104,7 @@
   },
   {
     "type": "shell",
-    "inline": "docker pull rabbitmq:3-management"
+    "inline": "docker pull zetta/rabbitmq-autocluster"
   },
   {
     "only": ["virtualbox-iso"],

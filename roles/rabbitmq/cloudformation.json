@@ -121,6 +121,43 @@
       }
     },
 
+    "RabbitMQIngress5672Cluster": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "5672",
+        "ToPort": "5672",
+        "SourceSecurityGroupId": {"Ref": "RabbitMqSecurityGroup"},
+        "GroupId": {
+          "Fn::GetAtt" : ["RabbitMqSecurityGroup", "GroupId"]
+        }
+      }
+    },
+    "RabbitMQIngress4369Cluster": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "4369",
+        "ToPort": "4369",
+        "SourceSecurityGroupId": {"Ref": "RabbitMqSecurityGroup"},
+        "GroupId": {
+          "Fn::GetAtt" : ["RabbitMqSecurityGroup", "GroupId"]
+        }
+      }
+    },
+    "RabbitMQIngress25672Cluster": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "25672",
+        "ToPort": "25672",
+        "SourceSecurityGroupId": {"Ref": "RabbitMqSecurityGroup"},
+        "GroupId": {
+          "Fn::GetAtt" : ["RabbitMqSecurityGroup", "GroupId"]
+        }
+      }
+    },
+
     "AutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {

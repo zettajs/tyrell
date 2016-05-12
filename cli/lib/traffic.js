@@ -172,15 +172,25 @@ function routeELB(AWS, type, opts, cb) {
             return next(err);
           }
 
-          var params = {
-            Instances: instances.map(function(i) { return { InstanceId: i }; }),
-            LoadBalancerName: elbName
-          };
-
-          elb.registerInstancesWithLoadBalancer(params, function(err, data) {
+          function registerNew(cb) {
+            // Handle case where new ASG does not have any instances yet
+            if (instances.length === 0) {
+              return cb();
+            }
+            
+            var params = {
+              Instances: instances.map(function(i) { return { InstanceId: i }; }),
+              LoadBalancerName: elbName
+            };
+            
+            elb.registerInstancesWithLoadBalancer(params, cb);
+          }
+          
+          registerNew(function(err, data) {
             if (err) {
               return next(err);
             }
+            
             awsUtils.asgInstancesAvailableInElb(AWS, elbName, asgName, {}, function(err) {
               if (err) {
                 return next(err);
