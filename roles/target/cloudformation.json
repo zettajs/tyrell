@@ -72,10 +72,6 @@
         "KeyName": {"Ref": "KeyPair"},
         "SecurityGroups": {"Ref": "ZettaTargetSecurityGroup"},
         "IamInstanceProfile": {"Ref" : "InstanceProfile" },
-        "BlockDeviceMappings": [{
-          "DeviceName": "/dev/xvda",
-          "Ebs" : { "VolumeSize": "20" }
-        }],
         "UserData" : null
       }
     }

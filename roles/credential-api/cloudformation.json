@@ -118,10 +118,6 @@
         "KeyName": {"Ref": "KeyPair"},
         "SecurityGroups": {"Ref": "SecurityGroups"},
         "IamInstanceProfile": {"Ref" : "InstanceProfile" },
-        "BlockDeviceMappings": [{
-          "DeviceName": "/dev/xvda",
-          "Ebs" : { "VolumeSize": "20" }
-        }],
         "UserData" : null
       }
     }

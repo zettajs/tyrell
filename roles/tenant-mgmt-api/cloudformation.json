@@ -95,10 +95,6 @@
             {"Key": "Name", "Value": { "Fn::Join": [ "-", [ {"Ref" : "ZettaStack"}, "tenant-mgmt-api"]] } }
         ],
         "UserData" : null,
-        "BlockDeviceMappings": [{
-          "DeviceName": "/dev/xvda",
-          "Ebs" : { "VolumeSize": "20" }
-        }],
         "SubnetId": {"Ref": "PublicSubnetId"}
       }
     }
