@@ -45,6 +45,11 @@ var configs = {
     'RABBITMQ_URL': 'amqp://link-mqttbroker-01:5672',
     'CREDENTIAL_API_URL': 'http://link-mqttbroker-01:2000'
   },
+  analytics: {
+    'ZETTA_VERSION': crypto.randomBytes(6).toString('hex'),
+    'ZETTA_STACK': 'vagrant',
+    'INFLUXDB_HOST': 'http://link-metrics-01:8086'
+  }
 };
 
 function generateConfig(cb) {
