@@ -1,0 +1,75 @@
+#cloud-config
+
+coreos:
+  etcd2:
+    proxy: on
+    listen-client-urls: http://0.0.0.0:4001
+  update:
+    reboot-strategy: off
+  fleet:
+    metadata: role=analytics
+  units:
+    - name: update-engine.service
+      command: stop
+      enable: false
+    - name: etcd2.service
+      command: stop
+      drop-ins:
+        - name: "timeout.conf"
+          content: |
+            [Service]
+            TimeoutStartSec=0
+        - name: "etcd_peers.conf"
+          content: |
+            [Service]
+            EnvironmentFile=/etc/sysconfig/etcd-peers
+    - name: etcd-peers-proxy.service
+      command: start
+    - name: fleet.service
+      command: start
+    - name: link-analytics-results-api.service
+      command: start
+    - name: link-influxdb.service
+      command: start 
+    - name: link-influx-check.service
+      command: start
+    - name: link-mqtt-external-broker.service
+      command: start
+    - name: link-logstash@8081.service
+      command: start
+    - name: journallogs-logstash.service
+      command: start
+    - name: statsd-elasticsearch.service
+      command: start
+    - name: link-container-metrics-collector.service
+      command: start
+    - name: docker.service
+      drop-ins:
+        - name: 10-logs-driver.conf
+          content: |
+            [Service]
+            Environment="DOCKER_OPTS=--log-opt max-size=1m --log-opt max-file=10"
+    - name: docker-tcp.socket
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=Docker Socket for the API
+
+        [Socket]
+        ListenStream=2375
+        Service=docker.service
+        BindIPv6Only=both
+
+        [Install]
+        WantedBy=sockets.target
+write_files:
+  - path: /etc/profile.d/zetta
+    permissions: 644
+    owner: root
+    content: |
+      ZETTA_STACK="@@ZETTA_STACK@@"
+      ZETTA_VERSION="@@ZETTA_VERSION@@"
+      CORE_SERVICES_ASG="@@CORE_SERVICES_ASG@@"
+      RABBITMQ_URL="@@RABBITMQ_URL@@"
+      CREDENTIAL_API_URL="@@CREDENTIAL_API_URL@@"

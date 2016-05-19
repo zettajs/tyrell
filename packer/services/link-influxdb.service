@@ -1,0 +1,16 @@
+[Unit]
+Description=Influxdb service
+After=docker.service 
+Requires=docker.service 
+
+[Service]
+User=core
+TimeoutStartSec=0
+Restart=always
+RestartSec=5
+EnvironmentFile=/etc/environment
+EnvironmentFile=/etc/profile.d/zetta
+ExecStartPre=-/usr/bin/docker kill link-influxdb.service
+ExecStartPre=-/usr/bin/docker rm link-influxdb.service
+ExecStart=/usr/bin/docker run --rm --name link-influxdb.service -p 8083:8083 -p 8086:8086 -v /home/core/influxdb:/influxdb influxdb
+ExecStop=/usr/bin/docker stop link-influxdb.service

@@ -13,6 +13,7 @@ CLOUD_CONFIG_PATH = File.join(File.dirname(__FILE__))
 
 $num_instances_zetta=1
 $num_instances_router=1
+$num_instances_analytics=1
 $instance_name_prefix = "core"
 $update_channel = "stable"
 
@@ -77,4 +78,7 @@ Vagrant.configure(2) do |config|
     init_machine(config, i, "router")
   end
 
+  (($num_instances_router+$num_instances_zetta+1)..($num_instances_router+$num_instances_zetta+$num_instances_analytics)).each do |i|
+    init_machine(config, i, "analytics")
+  end
 end

@@ -39,6 +39,11 @@ function generateConfig(cb) {
     config = config.replace(/@@RABBITMQ_URL@@/, 'amqp://core-03:5672');
     config = config.replace(/@@CREDENTIAL_API_URL@@/, 'http://core-03:2000');
     fs.writeFileSync(path.join(Vagrant.vagrantPath(), 'router-user-data'), config);
+    
+    var template = fs.readFileSync(path.join(__dirname, '../roles/analytics/vagrant-user-data.template'));
+    var config = template.toString().replace(discoveryToken, url);
+    fs.writeFileSync(path.join(Vagrant.vagrantPath(), 'analytics-user-data'), config);
+
 
     cb();
   });
