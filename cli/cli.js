@@ -12,6 +12,7 @@ program
   .command('databases [stack-name]', 'databases')
   .command('rabbitmq [stack-name]', 'rabbitmq')
   .command('mqttbrokers [stack-name]', 'mqtt brokers')
+  .command('influx [stack-name]', 'influx')
   .command('builds', 'build a new CoreOS image for zetta.')
   .command('local', 'interact with a local CoreOS cluster.')
   .command('network', 'create a new VPC network.')

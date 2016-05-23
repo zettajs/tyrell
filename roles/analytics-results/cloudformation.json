@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "MQTT Mosca ASG",
+  "Description": "RabbitMQ ASG",
   "Parameters": {
     "InstanceType" : {
       "Description" : "EC2 HVM instance type (m3.medium, etc).",
@@ -19,13 +19,21 @@
       "Description" : "Zetta Stack",
       "Type" : "String"
     },
+    "StackVpc": {
+      "Description": "Vpc ID",
+      "Type": "String"
+    },
     "Subnets": {
       "Description": "Private subnets that the ASG should distribute boxes on.",
       "Type": "CommaDelimitedList"
     },
-    "SecurityGroups" : {
+    "CoreSecurityGroup" : {
       "Description" : "Security Group to assign to",
-      "Type": "List<AWS::EC2::SecurityGroup::Id>"
+      "Type": "AWS::EC2::SecurityGroup::Id"
+    },
+    "RabbitMqELBSecurityGroup" : {
+      "Description" : "Security Group to assign to",
+      "Type": "AWS::EC2::SecurityGroup::Id"
     },
     "ClusterSize": {
       "Default": "0",
@@ -34,12 +42,8 @@
       "Description": "Number of nodes in cluster (1-12).",
       "Type": "Number"
     },
-    "InternalELB" : {
-      "Description" : "Internal ELB for autoscale group to be assigned to",
-      "Type" : "String"
-    },
-    "ExternalELB" : {
-      "Description" : "External ELB for autoscale group to be assigned to",
+    "ELB" : {
+      "Description" : "ELB for autoscale group to be assigned to",
       "Type" : "String"
     }
   },
@@ -95,6 +99,65 @@
        }
     },
 
+    "RabbitMqSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "RabbitMQ Security Group",
+        "SecurityGroupIngress": [],
+        "VpcId": {"Ref": "StackVpc"}
+      }
+    },
+
+    "RabbitMQIngress5672": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "5672",
+        "ToPort": "5672",
+        "SourceSecurityGroupId": {"Ref": "RabbitMqELBSecurityGroup"},
+        "GroupId": {
+          "Fn::GetAtt" : ["RabbitMqSecurityGroup", "GroupId"]
+        }
+      }
+    },
+
+    "RabbitMQIngress5672Cluster": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "5672",
+        "ToPort": "5672",
+        "SourceSecurityGroupId": {"Ref": "RabbitMqSecurityGroup"},
+        "GroupId": {
+          "Fn::GetAtt" : ["RabbitMqSecurityGroup", "GroupId"]
+        }
+      }
+    },
+    "RabbitMQIngress4369Cluster": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "4369",
+        "ToPort": "4369",
+        "SourceSecurityGroupId": {"Ref": "RabbitMqSecurityGroup"},
+        "GroupId": {
+          "Fn::GetAtt" : ["RabbitMqSecurityGroup", "GroupId"]
+        }
+      }
+    },
+    "RabbitMQIngress25672Cluster": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "25672",
+        "ToPort": "25672",
+        "SourceSecurityGroupId": {"Ref": "RabbitMqSecurityGroup"},
+        "GroupId": {
+          "Fn::GetAtt" : ["RabbitMqSecurityGroup", "GroupId"]
+        }
+      }
+    },
+
     "AutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
@@ -105,7 +168,7 @@
         "DesiredCapacity": {"Ref": "ClusterSize"},
         "HealthCheckType": "EC2",
         "HealthCheckGracePeriod": 60,
-        "LoadBalancerNames": [ {"Ref": "InternalELB"}, {"Ref": "ExternalELB"} ],
+        "LoadBalancerNames": [ {"Ref": "ELB"} ],
         "Tags": [
             {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
             {"Key": "Name", "Value": {"Ref" : "AWS::StackName" } , "PropagateAtLaunch": true}
@@ -120,7 +183,7 @@
         "ImageId" : { "Ref" : "AMI" },
         "InstanceType": {"Ref": "InstanceType"},
         "KeyName": {"Ref": "KeyPair"},
-        "SecurityGroups": {"Ref": "SecurityGroups"},
+        "SecurityGroups": [ {"Ref": "CoreSecurityGroup"}, { "Ref": "RabbitMqSecurityGroup"} ],
         "IamInstanceProfile": {"Ref" : "InstanceProfile" },
         "UserData" : null
       }
