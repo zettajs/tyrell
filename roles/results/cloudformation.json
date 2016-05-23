@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "RabbitMQ ASG",
+  "Description": "Analytics Results ASG",
   "Parameters": {
     "InstanceType" : {
       "Description" : "EC2 HVM instance type (m3.medium, etc).",
@@ -31,7 +31,7 @@
       "Description" : "Security Group to assign to",
       "Type": "AWS::EC2::SecurityGroup::Id"
     },
-    "RabbitMqELBSecurityGroup" : {
+    "AnalyticsResultsELBSecurityGroup" : {
       "Description" : "Security Group to assign to",
       "Type": "AWS::EC2::SecurityGroup::Id"
     },
@@ -99,65 +99,40 @@
        }
     },
 
-    "RabbitMqSecurityGroup": {
+    "AnalyticsResultsSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "GroupDescription": "RabbitMQ Security Group",
+        "GroupDescription": "Analytics Results Security Group",
         "SecurityGroupIngress": [],
         "VpcId": {"Ref": "StackVpc"}
       }
     },
 
-    "RabbitMQIngress5672": {
+    "AnalyticsResultsIngress3000": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
         "IpProtocol": "tcp",
-        "FromPort": "5672",
-        "ToPort": "5672",
-        "SourceSecurityGroupId": {"Ref": "RabbitMqELBSecurityGroup"},
+        "FromPort": "3000",
+        "ToPort": "3000",
+        "SourceSecurityGroupId": {"Ref": "AnalyticsResultsELBSecurityGroup"},
         "GroupId": {
-          "Fn::GetAtt" : ["RabbitMqSecurityGroup", "GroupId"]
+          "Fn::GetAtt" : ["AnalyticsResultsSecurityGroup", "GroupId"]
         }
       }
     },
 
-    "RabbitMQIngress5672Cluster": {
+    "AnalyticsResultsIngress3007": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "IpProtocol": "tcp",
-        "FromPort": "5672",
-        "ToPort": "5672",
-        "SourceSecurityGroupId": {"Ref": "RabbitMqSecurityGroup"},
+        "IpProtocol": "udp",
+        "FromPort": "3007",
+        "ToPort": "3007",
+        "SourceSecurityGroupId": {"Ref": "AnalyticsResultsSecurityGroup"},
         "GroupId": {
-          "Fn::GetAtt" : ["RabbitMqSecurityGroup", "GroupId"]
+          "Fn::GetAtt" : ["AnalyticsResultsSecurityGroup", "GroupId"]
         }
       }
     },
-    "RabbitMQIngress4369Cluster": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "IpProtocol": "tcp",
-        "FromPort": "4369",
-        "ToPort": "4369",
-        "SourceSecurityGroupId": {"Ref": "RabbitMqSecurityGroup"},
-        "GroupId": {
-          "Fn::GetAtt" : ["RabbitMqSecurityGroup", "GroupId"]
-        }
-      }
-    },
-    "RabbitMQIngress25672Cluster": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "IpProtocol": "tcp",
-        "FromPort": "25672",
-        "ToPort": "25672",
-        "SourceSecurityGroupId": {"Ref": "RabbitMqSecurityGroup"},
-        "GroupId": {
-          "Fn::GetAtt" : ["RabbitMqSecurityGroup", "GroupId"]
-        }
-      }
-    },
-
     "AutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
@@ -183,7 +158,7 @@
         "ImageId" : { "Ref" : "AMI" },
         "InstanceType": {"Ref": "InstanceType"},
         "KeyName": {"Ref": "KeyPair"},
-        "SecurityGroups": [ {"Ref": "CoreSecurityGroup"}, { "Ref": "RabbitMqSecurityGroup"} ],
+        "SecurityGroups": [ {"Ref": "CoreSecurityGroup"}, { "Ref": "AnalyticsResultsSecurityGroup"} ],
         "IamInstanceProfile": {"Ref" : "InstanceProfile" },
         "UserData" : null
       }

@@ -13,6 +13,7 @@ program
   .command('rabbitmq [stack-name]', 'rabbitmq')
   .command('mqttbrokers [stack-name]', 'mqtt brokers')
   .command('influx [stack-name]', 'influx')
+  .command('results [stack-name]', 'analytics results')
   .command('builds', 'build a new CoreOS image for zetta.')
   .command('local', 'interact with a local CoreOS cluster.')
   .command('network', 'create a new VPC network.')
