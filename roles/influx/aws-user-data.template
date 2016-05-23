@@ -27,7 +27,9 @@ coreos:
       command: start
     - name: fleet.service
       command: start
-    - name: rabbitmq.service
+    - name: link-influxdb.service
+      command: start
+    - name: link-influxdb-check.service
       command: start
     - name: link-logstash@8081.service
       command: start
