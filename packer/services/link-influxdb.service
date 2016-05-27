@@ -13,4 +13,6 @@ EnvironmentFile=/etc/profile.d/zetta
 ExecStartPre=-/usr/bin/docker kill link-influxdb.service
 ExecStartPre=-/usr/bin/docker rm link-influxdb.service
 ExecStart=/usr/bin/docker run --rm --name link-influxdb.service -p 8083:8083 -p 8086:8086 -v /home/core/influxdb:/influxdb influxdb
+ExecStartPost=-/usr/bin/sleep 60
+ExecStartPost=-/bin/sh -c 'curl -i -X POST http://${COREOS_PRIVATE_IPV4}:8086/query --data-urlencode "q=CREATE DATABASE deviceData"'
 ExecStop=/usr/bin/docker stop link-influxdb.service

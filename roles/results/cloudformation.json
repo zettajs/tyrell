@@ -27,11 +27,19 @@
       "Description": "Private subnets that the ASG should distribute boxes on.",
       "Type": "CommaDelimitedList"
     },
+    "ResultsELB" : {
+      "Description" : "ELB for autoscale group to be assigned to",
+      "Type" : "String"
+    },
     "CoreSecurityGroup" : {
       "Description" : "Security Group to assign to",
       "Type": "AWS::EC2::SecurityGroup::Id"
     },
-    "AnalyticsResultsELBSecurityGroup" : {
+    "InfluxSecurityGroup" : {
+      "Description" : "Security Group to assign to",
+      "Type": "AWS::EC2::SecurityGroup::Id"
+    },
+    "ResultsSecurityGroup" : {
       "Description" : "Security Group to assign to",
       "Type": "AWS::EC2::SecurityGroup::Id"
     },
@@ -41,10 +49,6 @@
       "MaxValue": "12",
       "Description": "Number of nodes in cluster (1-12).",
       "Type": "Number"
-    },
-    "ELB" : {
-      "Description" : "ELB for autoscale group to be assigned to",
-      "Type" : "String"
     }
   },
 
@@ -89,7 +93,7 @@
           ]
         }
     },
-    "InstanceProfile": {
+   "InstanceProfile": {
        "Type": "AWS::IAM::InstanceProfile",
        "Properties": {
           "Path": "/",
@@ -98,41 +102,7 @@
           } ]
        }
     },
-
-    "AnalyticsResultsSecurityGroup": {
-      "Type": "AWS::EC2::SecurityGroup",
-      "Properties": {
-        "GroupDescription": "Analytics Results Security Group",
-        "SecurityGroupIngress": [],
-        "VpcId": {"Ref": "StackVpc"}
-      }
-    },
-
-    "AnalyticsResultsIngress3000": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "IpProtocol": "tcp",
-        "FromPort": "3000",
-        "ToPort": "3000",
-        "SourceSecurityGroupId": {"Ref": "AnalyticsResultsELBSecurityGroup"},
-        "GroupId": {
-          "Fn::GetAtt" : ["AnalyticsResultsSecurityGroup", "GroupId"]
-        }
-      }
-    },
-
-    "AnalyticsResultsIngress3007": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "IpProtocol": "udp",
-        "FromPort": "3007",
-        "ToPort": "3007",
-        "SourceSecurityGroupId": {"Ref": "AnalyticsResultsSecurityGroup"},
-        "GroupId": {
-          "Fn::GetAtt" : ["AnalyticsResultsSecurityGroup", "GroupId"]
-        }
-      }
-    },
+    
     "AutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
@@ -143,7 +113,7 @@
         "DesiredCapacity": {"Ref": "ClusterSize"},
         "HealthCheckType": "EC2",
         "HealthCheckGracePeriod": 60,
-        "LoadBalancerNames": [ {"Ref": "ELB"} ],
+        "LoadBalancerNames": [ {"Ref": "ResultsELB"} ],
         "Tags": [
             {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
             {"Key": "Name", "Value": {"Ref" : "AWS::StackName" } , "PropagateAtLaunch": true}
@@ -158,7 +128,7 @@
         "ImageId" : { "Ref" : "AMI" },
         "InstanceType": {"Ref": "InstanceType"},
         "KeyName": {"Ref": "KeyPair"},
-        "SecurityGroups": [ {"Ref": "CoreSecurityGroup"}, { "Ref": "AnalyticsResultsSecurityGroup"} ],
+        "SecurityGroups": [ {"Ref": "CoreSecurityGroup"}, { "Ref": "ResultsSecurityGroup"} ],
         "IamInstanceProfile": {"Ref" : "InstanceProfile" },
         "UserData" : null
       }

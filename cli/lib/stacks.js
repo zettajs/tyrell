@@ -180,7 +180,10 @@ function generateStackParams(config) {
   if (config.deviceToCloud) {
     params.Parameters.push({ ParameterKey: 'EnableDeviceToCloud', ParameterValue: 'true' });
   }
-
+  
+  if (config.analytics) {
+    params.Parameters.push({ ParameterKey: 'EnableAnalytics', ParameterValue: 'true' });
+  }
   return params;
 }
 

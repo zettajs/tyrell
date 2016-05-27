@@ -20,6 +20,7 @@ program
   .option('--zetta-usage-bucket <bucket name>', 'Specify existing device data bucket')
   .option('-v --vpc <vpc>', 'VPC to deploy the stack onto')
   .option('--device-to-cloud', 'Create device to cloud resources.')
+  .option('--analytics', 'Create realtime analytics reasources.')
   .parse(process.argv);
 
 var name = program.args[0];
@@ -114,7 +115,8 @@ getKeyPair(function(err, key) {
       vpc: program.vpc,
       privateSubnets: privateSubnetIdArray.join(','),
       publicSubnets: publicSubnetIdArray.join(','),
-      deviceToCloud: program.deviceToCloud
+      deviceToCloud: program.deviceToCloud,
+      analytics: program.analytics
     };
 
     stacks.create(AWS, config, function(err) {

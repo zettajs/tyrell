@@ -30,6 +30,7 @@ function generateConfig(cb) {
     config = config.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/, 'http://core-01:9324/queue/device-data');
     config = config.replace(/@@ZETTA_USAGE_QUEUE@@/, 'http://core-01:9324/queue/zetta-usage');
     config = config.replace(/@@MQTT_INTERNAL_BROKER_URL@@/, 'mqtt://core-03:2883');
+    config = config.replace(/@@INFLUX_DATABASE@@/, 'deviceData');
     fs.writeFileSync(path.join(Vagrant.vagrantPath(), 'target-user-data'), config);
 
     var template = fs.readFileSync(path.join(__dirname, '../roles/router/vagrant-user-data.template'));

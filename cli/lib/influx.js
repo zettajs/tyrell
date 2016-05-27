@@ -133,9 +133,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
         { ParameterKey: 'StackVpc', ParameterValue: stack.Parameters['StackVpc'] },
         { ParameterKey: 'Subnets', ParameterValue: subnets.join(',') },
         { ParameterKey: 'CoreSecurityGroup', ParameterValue: stack.Resources['CoreOsSecurityGroup'].GroupId },
-        { ParameterKey: 'RabbitMqELBSecurityGroup', ParameterValue: stack.Resources['RabbitMqELBSecurityGroup'].GroupId },
-        { ParameterKey: 'ClusterSize', ParameterValue: '0' }, // scale after AddToElb process is suspended
-        { ParameterKey: 'ELB', ParameterValue: stack.Resources['RabbitMQELB'].PhysicalResourceId }
+        { ParameterKey: 'InfluxSecurityGroup', ParameterValue: stack.Resources['InfluxSecurityGroup'].GroupId },
+        { ParameterKey: 'ClusterSize', ParameterValue: '0' } // scale after AddToElb process is suspended
       ],
       Tags: [
         { Key: 'zetta:stack', Value: stack.StackName },
