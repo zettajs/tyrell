@@ -244,6 +244,19 @@
         }
       }
     },
+    "ResultsIngress80": {
+      "Condition" : "CreateAnalytics",
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "80",
+        "ToPort": "80",
+        "SourceSecurityGroupId": { "Ref": "ResultsELBSecurityGroup" },
+        "GroupId": {
+          "Fn::GetAtt" : ["ResultsSecurityGroup", "GroupId"]
+        }
+      }
+    },
     "ResultsELBSecurityGroup": {
       "Condition" : "CreateAnalytics",
       "Type": "AWS::EC2::SecurityGroup",

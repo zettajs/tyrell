@@ -84,7 +84,7 @@ module.exports = function(AWS, opts, callback) {
           routers.create(AWS, stack, config, next);
         },
         function(next) {
-          var config = { ami: images[0], size: opts.versionSize, type: opts.versionType, version: versionKeys.target, subnets: opts.privateSubnets };
+          var config = { ami: images[0], size: opts.versionSize, type: opts.versionType, version: versionKeys.target, subnets: opts.privateSubnets, analyticsDb: opts.analyticsDb };
           targets.create(AWS, stack, config, next);
         },
         function(next) {

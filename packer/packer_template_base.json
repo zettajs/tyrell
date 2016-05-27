@@ -172,6 +172,10 @@
   {
     "type": "shell",
     "inline": "docker pull zetta/link-realtime-analytics-results-api"
+  },
+  {
+    "type": "shell",
+    "inline": "docker pull influxdb"
   }
   ],
   "post-processors": [

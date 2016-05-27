@@ -26,6 +26,7 @@ program
   .option('-v --vpc <vpc>', 'VPC to deploy the stack onto')
   .option('--device-to-cloud', 'Create device to cloud resources.')
   .option('--analytics', 'Create realtime analytics reasources.')
+  .option('--analytics-db <database>', 'Name for analytics db', '')
   .parse(process.argv);
 
 var name = program.args[0];
@@ -156,10 +157,11 @@ coreosamis()
             influxdbHost: program.influxdbHost,
             influxdbUsername: influxdbUsername,
             influxdbPassword: influxdbPassword,
-            analytics: program.analytics
+            analytics: program.analytics,
+            analyticsDb: program.analyticsDb
           };
 
-          stacks.create(AWS, config, function(err) {
+          stacks.create(AWS, config, function(err) {y
             if (err) {
               console.error(err);
               process.exit(1);
@@ -181,7 +183,9 @@ coreosamis()
                 privateSubnets: privateSubnetIdArray,
                 publicSubnets: publicSubnetIdArray,
                 tenantMgmtSubnet: tenantMgmtSubnet,
-                deviceToCloud: program.deviceToCloud
+                deviceToCloud: program.deviceToCloud,
+                analytics: program.analytics,
+                analyticsDb: program.analyticsDb
               };
               
               // delay 1 minute to allow ec2 instances to be spun up for etcd
