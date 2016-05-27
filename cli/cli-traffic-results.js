@@ -1,7 +1,7 @@
 var program = require('commander');
 var AWS = require('aws-sdk'); 
 var traffic = require('./lib/traffic');
-var rabbitmq = require('./lib/results');
+var results = require('./lib/results');
 var stacks = require('./lib/stacks');
 
 AWS.config.update({region: 'us-east-1'});
@@ -40,7 +40,7 @@ stacks.get(AWS, name, function(err, stack) {
 
 
   // deploy new version
-  rabbitmq.list(AWS, name, function(err, versions) {
+  results.list(AWS, name, function(err, versions) {
     if (err) {
       console.error(err);
       process.exit(1);
@@ -62,11 +62,13 @@ stacks.get(AWS, name, function(err, stack) {
       stack: name
     };
 
-    traffic.routeRabbitMq(AWS, opts, function(err) {
+    traffic.routeResults(AWS, opts, function(err) {
       if (err) {
         console.error(err);
         process.exit(1);
       }
+
+      return console.log('Routed traffic.');
     });
   });
 });

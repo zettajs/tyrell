@@ -144,7 +144,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
         { ParameterKey: 'InfluxSecurityGroup', ParameterValue: stack.Resources['InfluxSecurityGroup'].GroupId },
         { ParameterKey: 'ResultsSecurityGroup', ParameterValue: stack.Resources['ResultsSecurityGroup'].GroupId },
         { ParameterKey: 'ClusterSize', ParameterValue: '0' }, // scale after AddToElb process is suspended
-        { ParameterKey: 'ResultsELB', ParameterValue: stack.Resources['ResultsELB'].GroupId}
+        { ParameterKey: 'ResultsELB', ParameterValue: stack.Resources['ResultsELB'].PhysicalResourceId}
       ],
       Tags: [
         { Key: 'zetta:stack', Value: stack.StackName },
