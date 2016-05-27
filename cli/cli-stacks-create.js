@@ -25,6 +25,7 @@ program
   .option('--influxdb-auth <username:password>', 'Metrics influxdb username:password', 'admin:2ee54aed802910f2f4e74dfbc143dbbd')
   .option('-v --vpc <vpc>', 'VPC to deploy the stack onto')
   .option('--device-to-cloud', 'Create device to cloud resources.')
+  .option('--analytics', 'Create realtime analytics reasources.')
   .parse(process.argv);
 
 var name = program.args[0];
@@ -154,7 +155,8 @@ coreosamis()
             deviceToCloud: program.deviceToCloud,
             influxdbHost: program.influxdbHost,
             influxdbUsername: influxdbUsername,
-            influxdbPassword: influxdbPassword
+            influxdbPassword: influxdbPassword,
+            analytics: program.analytics
           };
 
           stacks.create(AWS, config, function(err) {

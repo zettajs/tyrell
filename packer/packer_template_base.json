@@ -168,6 +168,10 @@
   {
     "type": "shell",
     "inline": "docker pull telegraf"
+  },
+  {
+    "type": "shell",
+    "inline": "docker pull zetta/link-realtime-analytics-results-api"
   }
   ],
   "post-processors": [

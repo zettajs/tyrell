@@ -78,7 +78,6 @@ var list = module.exports.list = function(AWS, stackName, cb) {
   });
 };
 
-
 function getSubnets(AWS, stack, cb) {
   vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], function(err, data) {
     if (err) {
@@ -93,7 +92,15 @@ function getSubnets(AWS, stack, cb) {
       return netObject.id;
     });
 
-    return cb(null, subnetIdArray);
+    var publicSubnets = data.filter(function(net) {
+      return net.public == true;
+    });
+
+    var publicSubnetIdArray = privateSubnets.map(function(netObject){
+      return netObject.id;
+    });
+
+    return cb(null, subnetIdArray, publicSubnetIdArray);
   });
 }
 
@@ -106,7 +113,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   var cloudformation = new AWS.CloudFormation();
   var autoscaling = new AWS.AutoScaling();
 
-  getSubnets(AWS, stack, function(err, subnets) {
+  getSubnets(AWS, stack, function(err, subnets, publicSubnets) {
+    
     if (err) {
       return done(err);
     }
@@ -133,9 +141,10 @@ var create = module.exports.create = function(AWS, stack, config, done) {
         { ParameterKey: 'StackVpc', ParameterValue: stack.Parameters['StackVpc'] },
         { ParameterKey: 'Subnets', ParameterValue: subnets.join(',') },
         { ParameterKey: 'CoreSecurityGroup', ParameterValue: stack.Resources['CoreOsSecurityGroup'].GroupId },
-        { ParameterKey: 'RabbitMqELBSecurityGroup', ParameterValue: stack.Resources['RabbitMqELBSecurityGroup'].GroupId },
+        { ParameterKey: 'InfluxSecurityGroup', ParameterValue: stack.Resources['InfluxSecurityGroup'].GroupId },
+        { ParameterKey: 'ResultsSecurityGroup', ParameterValue: stack.Resources['ResultsSecurityGroup'].GroupId },
         { ParameterKey: 'ClusterSize', ParameterValue: '0' }, // scale after AddToElb process is suspended
-        { ParameterKey: 'ELB', ParameterValue: stack.Resources['RabbitMQELB'].PhysicalResourceId }
+        { ParameterKey: 'ResultsELB', ParameterValue: stack.Resources['ResultsELB'].GroupId}
       ],
       Tags: [
         { Key: 'zetta:stack', Value: stack.StackName },

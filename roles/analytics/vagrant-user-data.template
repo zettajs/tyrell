@@ -32,11 +32,11 @@ coreos:
     - name: fleet.service
       command: start
     - name: link-influxdb.service
-      command: start
+      command: stop
     - name: link-influxdb-check.service
-      command: start
+      command: stop
     - name: link-analytics-results-api.service
-      command: start
+      command: stop
     - name: docker.service
       drop-ins:
         - name: 10-logs-driver.conf

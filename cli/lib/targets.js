@@ -99,6 +99,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
     var userData = fs.readFileSync(path.join(__dirname, '../../roles/target/aws-user-data.template')).toString();
     userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
     userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
+    userData = userData.replace(/@@INFLUX_DATABASE@@/g, config.influxDatabase);
     userData = userData.replace(/@@ZETTA_DEVICE_DATA_QUEUE@@/g, stack.Resources['DeviceDataQueue'].PhysicalResourceId);
     userData = userData.replace(/@@ZETTA_USAGE_QUEUE@@/g, stack.Resources['ZettaUsageQueue'].PhysicalResourceId);
     userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);

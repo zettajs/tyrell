@@ -31,7 +31,7 @@
       "Description" : "Security Group to assign to",
       "Type": "AWS::EC2::SecurityGroup::Id"
     },
-    "InfluxELBSecurityGroup" : {
+    "InfluxSecurityGroup" : {
       "Description" : "Security Group to assign to",
       "Type": "AWS::EC2::SecurityGroup::Id"
     },
@@ -41,10 +41,6 @@
       "MaxValue": "12",
       "Description": "Number of nodes in cluster (1-12).",
       "Type": "Number"
-    },
-    "ELB" : {
-      "Description" : "ELB for autoscale group to be assigned to",
-      "Type" : "String"
     }
   },
 
@@ -98,41 +94,6 @@
           } ]
        }
     },
-
-    "InfluxSecurityGroup": {
-      "Type": "AWS::EC2::SecurityGroup",
-      "Properties": {
-        "GroupDescription": "Influx Security Group",
-        "SecurityGroupIngress": [],
-        "VpcId": {"Ref": "StackVpc"}
-      }
-    },
-
-    "InfluxIngress8086": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "IpProtocol": "tcp",
-        "FromPort": "8086",
-        "ToPort": "8086",
-        "SourceSecurityGroupId": {"Ref": "InfluxELBSecurityGroup"},
-        "GroupId": {
-          "Fn::GetAtt" : ["InfluxSecurityGroup", "GroupId"]
-        }
-      }
-    },
-
-    "InfluxIngress8083": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "IpProtocol": "tcp",
-        "FromPort": "8083",
-        "ToPort": "8083",
-        "SourceSecurityGroupId": {"Ref": "InfluxELBSecurityGroup"},
-        "GroupId": {
-          "Fn::GetAtt" : ["InfluxSecurityGroup", "GroupId"]
-        }
-      }
-    },
     "AutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
@@ -143,7 +104,6 @@
         "DesiredCapacity": {"Ref": "ClusterSize"},
         "HealthCheckType": "EC2",
         "HealthCheckGracePeriod": 60,
-        "LoadBalancerNames": [ {"Ref": "ELB"} ],
         "Tags": [
             {"Key": "zetta:stack", "Value": {"Ref" : "ZettaStack" }, "PropagateAtLaunch": true},
             {"Key": "Name", "Value": {"Ref" : "AWS::StackName" } , "PropagateAtLaunch": true}
@@ -158,11 +118,10 @@
         "ImageId" : { "Ref" : "AMI" },
         "InstanceType": {"Ref": "InstanceType"},
         "KeyName": {"Ref": "KeyPair"},
-        "SecurityGroups": [ {"Ref": "CoreSecurityGroup"}, { "Ref": "InfluxELBSecurityGroup"} ],
+        "SecurityGroups": [ {"Ref": "CoreSecurityGroup"}, { "Ref": "InfluxSecurityGroup"} ],
         "IamInstanceProfile": {"Ref" : "InstanceProfile" },
         "UserData" : null
       }
     }
-
   }
 }

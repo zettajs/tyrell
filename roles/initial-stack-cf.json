@@ -81,13 +81,19 @@
       "Type" : "String",
       "Default" : "",
       "Description" : "Influxdb Password for metrics collection"
+    },
+    "EnableAnalytics" : {
+      "Type" : "String",
+      "Default" : "false",
+      "Description" : "Enable Realtime Analytics"
     }
   },
 
   "Conditions" : {
     "CreateDeviceDataBucket" : {"Fn::Equals" : [{"Ref" : "UseExistingDeviceDataBucket"}, "false"]},
     "CreateZettaUsageBucket" : {"Fn::Equals" : [{"Ref" : "UseExistingZettaUsageBucket"}, "false"]},
-    "CreateDeviceToCloud" : {"Fn::Equals" : [{"Ref" : "EnableDeviceToCloud"}, "true"]}
+    "CreateDeviceToCloud" : {"Fn::Equals" : [{"Ref" : "EnableDeviceToCloud"}, "true"]},
+    "CreateAnalytics" : {"Fn::Equals" : [{"Ref" : "EnableAnalytics"}, "true"]}
   },
 
   "Resources": {
@@ -127,7 +133,7 @@
         }
       }
     },
-
+    
     "CredentialAPISecurityGroup": {
       "Condition" : "CreateDeviceToCloud",
       "Type": "AWS::EC2::SecurityGroup",
@@ -167,7 +173,111 @@
         }
       }
     },
+    "InfluxSecurityGroup": {
+      "Condition" : "CreateAnalytics",
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Influx Security Group",
+        "SecurityGroupIngress": [],
+        "VpcId": {"Ref": "StackVpc"}
+      }
+    },
 
+    "InfluxIngress8086": {
+      "Condition" : "CreateAnalytics",
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "8086",
+        "ToPort": "8086",
+        "SourceSecurityGroupId": { "Ref": "TargetSecurityGroup" },
+        "GroupId": {
+          "Fn::GetAtt" : ["InfluxSecurityGroup", "GroupId"]
+        }
+      }
+    },
+    "InfluxResultsIngress8086": {
+      "Condition" : "CreateAnalytics",
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "8086",
+        "ToPort": "8086",
+        "SourceSecurityGroupId": { "Ref": "ResultsSecurityGroup" },
+        "GroupId": {
+          "Fn::GetAtt" : ["InfluxSecurityGroup", "GroupId"]
+        }      
+      }
+    },
+    "InfluxIngress8083": {
+      "Condition" : "CreateAnalytics",
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "8083",
+        "ToPort": "8083",
+        "SourceSecurityGroupId": { "Ref": "TargetSecurityGroup" },
+        "GroupId": {
+          "Fn::GetAtt" : ["InfluxSecurityGroup", "GroupId"]
+        }
+      }
+    },
+    "ResultsSecurityGroup": {
+      "Condition" : "CreateAnalytics",
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Analytics Results Security Group",
+        "SecurityGroupIngress": [],
+        "VpcId": {"Ref": "StackVpc"}
+      }
+    },
+    "ResultsIngress3007": {
+      "Condition" : "CreateAnalytics",
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "udp",
+        "FromPort": "3007",
+        "ToPort": "3007",
+        "SourceSecurityGroupId": {"Ref": "InfluxSecurityGroup"},
+        "GroupId": {
+          "Fn::GetAtt" : ["ResultsSecurityGroup", "GroupId"]
+        }
+      }
+    },
+    "ResultsELBSecurityGroup": {
+      "Condition" : "CreateAnalytics",
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Results Security Group",
+        "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "CidrIp": "0.0.0.0/0"}
+        ],
+        "VpcId": {"Ref": "StackVpc"}
+      }
+    },
+    "ResultsELB" : {
+      "Condition" : "CreateAnalytics",
+      "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties" : {
+        "CrossZone": true,
+        "Listeners" : [
+          { "LoadBalancerPort" : "80", "InstancePort" : "80", "Protocol" : "TCP" }
+        ],
+        "HealthCheck" : {
+          "Target": "HTTP:80/",
+          "HealthyThreshold": "2",
+          "UnhealthyThreshold": "5",
+          "Interval": "30",
+          "Timeout": "5"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled" : "true",
+          "Timeout" : "60"
+        },
+        "SecurityGroups": [ { "Fn::GetAtt" : [ "ResultsELBSecurityGroup", "GroupId" ] } ],
+        "Subnets": {"Ref": "PublicStackSubnets"}
+      }
+    },
     "ExternalMQTTELBSecurityGroup": {
       "Condition" : "CreateDeviceToCloud",
       "Type": "AWS::EC2::SecurityGroup",
