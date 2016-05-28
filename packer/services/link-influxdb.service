@@ -15,4 +15,8 @@ ExecStartPre=-/usr/bin/docker rm link-influxdb.service
 ExecStart=/usr/bin/docker run --rm --name link-influxdb.service -p 8083:8083 -p 8086:8086 -v /home/core/influxdb:/influxdb influxdb
 ExecStartPost=-/usr/bin/sleep 60
 ExecStartPost=-/bin/sh -c 'curl -i -X POST http://${COREOS_PRIVATE_IPV4}:8086/query --data-urlencode "q=CREATE DATABASE deviceData"'
+ExecStartPost=-/usr/bin/sleep 10
+ExecStartPost=-/bin/sh -c 'curl -i -X POST http://${COREOS_PRIVATE_IPV4}:8086/query --data-urlencode "q=CREATE RETENTION POLICY deviceDataRetention ON "deviceData" DURATION 3d REPLICATION 1 DEFAULT"'
+ExecStartPost=-/usr/bin/sleep 10
+ExecStartPost=-/bin/sh -c 'curl -i -X POST http://${COREOS_PRIVATE_IPV4}:8086/query --data-urlencode "q=CREATE CONTINUOUS QUERY \"cq.aggregatedata.average\" on deviceData BEGIN select mean(value) into deviceData.\"deviceDataRetention\".\"aggregatedata.average\" from deviceData.\"deviceDataRetention\"./devicedata.*/ where time >= now() - 1h group by time(1m),device,hub,deviceType,stream fill(none) END"'
 ExecStop=/usr/bin/docker stop link-influxdb.service
