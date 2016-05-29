@@ -1,7 +1,7 @@
 [Unit]
 Description=Influxdb service
-After=docker.service 
-Requires=docker.service 
+After=docker.service
+Requires=docker.service
 
 [Service]
 User=core
@@ -18,5 +18,5 @@ ExecStartPost=-/bin/sh -c 'curl -i -X POST http://${COREOS_PRIVATE_IPV4}:8086/qu
 ExecStartPost=-/usr/bin/sleep 10
 ExecStartPost=-/bin/sh -c 'curl -i -X POST http://${COREOS_PRIVATE_IPV4}:8086/query --data-urlencode "q=CREATE RETENTION POLICY deviceDataRetention ON "deviceData" DURATION 3d REPLICATION 1 DEFAULT"'
 ExecStartPost=-/usr/bin/sleep 10
-ExecStartPost=-/bin/sh -c 'curl -i -X POST http://${COREOS_PRIVATE_IPV4}:8086/query --data-urlencode "q=CREATE CONTINUOUS QUERY \"cq.aggregatedata.average\" on deviceData BEGIN select mean(value) into deviceData.\"deviceDataRetention\".\"aggregatedata.average\" from deviceData.\"deviceDataRetention\"./devicedata.*/ where time >= now() - 1h group by time(1m),device,hub,deviceType,stream fill(none) END"'
+ExecStartPost=-/bin/sh -c 'curl -i -X GET "http://localhost:8086/query?q=CREATE%20CONTINUOUS%20QUERY%20%22cq.aggregatedata.average%22%20on%20deviceData%20BEGIN%20select%20mean(value)%20into%20deviceData.%22deviceDataRetention%22.%22aggregatedata.average%22%20from%20deviceData.%22deviceDataRetention%22.%2Fdevicedata.*%2F%20where%20time%20%3E%3D%20now()%20-%201h%20group%20by%20time(1m)%2Cdevice%2Chub%2CdeviceType%2Cstream%20fill(none)%20END"'
 ExecStop=/usr/bin/docker stop link-influxdb.service
