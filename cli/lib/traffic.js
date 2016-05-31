@@ -381,6 +381,7 @@ module.exports.tenantMgmt.route = function(AWS, stack, version, cb) {
 
 
           var recordSetName = prefix + stack.StackName + '.' + stack.DnsZone;
+          var internalRecordSetName = 'internal-' + prefix + stack.StackName + '.' + stack.DnsZone;
           var params = {
             HostedZoneId: zone.Id,
             ChangeBatch: {
@@ -393,6 +394,17 @@ module.exports.tenantMgmt.route = function(AWS, stack, version, cb) {
                     TTL: 300,
                     ResourceRecords: [
                       { Value: instance.PublicIpAddress }
+                    ]
+                  }
+                },
+                {
+                  Action: 'UPSERT',
+                  ResourceRecordSet: {
+                    Name: internalRecordSetName,
+                    Type: 'A',
+                    TTL: 300,
+                    ResourceRecords: [
+                      { Value: instance.PrivateIpAddress }
                     ]
                   }
                 }

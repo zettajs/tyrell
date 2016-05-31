@@ -1,5 +1,6 @@
 var fs = require('fs');
 var path = require('path');
+var crypto = require('crypto');
 var async = require('async');
 var targets = require('./targets');
 var routers = require('./routers');
@@ -160,6 +161,8 @@ function generateStackParams(config) {
       { ParameterKey: 'InfluxdbHost', ParameterValue: config.influxdbHost },
       { ParameterKey: 'InfluxdbUsername', ParameterValue: config.influxdbUsername },
       { ParameterKey: 'InfluxdbPassword', ParameterValue: config.influxdbPassword }
+      { ParameterKey: 'JWTCipherText', ParameterValue: config.jwt.cipher },
+      { ParameterKey: 'JWTKeyARN', ParameterValue: config.jwt.arn }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stackName },
@@ -187,11 +190,74 @@ function generateStackParams(config) {
   return params;
 }
 
+function generateJWTParam(AWS, config, callback) {
+  var kms = new AWS.KMS();
+  var psk = crypto.randomBytes(32).toString('hex')
+
+  kms.createKey({ Description: config.stack + ' JWT decrypt key.' }, function(err, data) {
+    if (err) {
+      return callback(err);
+    }
+
+    var keyId = data.KeyMetadata.KeyId;
+    var arn = data.KeyMetadata.Arn;
+
+    var opts = { KeyId: keyId,
+                 Plaintext: psk,
+                 EncryptionContext: {
+                   stackName: config.stack
+                 }
+               };
+    
+    kms.encrypt(opts, function(err, data) {
+      if (err) {
+        return callback(err);
+      }
+
+      return callback(null, {
+        cipher: data.CiphertextBlob.toString('hex'),
+        id: keyId,
+        arn: arn
+      });
+    });
+    
+  });
+}
+
 var create = module.exports.create = function(AWS, config, done) {
   var cloudformation = new AWS.CloudFormation();
 
   var stackName = config.stack;
-  var params = generateStackParams(config);
+
+  // Generate JWT Cipher
+  generateJWTParam(AWS, config, function(err, data) {
+    if (err) {
+      return done(err);
+    }
+
+    // Add cipher and key info to config
+    config.jwt = data;
+    var params = generateStackParams(config);
+    
+    cloudformation.createStack(params, function(err, data) {
+      if (err) {
+        return done(new Error(err.code + ' ' + err.message));
+      }
+     
+      function check() {
+        checkStackStatus(function(err, status, stack) {
+          if (err) {
+            return done(err);
+          }
+          if (!status) {
+            return setTimeout(check, 1000);
+          }
+          done(null, stack);
+        });
+      }
+      check();
+    });
+  });
 
   function checkStackStatus(cb) {
     cloudformation.describeStacks({ StackName: stackName }, function(err, data) {
@@ -206,26 +272,6 @@ var create = module.exports.create = function(AWS, config, done) {
       return cb(null, data.Stacks[0].StackStatus === 'CREATE_COMPLETE', data.Stacks[0]);
     });
   }
-
-  cloudformation.createStack(params, function(err, data) {
-    if (err) {
-      return done(new Error(err.code + ' ' + err.message));
-    }
-
-    function check() {
-      checkStackStatus(function(err, status, stack) {
-        if (err) {
-          return done(err);
-        }
-        if (!status) {
-          return setTimeout(check, 1000);
-        }
-        done(null, stack);
-      });
-    }
-    check();
-  });
-
 };
 
 var remove = module.exports.remove = function(AWS, name, cb) {
@@ -290,6 +336,11 @@ var update = module.exports.update = function(AWS, name, configUpdates, cb) {
     Object.keys(configUpdates).forEach(function(k) {
       config[k] = configUpdates[k];
     });
+
+    config.jwt = {
+      arn: stack.Parameters.JWTKeyARN,
+      cipher: stack.Parameters.JWTCipherText
+    };
 
     var params = generateStackParams(config);
     params.Parameters.forEach(function(v) {

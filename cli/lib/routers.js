@@ -94,6 +94,9 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   userData = userData.replace(/@@INFLUXDB_HOST@@/g, stack.Parameters['InfluxdbHost']);
   userData = userData.replace(/@@INFLUXDB_USERNAME@@/g, stack.Parameters['InfluxdbUsername']);
   userData = userData.replace(/@@INFLUXDB_PASSWORD@@/g, stack.Parameters['InfluxdbPassword']);
+  userData = userData.replace(/@@JWT_CIPHER_TEXT@@/g, stack.Parameters['JWTCipherText'] || '');
+  var tenantMgmtApi = 'http://internal-tenant-mgmt.' + stack.StackName + '.iot.apigee.net';
+  userData = userData.replace(/@@TENANT_MANAGEMENT_API@@/g, tenantMgmtApi);
 
   var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/router/cloudformation.json')).toString());
   template.Resources['ServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };

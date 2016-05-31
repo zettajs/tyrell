@@ -106,7 +106,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
     userData = userData.replace(/@@INFLUXDB_HOST@@/g, stack.Parameters['InfluxdbHost']);
     userData = userData.replace(/@@INFLUXDB_USERNAME@@/g, stack.Parameters['InfluxdbUsername']);
     userData = userData.replace(/@@INFLUXDB_PASSWORD@@/g, stack.Parameters['InfluxdbPassword']);
-
+    userData = userData.replace(/@@JWT_CIPHER_TEXT@@/g, stack.Parameters['JWTCipherText'] || '');
     
     if (mqttDnsName) {
       userData = userData.replace(/@@MQTT_INTERNAL_BROKER_URL@@/g, 'mqtt://' + mqttDnsName + ':2883'); 

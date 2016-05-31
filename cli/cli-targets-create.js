@@ -48,11 +48,11 @@ stacks.get(AWS, name, function(err, stack) {
       process.exit(1);
     }
 
-    var privateSubnets = data.filter(function(net){
-      return net.public == false;
+    var publicSubnets = data.filter(function(net){
+      return net.public == true;
     });
 
-    var subnetIdArray = privateSubnets.map(function(netObject){
+    var subnetIdArray = publicSubnets.map(function(netObject){
       return netObject.id;
     });
 

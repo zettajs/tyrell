@@ -85,7 +85,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
       { Key: 'versions:tyrell', Value: require('../package.json').version }
     ],
     TemplateBody: JSON.stringify(template),
-    TimeoutInMinutes: 5
+    TimeoutInMinutes: 15
   };
 
   function checkStackStatus(cb) {

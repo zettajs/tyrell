@@ -81,7 +81,18 @@
       "Type" : "String",
       "Default" : "",
       "Description" : "Influxdb Password for metrics collection"
+    },
+    "JWTCipherText" : {
+      "Type" : "String",
+      "Default" : "",
+      "Description" : "Hex cipher text of key for JWT signing and verifing."
+    },
+    "JWTKeyARN" : {
+      "Type" : "String",
+      "Default" : "",
+      "Description" : "ARN to KMS key for JWT signing and verifing."
     }
+
   },
 
   "Conditions" : {
@@ -308,23 +319,10 @@
       "Properties": {
         "GroupDescription": "Core SecurityGroup, applies to any machine in CoreOS cluster",
         "SecurityGroupIngress": [
-          {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
+          {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"},
+          {"IpProtocol": "tcp", "FromPort": "3000", "ToPort": "3020", "CidrIp": "0.0.0.0/0"}
         ],
         "VpcId": {"Ref": "StackVpc"}
-      }
-    },
-    "TargetIngressFromRouter": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "IpProtocol": "tcp",
-        "FromPort": "3000",
-        "ToPort": "3020",
-        "SourceSecurityGroupId": {
-          "Fn::GetAtt" : [ "RouterSecurityGroup", "GroupId" ]
-        },
-        "GroupId": {
-          "Fn::GetAtt" : ["TargetSecurityGroup", "GroupId"]
-        }
       }
     },
     "TargetIngressFromMQTTBroker": {
@@ -401,6 +399,20 @@
           {"IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "CidrIp": "0.0.0.0/0"}
         ],
         "VpcId": {"Ref": "StackVpc"}
+      }
+    },
+    "TenantMgmt80Routers": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "80",
+        "ToPort": "80",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "RouterSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["TenantMgmtSecurityGroup", "GroupId"]
+        }
       }
     },
 
@@ -639,7 +651,21 @@
                 }
               ]
             }
-           }
+           },
+          {
+            "PolicyName": "JWTDecrypt",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Decrypt"
+                  ],
+                  "Resource": [ { "Ref": "JWTKeyARN" } ]
+                }
+              ]
+            }
+          }
           ]
         }
     },
@@ -647,9 +673,8 @@
        "Type": "AWS::IAM::InstanceProfile",
        "Properties": {
           "Path": "/",
-          "Roles": [ {
-             "Ref": "TargetRole"
-          } ]
+          "Roles": [ { "Ref": "TargetRole" }
+          ]
        }
     },
 
@@ -689,17 +714,32 @@
                 }
               ]
             }
-           }
+           },
+          {
+            "PolicyName": "JWTDecrypt",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Decrypt"
+                  ],
+                  "Resource": [ { "Ref": "JWTKeyARN" } ]
+                }
+              ]
+            }
+          }
           ]
         }
     },
+
     "RouterRoleInstanceProfile": {
        "Type": "AWS::IAM::InstanceProfile",
        "Properties": {
           "Path": "/",
-          "Roles": [ {
-             "Ref": "RouterRole"
-          } ]
+          "Roles": [
+            { "Ref": "RouterRole" }
+          ]
        }
     },
 
