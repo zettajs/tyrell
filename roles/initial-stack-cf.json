@@ -236,6 +236,9 @@
         "IpProtocol": "tcp",
         "FromPort": "80",
         "ToPort": "80",
+        "ConnectionSettings": {
+          "IdleTimeout":120
+        },
         "SourceSecurityGroupId": { "Ref": "ResultsELBSecurityGroup" },
         "GroupId": {
           "Fn::GetAtt" : ["ResultsSecurityGroup", "GroupId"]
