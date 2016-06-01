@@ -236,9 +236,6 @@
         "IpProtocol": "tcp",
         "FromPort": "80",
         "ToPort": "80",
-        "ConnectionSettings": {
-          "IdleTimeout":120
-        },
         "SourceSecurityGroupId": { "Ref": "ResultsELBSecurityGroup" },
         "GroupId": {
           "Fn::GetAtt" : ["ResultsSecurityGroup", "GroupId"]
@@ -261,6 +258,9 @@
       "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
       "Properties" : {
         "CrossZone": true,
+        "ConnectionSettings": {
+          "IdleTimeout":120
+        },
         "Listeners" : [
           { "LoadBalancerPort" : "80", "InstancePort" : "80", "Protocol" : "TCP" }
         ],

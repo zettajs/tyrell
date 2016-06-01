@@ -13,5 +13,5 @@ EnvironmentFile=/etc/environment
 EnvironmentFile=/etc/profile.d/zetta
 ExecStartPre=-/usr/bin/docker kill zetta.target.%i
 ExecStartPre=-/usr/bin/docker rm zetta.target.%i
-ExecStart=/usr/bin/docker run --rm --name zetta.target.%i -p %i:%i -e VERSION=${ZETTA_VERSION} -e DEVICE_DATA_QUEUE=${ZETTA_DEVICE_DATA_QUEUE} -e USAGE_QUEUE=${ZETTA_USAGE_QUEUE} -e MAPPED_PORT=%i -e COREOS_PRIVATE_IPV4=${COREOS_PRIVATE_IPV4} -e SERVICE_REGISTRY_URL=http://${COREOS_PRIVATE_IPV4}:3000 -e AWS_ACCESSKEY=${AWS_ACCESSKEY} -e AWS_SECRET=${AWS_SECRET} -e MQTT_BROKER_URL=${MQTT_INTERNAL_BROKER_URL} -e INFLUX_DATABASE=${INFLUX_DATABASE} zetta/link-zetta-target:analytics-support
+ExecStart=/usr/bin/docker run --rm --name zetta.target.%i -p %i:%i -e VERSION=${ZETTA_VERSION} -e DEVICE_DATA_QUEUE=${ZETTA_DEVICE_DATA_QUEUE} -e USAGE_QUEUE=${ZETTA_USAGE_QUEUE} -e MAPPED_PORT=%i -e COREOS_PRIVATE_IPV4=${COREOS_PRIVATE_IPV4} -e SERVICE_REGISTRY_URL=http://${COREOS_PRIVATE_IPV4}:3000 -e AWS_ACCESSKEY=${AWS_ACCESSKEY} -e AWS_SECRET=${AWS_SECRET} -e MQTT_BROKER_URL=${MQTT_INTERNAL_BROKER_URL} -e INFLUX_DATABASE=${INFLUX_DATABASE} zetta/link-zetta-target
 ExecStop=/usr/bin/docker stop zetta.target.%i
