@@ -41,6 +41,8 @@ coreos:
       command: start
     - name: telegraf.service
       command: start
+    - name: link-tenant-mgmt-api.service
+      command: start
     - name: docker.service
       drop-ins:
         - name: 10-logs-driver.conf

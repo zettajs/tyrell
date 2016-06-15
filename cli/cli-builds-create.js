@@ -19,9 +19,10 @@ program
   .option('-w, --worker', 'Build device data worker')
   .option('-m, --metrics', 'Build a metrics collection stack')
   .option('-b, --bastion', 'Build a bastion server')
-  .option('-t, --tag <tag>', 'Pull a specific docker container that corresponds to tag for router and proxy.')
+  .option('-t, --tag <tag>', 'Pull a specific docker container that corresponds to all images with updatable tags')
   .option('--router-tag <tag>', 'Pull a specfic docker container that corresponds to tag for router')
   .option('--target-tag <tag>', 'Pull a specific docker container that corresponds to tag for target')
+  .option('--tenant-mgmt-api-tag <tag>', 'Pull a specific docker container that corresponds to tag for tenant mgmt api')
   .parse(process.argv);
 
 var platform = program.args[0];
@@ -38,52 +39,28 @@ var homeConfigPath = path.join(process.env.HOME, '.dockercfg');
 var exists = fs.existsSync(configPath);
 
 var containerNames = {
-  ROUTER: 'zetta/link-router',
-  TARGET: 'zetta/link-zetta-target'
+  'tenantMgmtApiTag': 'zetta/link-tenant-mgmt-api',
+  'routerTag': 'zetta/link-router',
+  'targetTag': 'zetta/link-zetta-target'
 };
 
-var customRouter = false;
-var customTarget = false;
-
-if(program.routerTag) {
-  var tagString = ':' + program.routerTag;
-  containerNames.ROUTER += tagString;
-  customRouter = true;
-}
-
-if(program.targetTag) {
-  var tagString = ':' + program.targetTag;
-  containerNames.TARGET += tagString;
-  customTarget = true;
-}
-
-if(program.tag) {
-  var tagString = ':' + program.tag;
-  containerNames.TARGET += tagString;
-  containerNames.ROUTER += tagString;
-  customRouter = true;
-  customTarget = true;
+if (program.tag) {
+  Object.keys(containerNames).forEach(function(key) {
+    program[key] = program.tag;
+  });
 }
 
 var containerCommands = [];
 
-if(customRouter) {
-  var pullTag = 'docker pull ' + containerNames.ROUTER;
-  var tagContainer = 'docker tag ' + containerNames.ROUTER + ' zetta/link-router';  
+Object.keys(containerNames).forEach(function(key) {
+  if (program[key] === undefined) {
+    return;
+  }
+  var imageToPull = containerNames[key] + ':' + program[key];
+  var pullTag = 'docker pull ' + imageToPull;
+  var tagContainer = 'docker tag ' + imageToPull + ' ' + containerNames[key];
   containerCommands.push(pullTag, tagContainer);
-} else {
-  var pullTag = 'docker pull ' + containerNames.ROUTER;
-  containerCommands.push(pullTag); 
-}
-
-if(customTarget) {
-  var pullTag = 'docker pull ' + containerNames.TARGET;
-  var tagContainer = 'docker tag ' + containerNames.TARGET + ' zetta/link-zetta-target';
-  containerCommands.push(pullTag, tagContainer);  
-} else {
-  var pullTag = 'docker pull ' + containerNames.TARGET;
-  containerCommands.push(pullTag);
-}
+});
 
 if(!exists) {
   fs.createReadStream(homeConfigPath).pipe(fs.createWriteStream(configPath));
