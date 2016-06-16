@@ -26,6 +26,11 @@
     "PublicSubnetId": {
       "Description": "Public subnet to deploy instance to.",
       "Type": "String"
+    },
+    "JWTKeyARN" : {
+      "Type" : "String",
+      "Default" : "",
+      "Description" : "ARN to KMS key for JWT signing and verifing."
     }
   },
 
@@ -66,6 +71,20 @@
                 }
               ]
             }
+           },
+           {
+             "PolicyName": "JWTDecrypt",
+             "PolicyDocument": {
+               "Statement": [
+                 {
+                   "Effect": "Allow",
+                   "Action": [
+                     "kms:Decrypt"
+                   ],
+                   "Resource": [ { "Ref": "JWTKeyARN" } ]
+                 }
+               ]
+             }
            }
           ]
         }

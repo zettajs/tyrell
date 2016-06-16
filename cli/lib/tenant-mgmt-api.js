@@ -62,6 +62,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   userData = userData.replace(/@@INFLUXDB_HOST@@/g, stack.Parameters['InfluxdbHost']);
   userData = userData.replace(/@@INFLUXDB_USERNAME@@/g, stack.Parameters['InfluxdbUsername']);
   userData = userData.replace(/@@INFLUXDB_PASSWORD@@/g, stack.Parameters['InfluxdbPassword']);
+  userData = userData.replace(/@@JWT_CIPHER_TEXT@@/g, stack.Parameters['JWTCipherText'] || '');
 
   var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/tenant-mgmt-api/cloudformation.json')).toString());
   template.Resources['Instance'].Properties.UserData = { 'Fn::Base64': userData };
@@ -77,7 +78,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
       { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
       { ParameterKey: 'ZettaStack', ParameterValue: stack.StackName },
       { ParameterKey: 'SecurityGroups', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['TenantMgmtSecurityGroup'].GroupId].join(',') },
-      { ParameterKey: 'PublicSubnetId', ParameterValue: config.subnet }
+      { ParameterKey: 'PublicSubnetId', ParameterValue: config.subnet },
+      { ParameterKey: 'JWTKeyARN', ParameterValue: stack.Parameters['JWTKeyARN'] }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stack.StackName },

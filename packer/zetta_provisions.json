@@ -8,8 +8,6 @@
   {
     "type": "shell",
     "inline": [
-      "docker pull zetta/link-zetta-target",
-      "docker pull zetta/link-router"
     ]
   }
 ] }

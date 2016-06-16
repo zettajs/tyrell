@@ -192,7 +192,13 @@ function generateStackParams(config) {
 
 function generateJWTParam(AWS, config, callback) {
   var kms = new AWS.KMS();
-  var psk = crypto.randomBytes(32).toString('hex')
+  // Join external and internal psk keys
+  // Internal - Used to create jwt used by routers/tenant-api to communicate with targets
+  // External - Used to create jwt used by clients to peer with targets
+  var psk = [
+    crypto.randomBytes(32).toString('hex'), // Internal
+    crypto.randomBytes(32).toString('hex') // External
+  ].join(',');
 
   kms.createKey({ Description: config.stack + ' JWT decrypt key.' }, function(err, data) {
     if (err) {

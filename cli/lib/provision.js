@@ -30,16 +30,16 @@ var traffic = require('./traffic');
 
 var DEFAULTS = {
   routerSize: 1, // Number of router instances
-  routerType: 't2.micro', // Router types
+  routerType: 't2.small', // Router types
   versionSize: 1, // number of zetta target instances
-  versionType: 't2.micro', // zetta target instances type
+  versionType: 't2.small', // zetta target instances type
   workerType: 't2.medium',
   dbSize: 5, //GB
   dbMultiAZ: false,
   dbInstanceType: 'db.t2.micro',
-  credentialApiInstanceType: 't2.micro',
-  rabbitmqInstanceType: 't2.micro',
-  mqttbrokerInstanceType: 't2.micro'
+  credentialApiInstanceType: 't2.small',
+  rabbitmqInstanceType: 't2.small',
+  mqttbrokerInstanceType: 't2.small'
 };
 
 module.exports = function(AWS, opts, callback) {
@@ -84,7 +84,7 @@ module.exports = function(AWS, opts, callback) {
           routers.create(AWS, stack, config, next);
         },
         function(next) {
-          var config = { ami: images[0], size: opts.versionSize, type: opts.versionType, version: versionKeys.target, subnets: opts.privateSubnets };
+          var config = { ami: images[0], size: opts.versionSize, type: opts.versionType, version: versionKeys.target, subnets: opts.publicSubnets };
           targets.create(AWS, stack, config, next);
         },
         function(next) {

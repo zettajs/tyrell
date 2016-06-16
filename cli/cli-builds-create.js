@@ -58,7 +58,7 @@ Object.keys(containerNames).forEach(function(key) {
   }
   var imageToPull = containerNames[key] + ':' + program[key];
   var pullTag = 'docker pull ' + imageToPull;
-  var tagContainer = 'docker tag ' + imageToPull + ' ' + containerNames[key];
+  var tagContainer = 'docker tag -f ' + imageToPull + ' ' + containerNames[key];
   containerCommands.push(pullTag, tagContainer);
 });
 
