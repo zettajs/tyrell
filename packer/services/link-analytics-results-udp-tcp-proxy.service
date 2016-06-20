@@ -1,0 +1,16 @@
+[Unit]
+Description=Link Analytics Results UDP-TCP proxy
+After=docker.service
+Requires=docker.service
+
+[Service]
+User=core
+TimeoutStartSec=0
+Restart=always
+RestartSec=5
+EnvironmentFile=/etc/environment
+EnvironmentFile=/etc/profile.d/zetta
+ExecStartPre=-/usr/bin/docker kill link-analytics-results-udp-tcp-proxy.service
+ExecStartPre=-/usr/bin/docker rm link-analytics-results-udp-tcp-proxy.service
+ExecStart=/usr/bin/docker run --rm --name link-analytics-results-udp-tcp-proxy.service -e COREOS_PRIVATE_IPV4=${COREOS_PRIVATE_IPV4} -p 3007:3007/udp zetta/link-realtime-analytics-results-udp-tcp-proxy
+ExecStop=/usr/bin/docker stop link-analytics-results-udp-tcp-proxy.service

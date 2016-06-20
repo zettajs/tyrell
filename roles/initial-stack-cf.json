@@ -133,7 +133,7 @@
         }
       }
     },
-    
+
     "CredentialAPISecurityGroup": {
       "Condition" : "CreateDeviceToCloud",
       "Type": "AWS::EC2::SecurityGroup",
@@ -206,7 +206,7 @@
         "SourceSecurityGroupId": { "Ref": "ResultsSecurityGroup" },
         "GroupId": {
           "Fn::GetAtt" : ["InfluxSecurityGroup", "GroupId"]
-        }      
+        }
       }
     },
     "InfluxIngress8083": {
@@ -235,9 +235,9 @@
       "Condition" : "CreateAnalytics",
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "IpProtocol": "udp",
-        "FromPort": "3007",
-        "ToPort": "3007",
+        "IpProtocol": "tcp",
+        "FromPort": "3008",
+        "ToPort": "3008",
         "SourceSecurityGroupId": {"Ref": "InfluxSecurityGroup"},
         "GroupId": {
           "Fn::GetAtt" : ["ResultsSecurityGroup", "GroupId"]
