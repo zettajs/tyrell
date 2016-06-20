@@ -170,6 +170,10 @@
   {
     "type": "shell",
     "inline": "docker pull influxdb"
+  },
+  {
+    "type": "shell",
+    "inline": "docker pull zetta/link-realtime-analytics-results-udp-tcp-proxy"  
   }
   ],
   "post-processors": [

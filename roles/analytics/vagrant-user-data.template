@@ -37,6 +37,10 @@ coreos:
       command: start
     - name: link-analytics-results-api.service
       command: start
+    - name: link-analytics-results-api-check.service
+      command: start
+    - name: link-analytics-results-udp-tcp-proxy.service
+      command: start 
     - name: docker.service
       drop-ins:
         - name: 10-logs-driver.conf
