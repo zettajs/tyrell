@@ -31,8 +31,8 @@ var traffic = require('./traffic');
 var DEFAULTS = {
   routerSize: 1, // Number of router instances
   routerType: 't2.micro', // Router types
-  versionSize: 1, // number of zetta target instances
-  versionType: 't2.micro', // zetta target instances type
+  versionSize: 3, // number of zetta target instances
+  versionType: 't2.medium', // zetta target instances type
   workerType: 't2.medium',
   dbSize: 5, //GB
   dbMultiAZ: false,
@@ -98,7 +98,7 @@ module.exports = function(AWS, opts, callback) {
         // Add RDS Postgres db if device-to-cloud is enabled
         function(next) {
           if (opts.deviceToCloud !== true) return next();
-          
+
           var config = { size: opts.dbSize, type: opts.dbInstanceType, version: versionKeys.database, multiAz: opts.dbMultiAZ };
           databases.create(AWS, stack, config, function(err) {
             if (err) {
@@ -113,16 +113,16 @@ module.exports = function(AWS, opts, callback) {
         // Add RabbitMQ  if device-to-cloud is enabled
         function(next) {
           if (opts.deviceToCloud !== true) return next();
-          
+
           var config = { ami: images[0], type: opts.rabbitmqInstanceType, version: versionKeys.rabbitmq, size: 1 };
           rabbitmq.create(AWS, stack, config, next);
         },
         // Add mqttbrokers if device-to-cloud is enabled
         function(next) {
           if (opts.deviceToCloud !== true) return next();
-          
+
           var config = { ami: images[0], type: opts.mqttbrokerInstanceType, version: versionKeys.mqttbroker, size: 1 };
-          mqttbrokers.create(AWS, stack, config, next);          
+          mqttbrokers.create(AWS, stack, config, next);
         }
       ];
 
@@ -183,7 +183,7 @@ module.exports = function(AWS, opts, callback) {
               if (!version) {
                 return next(new Error('Unable to find rabbitmq version'));
               }
-              
+
               var config = { version: version,  elbName: stack.Resources['RabbitMQELB'].PhysicalResourceId, stack: opts.stack };
               traffic.routeRabbitMq(AWS, config, next);
             });
@@ -203,7 +203,7 @@ module.exports = function(AWS, opts, callback) {
               if (!version) {
                 return next(new Error('Unable to find mqttbroker version'));
               }
-              
+
               var config = { version: version,  elbName: [stack.Resources['InternalMQTTELB'].PhysicalResourceId, stack.Resources['ExternalMQTTELB'].PhysicalResourceId], stack: opts.stack };
               traffic.routeMqttBroker(AWS, config, next);
             });
@@ -224,7 +224,7 @@ module.exports = function(AWS, opts, callback) {
               if (!version) {
                 return next(new Error('Unable to find credential api version'));
               }
-              
+
               var config = { version: version,  elbName: stack.Resources['CredentialAPIELB'].PhysicalResourceId, stack: opts.stack };
               traffic.routeCredentialApi(AWS, config, next);
             });
