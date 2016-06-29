@@ -209,19 +209,6 @@
         }
       }
     },
-    "InfluxIngress8083": {
-      "Condition" : "CreateAnalytics",
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "IpProtocol": "tcp",
-        "FromPort": "8083",
-        "ToPort": "8083",
-        "SourceSecurityGroupId": { "Ref": "TargetSecurityGroup" },
-        "GroupId": {
-          "Fn::GetAtt" : ["InfluxSecurityGroup", "GroupId"]
-        }
-      }
-    },
     "ResultsSecurityGroup": {
       "Condition" : "CreateAnalytics",
       "Type": "AWS::EC2::SecurityGroup",
@@ -231,7 +218,7 @@
         "VpcId": {"Ref": "StackVpc"}
       }
     },
-    "ResultsIngress3007": {
+    "ResultsIngress3008": {
       "Condition" : "CreateAnalytics",
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
