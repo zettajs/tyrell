@@ -49,14 +49,16 @@ function display(images) {
 
   console.log(['Image ID',
                'Build Date',
+               'Virtualization Type',
                'zetta-cloud-proxy',
                'zetta-target-server',
-               'tyrell'
+               'tyrell',
               ].join('\t'));
   
   images.forEach(function(image) {
     console.log([image.ImageId,
                  image.CreationDate,
+                 (image.VirtualizationType === 'hvm') ? 'hvm' : 'para',
                  image.Tags['versions:zetta-cloud-proxy'],
                  image.Tags['versions:zetta-target-server'],
                  image.Tags['versions:tyrell']

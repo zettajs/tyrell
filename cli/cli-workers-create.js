@@ -58,7 +58,7 @@ stacks.get(AWS, name, function(err, stack) {
       version: program.version,
       type: program.type,
       ami: program.ami,
-      subnets: subnetIdArray
+      subnets: subnetIdArray.join(',')
     };
 
     console.log('Creating CF Version', program.version);
