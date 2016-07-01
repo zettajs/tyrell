@@ -117,6 +117,14 @@
   {
     "only": ["virtualbox-iso"],
     "type": "shell",
+    "inline": [
+      "docker pull influxdb",
+      "docker pull chronograf"
+    ]
+  },
+  {
+    "only": ["virtualbox-iso"],
+    "type": "shell",
     "inline": "docker pull postgres"
   },
   {
@@ -151,6 +159,11 @@
     "destination": "/home/core/journal2logstash.sh"
   },
   {
+    "type": "file",
+    "source": "tele.conf",
+    "destination": "/home/core/tele.conf"
+  },
+  {
     "type": "shell",
     "inline": "docker pull zetta/zetta-mqtt-external-broker"
   },
@@ -165,6 +178,10 @@
   {
     "type": "shell",
     "inline": "docker pull zetta/link-tenant-mgmt-api"
+  },
+  {
+    "type": "shell",
+    "inline": "docker pull telegraf"
   }
   ],
   "post-processors": [

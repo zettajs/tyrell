@@ -1,0 +1,15 @@
+[Unit]
+Description=InfluxDB is an open source time series database for recording metrics, events, and analytics.
+After=docker.service
+Requires=docker.service
+
+[Service]
+User=core
+TimeoutStartSec=0
+Restart=always
+RestartSec=5
+EnvironmentFile=/etc/environment
+ExecStartPre=-/usr/bin/docker kill influxdb
+ExecStartPre=-/usr/bin/docker rm influxdb
+ExecStart=/usr/bin/docker run --rm --name influxdb -v /home/core/influxdb:/var/lib/influxdb -p 8086:8086 influxdb
+ExecStop=/usr/bin/docker stop influxdb

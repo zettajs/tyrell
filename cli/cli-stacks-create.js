@@ -20,6 +20,7 @@ program
   .option('--no-provision', 'Do create routers/versions/workers with the latest ami.')
   .option('--device-data-bucket <bucket name>', 'Specify existing device data bucket')
   .option('--zetta-usage-bucket <bucket name>', 'Specify existing device data bucket')
+  .option('--influx-host <influx host>', 'Metrics influxdb host', 'http://metrics.iot.apigee.net:8086')
   .option('-v --vpc <vpc>', 'VPC to deploy the stack onto')
   .option('--device-to-cloud', 'Create device to cloud resources.')
   .parse(process.argv);
@@ -138,7 +139,8 @@ coreosamis()
           vpc: program.vpc,
           privateSubnets: privateSubnetIdArray.join(','),
           publicSubnets: publicSubnetIdArray.join(','),
-          deviceToCloud: program.deviceToCloud
+          deviceToCloud: program.deviceToCloud,
+          influxdbHost: program.influxdbHost
         };
 
         stacks.create(AWS, config, function(err) {

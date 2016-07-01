@@ -1,0 +1,16 @@
+[Unit]
+Description=Chronograf is a visualization tool for time series data in InfluxDB.
+After=docker.service
+Requires=docker.service
+
+[Service]
+User=core
+TimeoutStartSec=0
+Restart=always
+RestartSec=5
+EnvironmentFile=/etc/environment
+EnvironmentFile=/etc/profile.d/zetta
+ExecStartPre=-/usr/bin/docker kill telegraf
+ExecStartPre=-/usr/bin/docker rm telegraf
+ExecStart=/usr/bin/docker run --rm --name telegraf -p 8125:8125/udp -v /home/core/tele.conf:/etc/telegraf/telegraf.conf:ro -e INFLUXDB_HOST=${INFLUXDB_HOST} -e HOSTNAME=${HOSTNAME} -e ZETTA_STACK=${ZETTA_STACK} -e ZETTA_VERSION=${ZETTA_VERSION} -v /var/run/docker.sock:/var/run/docker.sock telegraf
+ExecStop=/usr/bin/docker stop telegraf

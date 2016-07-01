@@ -37,9 +37,7 @@ coreos:
       command: start
     - name: journallogs-logstash.service
       command: start
-    - name: statsd-elasticsearch.service
-      command: start
-    - name: link-container-metrics-collector.service
+    - name: telegraf.service
       command: start
     - name: docker.service
       drop-ins:
@@ -73,3 +71,4 @@ write_files:
       LOGENTRIES_TOKEN="@@LOGENTRIES_TOKEN@@"
       CORE_SERVICES_ASG="@@CORE_SERVICES_ASG@@"
       MQTT_INTERNAL_BROKER_URL="@@MQTT_INTERNAL_BROKER_URL@@"
+      INFLUXDB_HOST="@@INFLUXDB_HOST@@"

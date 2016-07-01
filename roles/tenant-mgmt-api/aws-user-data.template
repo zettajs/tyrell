@@ -33,11 +33,9 @@ coreos:
       command: start
     - name: journallogs-logstash.service
       command: start
-    - name: statsd-cloudwatch.service
-      command: start
     - name: link-metrics-collector.service
       command: start
-    - name: link-container-metrics-collector.service
+    - name: telegraf.service
       command: start
     - name: docker.service
       drop-ins:
@@ -68,3 +66,4 @@ write_files:
       ZETTA_VERSION="@@ZETTA_VERSION@@"
       LOGENTRIES_TOKEN="@@LOGENTRIES_TOKEN@@"
       CORE_SERVICES_ASG="@@CORE_SERVICES_ASG@@"
+      INFLUXDB_HOST="@@INFLUXDB_HOST@@"

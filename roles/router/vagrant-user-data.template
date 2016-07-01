@@ -43,6 +43,15 @@ coreos:
       command: start
     - name: link-credential-api.service
       command: start
+    - name: influxdb.service
+      command: start
+    - name: chronograf.service
+      command: start
+    - name: telegraf.service
+      command: start
+    # Only added to router on vagrant
+    - name: link-container-metrics-collector.service
+      command: start
     - name: docker.service
       drop-ins:
         - name: 10-logs-driver.conf
@@ -72,3 +81,4 @@ write_files:
       CREDENTIAL_DB_CONNECTION_URL="@@CREDENTIAL_DB_CONNECTION_URL@@"
       RABBITMQ_URL="@@RABBITMQ_URL@@"
       CREDENTIAL_API_URL="@@CREDENTIAL_API_URL@@"
+      INFLUXDB_HOST="http://core-03:8086"

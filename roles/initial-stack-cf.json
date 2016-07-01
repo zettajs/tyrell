@@ -66,6 +66,11 @@
       "Type" : "String",
       "Default" : "false",
       "Description" : "Enable MQTT Device to Cloud"
+    },
+    "InfluxdbHost" : {
+      "Type" : "String",
+      "Default" : "",
+      "Description" : "Influxdb Host for metrics collection"
     }
   },
 
