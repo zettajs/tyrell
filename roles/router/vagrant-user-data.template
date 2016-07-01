@@ -50,7 +50,7 @@ coreos:
     - name: telegraf.service
       command: start
     # Only added to router on vagrant
-    - name: link-container-metrics-collector.service
+    - name: link-metrics-collector.service
       command: start
     - name: docker.service
       drop-ins:

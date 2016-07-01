@@ -20,7 +20,7 @@ program
   .option('--no-provision', 'Do create routers/versions/workers with the latest ami.')
   .option('--device-data-bucket <bucket name>', 'Specify existing device data bucket')
   .option('--zetta-usage-bucket <bucket name>', 'Specify existing device data bucket')
-  .option('--influx-host <influx host>', 'Metrics influxdb host', 'http://metrics.iot.apigee.net:8086')
+  .option('--influxdb-host <influx host>', 'Metrics influxdb host', 'http://metrics.iot.apigee.net:8086')
   .option('-v --vpc <vpc>', 'VPC to deploy the stack onto')
   .option('--device-to-cloud', 'Create device to cloud resources.')
   .parse(process.argv);
