@@ -13,7 +13,6 @@ CLOUD_CONFIG_PATH = File.join(File.dirname(__FILE__))
 
 $num_instances_zetta=1
 $num_instances_router=1
-$instance_name_prefix = "core"
 $update_channel = "stable"
 
 if File.exist?(CONFIG)
@@ -21,9 +20,8 @@ if File.exist?(CONFIG)
 end
 
 
-def init_machine(config, i, type)
-
-  config.vm.define vm_name = "%s-%02d" % [$instance_name_prefix, i] do |config|
+def init_machine(config, i, type, n)
+  config.vm.define vm_name = "%s-%s-%02d" % ["link", type, i] do |config|
     config.vm.box = "zetta-coreos-%s-build" % $update_channel
     config.vm.hostname = vm_name
 
@@ -47,7 +45,7 @@ def init_machine(config, i, type)
       config.vbguest.auto_update = false
     end
 
-    ip = "172.17.8.#{i+100}"
+    ip = "172.17.8.#{n+100}"
     config.vm.network :private_network, ip: ip
 
     config.vm.provision :file, :source => "#{CLOUD_CONFIG_PATH}/#{type}-user-data", :destination => "/tmp/vagrantfile-user-data"
@@ -68,13 +66,19 @@ def init_machine(config, i, type)
 end
 
 Vagrant.configure(2) do |config|
+  count = 0
+
+  count+=1
+  init_machine(config, 1, "metrics", count)
 
   (1..$num_instances_zetta).each do |i|
-    init_machine(config, i, "target")
+    count+=1
+    init_machine(config, i, "target", count)
   end
 
-  (($num_instances_zetta+1)..($num_instances_router+$num_instances_zetta)).each do |i|
-    init_machine(config, i, "router")
+  (1..$num_instances_router).each do |i|
+    count+=1
+    init_machine(config, i, "router", count)
   end
 
 end

@@ -31,19 +31,13 @@ coreos:
       command: stop
     - name: fleet.service
       command: start
-    - name: zetta-proxy.service
+    - name: influxdb.service
       command: start
-    - name: rabbitmq.service
-      command: start
-    - name: mock-postgres.service
-      command: start
-    - name: link-mqtt-internal-broker.service
-      command: start
-    - name: link-mqtt-external-broker.service
-      command: start
-    - name: link-credential-api.service
+    - name: grafana.service
       command: start
     - name: telegraf.service
+      command: start
+    - name: link-metrics-collector.service
       command: start
     - name: docker.service
       drop-ins:
@@ -72,8 +66,5 @@ write_files:
     content: |
       ZETTA_VERSION=@@ZETTA_VERSION@@
       ZETTA_STACK=@@ZETTA_STACK@@
-      LINK_INSTANCE_TYPE=router
-      CREDENTIAL_DB_CONNECTION_URL=@@CREDENTIAL_DB_CONNECTION_URL@@
-      RABBITMQ_URL=@@RABBITMQ_URL@@
-      CREDENTIAL_API_URL=@@CREDENTIAL_API_URL@@
+      LINK_INSTANCE_TYPE=metrics
       INFLUXDB_HOST=@@INFLUXDB_HOST@@

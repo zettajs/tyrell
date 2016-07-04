@@ -34,7 +34,7 @@ var proxyDockerCmd = 'docker build -t zetta/link-router /home/core/proxy/';
 var proxyRestartCmd = 'sudo systemctl restart zetta-proxy.service';
 
 if (!component || component == 'target') {
-  async.each(['core-01', 'core-02'], function(box, next) {
+  async.each(['link-target-01'], function(box, next) {
     runOnBox(box, targetDockerCmd, function(err) {
       if (err) {
         return next(err);
@@ -49,7 +49,7 @@ if (!component || component == 'target') {
 }
 
 if (!component || component == 'proxy') {
-  async.each(['core-03'], function(box, next) {
+  async.each(['link-router-01'], function(box, next) {
     runOnBox(box, proxyDockerCmd, function(err) {
       if (err) {
         return next(err);

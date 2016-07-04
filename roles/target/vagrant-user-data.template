@@ -76,4 +76,4 @@ write_files:
       AWS_ACCESSKEY=fakekey
       AWS_SECRET=fakesecret
       MQTT_INTERNAL_BROKER_URL=@@MQTT_INTERNAL_BROKER_URL@@
-      INFLUXDB_HOST=http://core-03:8086
+      INFLUXDB_HOST=@@INFLUXDB_HOST@@
