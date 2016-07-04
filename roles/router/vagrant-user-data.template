@@ -45,7 +45,7 @@ coreos:
       command: start
     - name: influxdb.service
       command: start
-    - name: chronograf.service
+    - name: grafana.service
       command: start
     - name: telegraf.service
       command: start
@@ -77,8 +77,10 @@ write_files:
     permissions: 644
     owner: root
     content: |
-      ZETTA_VERSION="@@ZETTA_VERSION@@"
-      CREDENTIAL_DB_CONNECTION_URL="@@CREDENTIAL_DB_CONNECTION_URL@@"
-      RABBITMQ_URL="@@RABBITMQ_URL@@"
-      CREDENTIAL_API_URL="@@CREDENTIAL_API_URL@@"
-      INFLUXDB_HOST="http://core-03:8086"
+      ZETTA_VERSION=@@ZETTA_VERSION@@
+      ZETTA_STACK=@@ZETTA_STACK@@
+      LINK_INSTANCE_TYPE=router
+      CREDENTIAL_DB_CONNECTION_URL=@@CREDENTIAL_DB_CONNECTION_URL@@
+      RABBITMQ_URL=@@RABBITMQ_URL@@
+      CREDENTIAL_API_URL=@@CREDENTIAL_API_URL@@
+      INFLUXDB_HOST=http://core-03:8086

@@ -12,5 +12,5 @@ EnvironmentFile=/etc/environment
 EnvironmentFile=/etc/profile.d/zetta
 ExecStartPre=-/usr/bin/docker kill link-tenant-mgmt-api
 ExecStartPre=-/usr/bin/docker rm link-tenant-mgmt-api
-ExecStart=/usr/bin/docker run --rm --name link-tenant-mgmt-api -e COREOS_PRIVATE_IPV4=${COREOS_PRIVATE_IPV4} -e PORT=2000 -p 80:2000 zetta/link-tenant-mgmt-api
+ExecStart=/usr/bin/docker run --rm --name link-tenant-mgmt-api --env-file /etc/profile.d/zetta -e PORT=2000 -p 80:2000 zetta/link-tenant-mgmt-api
 ExecStop=/usr/bin/docker stop link-tenant-mgmt-api

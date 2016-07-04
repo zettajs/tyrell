@@ -102,6 +102,11 @@
     "destination": "/home/core/.dockercfg"
   },
   {
+    "type": "file",
+    "source": "tele.conf",
+    "destination": "/home/core/tele.conf"
+  },
+  {
     "type": "shell",
     "inline": "sudo rm /etc/machine-id"
   },
@@ -112,35 +117,16 @@
   {
     "only": ["virtualbox-iso"],
     "type": "shell",
-    "inline": "docker pull adammagaluk/elasticmq"
-  },
-  {
-    "only": ["virtualbox-iso"],
-    "type": "shell",
     "inline": [
+      "docker pull adammagaluk/elasticmq",
+      "docker pull postgres",
       "docker pull influxdb",
       "docker pull grafana/grafana:3.1.0-beta1"
     ]
   },
   {
-    "only": ["virtualbox-iso"],
     "type": "shell",
-    "inline": "docker pull postgres"
-  },
-  {
-    "only": ["amazon-ebs"],
-    "type": "shell",
-    "inline": "docker pull mdobson/statsd-elasticsearch"
-  },
-  {
-    "only": ["amazon-ebs"],
-    "type": "shell",
-    "inline": "docker pull zetta/link-metrics-collector"
-  },
-  {
-    "only": ["amazon-ebs"],
-    "type": "shell",
-    "inline": "docker pull zetta/link-container-metrics-collector"
+    "inline": "docker pull zetta/link-metrics-collector:support-telegraf"
   },
   {
     "only": ["amazon-ebs"],
@@ -157,11 +143,6 @@
     "type": "file",
     "source": "journal2logstash.sh",
     "destination": "/home/core/journal2logstash.sh"
-  },
-  {
-    "type": "file",
-    "source": "tele.conf",
-    "destination": "/home/core/tele.conf"
   },
   {
     "type": "shell",
