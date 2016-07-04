@@ -23,9 +23,6 @@ var configs = {
     'ZETTA_VERSION': crypto.randomBytes(6).toString('hex'),
     'ZETTA_STACK': 'vagrant',
     'INFLUXDB_HOST': 'http://link-metrics-01:8086',
-    'CREDENTIAL_DB_CONNECTION_URL': 'postgres://postgres:mysecretpassword@link-router-01/postgres',
-    'RABBITMQ_URL': 'amqp://link-router-01:5672',
-    'CREDENTIAL_API_URL': 'http://link-router-01:2000'
   },
   target: {
     'ZETTA_VERSION': version,
@@ -39,7 +36,15 @@ var configs = {
     'ZETTA_VERSION': crypto.randomBytes(6).toString('hex'),
     'ZETTA_STACK': 'vagrant',
     'INFLUXDB_HOST': 'http://link-metrics-01:8086'
-  }
+  },
+  mqttbroker: {
+    'ZETTA_VERSION': crypto.randomBytes(6).toString('hex'),
+    'ZETTA_STACK': 'vagrant',
+    'INFLUXDB_HOST': 'http://link-metrics-01:8086',
+    'CREDENTIAL_DB_CONNECTION_URL': 'postgres://postgres:mysecretpassword@link-mqttbroker-01/postgres',
+    'RABBITMQ_URL': 'amqp://link-mqttbroker-01:5672',
+    'CREDENTIAL_API_URL': 'http://link-mqttbroker-01:2000'
+  },
 };
 
 function generateConfig(cb) {

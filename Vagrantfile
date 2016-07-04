@@ -15,6 +15,8 @@ $num_instances_zetta=1
 $num_instances_router=1
 $update_channel = "stable"
 
+$device_to_cloud = false
+
 if File.exist?(CONFIG)
   require CONFIG
 end
@@ -81,4 +83,8 @@ Vagrant.configure(2) do |config|
     init_machine(config, i, "router", count)
   end
 
+  if $device_to_cloud then
+    count+=1
+    init_machine(config, 1, "mqttbroker", count)
+  end
 end

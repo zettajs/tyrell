@@ -20,7 +20,7 @@ coreos:
     listen-peer-urls: http://$private_ipv4:2380
   fleet:
     public-ip: $public_ipv4
-    metadata: role=router
+    metadata: role=metrics
   units:
     - name: update-engine.service
       command: stop
