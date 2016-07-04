@@ -70,6 +70,11 @@
     "destination": "/home/core/.ssh/authorized_keys"
   },
   {
+    "type": "file",
+    "source": "influxdb_backup.sh",
+    "destination": "/home/core/influxdb_backup.sh"
+  },
+  {
     "type": "shell",
     "inline": "sudo rm /etc/machine-id"
   },
@@ -84,6 +89,18 @@
   {
     "type": "shell",
     "inline": "docker pull logstash"
+  },
+  {
+    "type": "shell",
+    "inline": "docker pull influxdb"
+  },
+  {
+    "type": "shell",
+    "inline": "docker pull grafana/grafana:3.1.0-beta1"
+  },
+  {
+    "type": "shell",
+    "inline": "docker pull cgswong/aws:s3cmd"
   },
   {
     "type": "file",
