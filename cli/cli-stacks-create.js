@@ -15,7 +15,7 @@ program
   .option('--logToken <token>', 'Specify a log entries token for logging.', '')
   .option('-s, --size <size>', 'Specify cluster size for core services.', 3)
   .option('-t, --type <type>', 'Specify instance type for core services.', 't2.small')
-  .option('--core-os-version [version]', 'CoreOS version to get ami value', '835.9.0')
+  .option('--core-os-version [version]', 'CoreOS version to get ami value', '1010.6.0')
   .option('--ami-type [hvm|pv]', 'AWS ami virtualization type', 'hvm')
   .option('--no-provision', 'Do create routers/versions/workers with the latest ami.')
   .option('--device-data-bucket <bucket name>', 'Specify existing device data bucket')
