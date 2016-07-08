@@ -33,8 +33,6 @@ coreos:
       command: start
     - name: zetta-proxy.service
       command: start
-    - name: link-tenant-mgmt-api.service
-      command: start
     - name: telegraf.service
       command: start
     - name: docker.service

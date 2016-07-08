@@ -62,6 +62,7 @@ def init_machine(config, i, type, n)
     config.vm.synced_folder proxy_dir, "/home/core/proxy", id: "proxy", :nfs => true, :mount_options => ["nolock,vers=3,udp"] if proxy_dir
     config.vm.synced_folder "dev/", "/home/core/dev", id: "dev", :nfs => true, :mount_options => ['nolock,vers=3,udp']
     config.vm.synced_folder "roles/database/sql/", "/home/core/sql", id: "sql", :nfs => true, :mount_options => ["nolock,vers=3,udp"]
+    config.vm.synced_folder "packer/services", "/home/core/services", id: "services", :nfs => true, :mount_options => ["nolock,vers=3,udp"]
 
     config.vm.network "forwarded_port", guest: 2375, host: 2375, auto_correct: true
   end

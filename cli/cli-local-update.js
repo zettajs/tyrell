@@ -33,6 +33,22 @@ var targetRestartCmd = 'sudo systemctl restart zetta-target@{3001..3003}.service
 var proxyDockerCmd = 'docker build -t zetta/link-router /home/core/proxy/';
 var proxyRestartCmd = 'sudo systemctl restart zetta-proxy.service';
 
+
+if (!component || component == 'services') {
+  async.each(['link-router-01', 'link-target-01', 'link-metrics-01'], function(box, next) {
+    runOnBox(box, 'sudo cp /home/core/services/* /etc/systemd/system/', function(err) {
+      if (err) {
+        return next(err);
+      }
+      runOnBox(box, 'sudo systemctl daemon-reload', next);    
+    });
+  }, function(err) {
+    if (err) {
+      throw err;
+    }
+  });
+}
+
 if (!component || component == 'target') {
   async.each(['link-target-01'], function(box, next) {
     runOnBox(box, targetDockerCmd, function(err) {
@@ -62,4 +78,3 @@ if (!component || component == 'proxy') {
     }
   });
 }
-

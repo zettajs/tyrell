@@ -12,5 +12,5 @@ EnvironmentFile=/etc/environment
 EnvironmentFile=/etc/profile.d/zetta
 ExecStartPre=-/usr/bin/docker kill link-mqtt-external-broker
 ExecStartPre=-/usr/bin/docker rm link-mqtt-external-broker
-ExecStart=/usr/bin/docker run --rm --name link-mqtt-external-broker -e PORT=1883 -p 1883:1883 --env-file /etc/profile.d/zetta -e BROKER_URL=${RABBITMQ_URL} zetta/zetta-mqtt-external-broker
+ExecStart=/usr/bin/docker run --rm --name link-mqtt-external-broker -e PORT=1883 -p 1883:1883 --env-file /etc/environment --env-file /etc/profile.d/zetta -e BROKER_URL=${RABBITMQ_URL} zetta/zetta-mqtt-external-broker
 ExecStop=/usr/bin/docker stop link-mqtt-external-broker
