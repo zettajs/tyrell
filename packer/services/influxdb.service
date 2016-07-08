@@ -11,5 +11,5 @@ RestartSec=5
 EnvironmentFile=/etc/environment
 ExecStartPre=-/usr/bin/docker kill influxdb
 ExecStartPre=-/usr/bin/docker rm influxdb
-ExecStart=/usr/bin/docker run --rm --name influxdb -v /home/core/influxdb:/var/lib/influxdb -p 8086:8086 influxdb
+ExecStart=/usr/bin/docker run --rm --name influxdb -v /home/core/influxdb:/var/lib/influxdb -v /home/core/influxdb.conf:/etc/influxdb/influxdb.conf:ro -p 8086:8086 -p 8088:8088 influxdb -config /etc/influxdb/influxdb.conf
 ExecStop=/usr/bin/docker stop influxdb

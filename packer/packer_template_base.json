@@ -107,6 +107,11 @@
     "destination": "/home/core/tele.conf"
   },
   {
+    "type": "file",
+    "source": "influxdb.conf",
+    "destination": "/home/core/influxdb.conf"
+  },
+  {
     "type": "shell",
     "inline": "sudo rm /etc/machine-id"
   },
@@ -126,7 +131,7 @@
   },
   {
     "type": "shell",
-    "inline": "docker pull zetta/link-metrics-collector:support-telegraf"
+    "inline": "docker pull zetta/link-metrics-collector"
   },
   {
     "only": ["amazon-ebs"],
