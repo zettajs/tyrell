@@ -3,6 +3,9 @@
     "aws_access_key": "@@AWS_ACCESS_KEY@@",
     "aws_secret_key": "@@AWS_SECRET_KEY@@",
     "checksum": "@@COREOS_MD5_HASH@@",
+    "core_os_ami": "@@CORE_OS_AMI@@",
+    "aws_build_type": "t2.medium",
+    "aws_root_device": "/dev/xvda",
     "channel": "stable",
     "version": "current",
     "checksum_type":"md5",
@@ -13,20 +16,20 @@
     "access_key": "{{user `aws_access_key` }}",
     "secret_key": "{{user `aws_secret_key` }}",
     "region": "us-east-1",
-    "source_ami": "ami-cbfdb2a1",
-    "instance_type": "t2.micro",
+    "source_ami": "{{user `core_os_ami` }}",
+    "instance_type": "{{user `aws_build_type` }}",
     "ssh_username": "core",
     "ami_name": "{{user `output_name`}}-coreos-{{timestamp}}",
     "ami_block_device_mappings": [
       {
-        "device_name": "/dev/xvda",
+        "device_name": "{{user `aws_root_device` }}",
         "volume_size": 24,
         "delete_on_termination": true
       }
     ],
     "launch_block_device_mappings": [
       {
-        "device_name": "/dev/xvda",
+        "device_name": "{{user `aws_root_device` }}",
         "volume_size": 24,
         "delete_on_termination": true
       }

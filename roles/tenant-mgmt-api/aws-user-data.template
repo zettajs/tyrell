@@ -29,7 +29,9 @@ coreos:
       command: start
     - name: link-tenant-mgmt-api.service
       command: start
-    - name: journallogs-logentries.service
+    - name: link-logstash@8081.service
+      command: start
+    - name: journallogs-logstash.service
       command: start
     - name: statsd-cloudwatch.service
       command: start

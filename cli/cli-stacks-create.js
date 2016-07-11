@@ -14,7 +14,9 @@ program
   .option('--keyPairPath <path>', 'Specify path to existing key')
   .option('--logToken <token>', 'Specify a log entries token for logging.', '')
   .option('-s, --size <size>', 'Specify cluster size for core services.', 3)
-  .option('-t, --type <type>', 'Specify instance type for core services.', 't2.micro')
+  .option('-t, --type <type>', 'Specify instance type for core services.', 't2.small')
+  .option('--core-os-version [version]', 'CoreOS version to get ami value', '835.9.0')
+  .option('--ami-type [hvm|pv]', 'AWS ami virtualization type', 'hvm')
   .option('--no-provision', 'Do create routers/versions/workers with the latest ami.')
   .option('--device-data-bucket <bucket name>', 'Specify existing device data bucket')
   .option('--zetta-usage-bucket <bucket name>', 'Specify existing device data bucket')
@@ -66,42 +68,28 @@ function getKeyPair(cb) {
   }
 }
 
-getKeyPair(function(err, key) {
-  if (err) {
-    console.error(err);
-    process.exit(1);
-  }
 
-  var keyPairPath = null;
-  if (!key.KeyMaterial) {
-    console.log('Using Existing KeyPair',  key.KeyName, 'with fingerprint', key.KeyFingerprint);
-    keyPairPath = program.keyPairPath;
-  } else {
-    console.log('Created new KeyPair',  key.KeyName, 'with fingerprint', key.KeyFingerprint, 'wrote to disk (' + key.KeyName + '.pem)');
-    fs.writeFileSync(key.KeyName + '.pem', key.KeyMaterial, { mode: 400 });
-    keyPairPath = key.KeyName + '.pem';
-  }
-  getSubnets(function(err, data){
+coreosamis()
+  .version(program.coreOsVersion)
+  .region('us-east-1')
+  .get(function(err, results) {
     if (err) {
-      console.error(err);
-      process.exit(1);
+      console.error('Finding ami:', err);
+      return process.exit(1);
     }
 
-    var privateSubnets = data.filter(function(net){
-      return net.public == false;
-    });
+    if (program.amiType === 'pv') {
+      program.awsBuildType = 'm1.large';
+    }
 
-    var publicSubnets = data.filter(function(net){
-      return net.public == true;
-    });
+    var baseAmi = results[program.amiType]
+    if (!baseAmi) {
+      console.error('Could not ami matching version or ami type.');
+      return process.exit(1);
+    }
 
-    var privateSubnetIdArray = privateSubnets.map(function(netObject){
-      return netObject.id;
-    });
+    console.log('Using', baseAmi, 'for core-services machines.');
 
-    var publicSubnetIdArray = publicSubnets.map(function(netObject){
-      return netObject.id;
-    });
 
     var tenantMgmtSubnet = publicSubnetIdArray[Math.floor(Math.random() * publicSubnetIdArray.length)];
 
@@ -126,23 +114,54 @@ getKeyPair(function(err, key) {
     };
 
     stacks.create(AWS, config, function(err) {
+
+    getKeyPair(function(err, key) {
       if (err) {
         console.error(err);
         process.exit(1);
       }
 
-      console.log('Stack Created');
-      if (program.provision) {
-        console.log('Provisioning Default Stack');
-
-        if (!keyPairPath) {
-          console.log('Cannot provision without keyPairPath');
-          return;
+      var keyPairPath = null;
+      if (!key.KeyMaterial) {
+        console.log('Using Existing KeyPair',  key.KeyName, 'with fingerprint', key.KeyFingerprint);
+        keyPairPath = program.keyPairPath;
+      } else {
+        console.log('Created new KeyPair',  key.KeyName, 'with fingerprint', key.KeyFingerprint, 'wrote to disk (' + key.KeyName + '.pem)');
+        fs.writeFileSync(key.KeyName + '.pem', key.KeyMaterial, { mode: 400 });
+        keyPairPath = key.KeyName + '.pem';
+      }
+      getSubnets(function(err, data){
+        if (err) {
+          console.error(err);
+          process.exit(1);
         }
 
-        var opts = {
+        var privateSubnets = data.filter(function(net){
+          return net.public == false;
+        });
+
+        var publicSubnets = data.filter(function(net){
+          return net.public == true;
+        });
+
+        var privateSubnetIdArray = privateSubnets.map(function(netObject){
+          return netObject.id;
+        });
+
+        var publicSubnetIdArray = publicSubnets.map(function(netObject){
+          return netObject.id;
+        });
+
+        var tenantMgmtSubnet = publicSubnetIdArray[Math.floor(Math.random() * publicSubnetIdArray.length)];
+        var config = {
           stack: name,
-          keyPair: keyPairPath,
+          keyPair: key.KeyName,
+          logentriesToken: program.logToken,
+          size: program.size,
+          instanceType: program.type,
+          ami: baseAmi,
+          deviceDataBucket: program.deviceDataBucket,
+          zettaUsageBucket: program.zettaUsageBucket,
           vpc: program.vpc,
           privateSubnets: privateSubnetIdArray,
           publicSubnets: publicSubnetIdArray,
@@ -151,30 +170,57 @@ getKeyPair(function(err, key) {
           analytics: program.analytics,
           analyticsDb: program.analyticsDb
         };
-        
-        // delay 1 minute to allow ec2 instances to be spun up for etcd
-        setTimeout(function() {
-          provision(AWS, opts, function(err, versions) {
-            if (err) {
-              console.error('errorcli stacks: ', err);
-              process.exit(1);
+
+        stacks.create(AWS, config, function(err) {
+          if (err) {
+            console.error(err);
+            process.exit(1);
+          }
+
+          console.log('Stack Created');
+          if (program.provision) {
+            console.log('Provisioning Default Stack');
+
+            if (!keyPairPath) {
+              console.log('Cannot provision without keyPairPath');
+              return;
             }
 
-            console.log('Router Created:', versions.router);
-            console.log('Target Created:', versions.target);
-            console.log('Worker Created:', versions.worker);
-            console.log('Tenant Management Created:', versions.tenantMgmt);
-            
-            if (program.deviceToCloud) {
-              console.log('Database Created:', versions.database);
-              console.log('Credential Api Created:', versions.credentialApi);
-              console.log('Rabbitmq Created:', versions.rabbitmq);
-              console.log('MqttBroker Created:', versions.mqttbroker);
-            }
-          });
-        }, 60000);
+            var opts = {
+              stack: name,
+              keyPair: keyPairPath,
+              vpc: program.vpc,
+              privateSubnets: privateSubnetIdArray,
+              publicSubnets: publicSubnetIdArray,
+              tenantMgmtSubnet: tenantMgmtSubnet,
+              deviceToCloud: program.deviceToCloud
+            };
 
-      }
+            // delay 1 minute to allow ec2 instances to be spun up for etcd
+            setTimeout(function() {
+              provision(AWS, opts, function(err, versions) {
+                if (err) {
+                  console.error('errorcli stacks: ', err);
+                  process.exit(1);
+                }
+
+                console.log('Router Created:', versions.router);
+                console.log('Target Created:', versions.target);
+                console.log('Worker Created:', versions.worker);
+                console.log('Tenant Management Created:', versions.tenantMgmt);
+
+                if (program.deviceToCloud) {
+                  console.log('Database Created:', versions.database);
+                  console.log('Credential Api Created:', versions.credentialApi);
+                  console.log('Rabbitmq Created:', versions.rabbitmq);
+                  console.log('MqttBroker Created:', versions.mqttbroker);
+                }
+              });
+            }, 60000);
+
+          }
+        });
+      });
     });
+
   });
-});
