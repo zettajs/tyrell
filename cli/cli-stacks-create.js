@@ -120,6 +120,12 @@ coreosamis()
           process.exit(1);
         }
 
+        if(program.amiType == 'pv') {
+          data = data.filter(function(net) {
+            return net.az != 'us-east-1e';
+          });
+        }
+
         var privateSubnets = data.filter(function(net){
           return net.public == false;
         });
