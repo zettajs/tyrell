@@ -12,5 +12,5 @@ EnvironmentFile=/etc/environment
 EnvironmentFile=/etc/profile.d/zetta
 ExecStartPre=-/usr/bin/docker kill telegraf
 ExecStartPre=-/usr/bin/docker rm telegraf
-ExecStart=/usr/bin/docker run --rm --name telegraf -p 8125:8125/udp -v /home/core/tele.conf:/etc/telegraf/telegraf.conf:ro --env-file /etc/profile.d/zetta -e HOSTNAME=${HOSTNAME} -v /var/run/docker.sock:/var/run/docker.sock telegraf
+ExecStart=/usr/bin/docker run --rm --name telegraf -p 8125:8125/udp -v /home/core/tele.conf:/etc/telegraf/telegraf.conf:ro --env-file /etc/profile.d/zetta -e HOSTNAME=${COREOS_PRIVATE_IPV4} -v /var/run/docker.sock:/var/run/docker.sock telegraf
 ExecStop=/usr/bin/docker stop telegraf

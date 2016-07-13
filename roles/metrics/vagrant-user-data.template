@@ -68,3 +68,4 @@ write_files:
       ZETTA_STACK=@@ZETTA_STACK@@
       LINK_INSTANCE_TYPE=metrics
       INFLUXDB_HOST=@@INFLUXDB_HOST@@
+      INFLUXDB_HTTP_AUTH_ENABLED=false

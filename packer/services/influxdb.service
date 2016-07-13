@@ -9,7 +9,8 @@ TimeoutStartSec=0
 Restart=always
 RestartSec=5
 EnvironmentFile=/etc/environment
+EnvironmentFile=/etc/profile.d/zetta
 ExecStartPre=-/usr/bin/docker kill influxdb
 ExecStartPre=-/usr/bin/docker rm influxdb
-ExecStart=/usr/bin/docker run --rm --name influxdb -v /home/core/influxdb:/var/lib/influxdb -v /home/core/influxdb.conf:/etc/influxdb/influxdb.conf:ro -p 8086:8086 -p 8088:8088 influxdb -config /etc/influxdb/influxdb.conf
+ExecStart=/usr/bin/docker run --rm --name influxdb -e INFLUXDB_HTTP_AUTH_ENABLED=${INFLUXDB_HTTP_AUTH_ENABLED} -v /home/core/influxdb:/var/lib/influxdb -v /home/core/influxdb.conf:/etc/influxdb/influxdb.conf:ro -p 8086:8086 -p 8088:8088 influxdb -config /etc/influxdb/influxdb.conf
 ExecStop=/usr/bin/docker stop influxdb
