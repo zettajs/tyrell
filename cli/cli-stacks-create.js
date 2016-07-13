@@ -1,11 +1,12 @@
 var fs = require('fs');
+var crypto = require('crypto');
 var program = require('commander');
 var AWS = require('aws-sdk');
 var stacks = require('./lib/stacks');
 var provision = require('./lib/provision');
 var vpc = require('./lib/vpc');
 var coreosamis = require('coreos-amis');
-
+var influxdb = require('./lib/influxdb');
 
 AWS.config.update({region: 'us-east-1'});
 
@@ -15,11 +16,13 @@ program
   .option('--logToken <token>', 'Specify a log entries token for logging.', '')
   .option('-s, --size <size>', 'Specify cluster size for core services.', 3)
   .option('-t, --type <type>', 'Specify instance type for core services.', 't2.small')
-  .option('--core-os-version [version]', 'CoreOS version to get ami value', '835.9.0')
+  .option('--core-os-version [version]', 'CoreOS version to get ami value', '1010.6.0')
   .option('--ami-type [hvm|pv]', 'AWS ami virtualization type', 'hvm')
   .option('--no-provision', 'Do create routers/versions/workers with the latest ami.')
   .option('--device-data-bucket <bucket name>', 'Specify existing device data bucket')
   .option('--zetta-usage-bucket <bucket name>', 'Specify existing device data bucket')
+  .option('--influxdb-host <influx host>', 'Metrics influxdb host', 'http://metrics.iot.apigee.net:8086')
+  .option('--influxdb-auth <username:password>', 'Metrics influxdb username:password', 'admin:2ee54aed802910f2f4e74dfbc143dbbd')
   .option('-v --vpc <vpc>', 'VPC to deploy the stack onto')
   .option('--device-to-cloud', 'Create device to cloud resources.')
   .parse(process.argv);
@@ -126,69 +129,83 @@ coreosamis()
         });
 
         var tenantMgmtSubnet = publicSubnetIdArray[Math.floor(Math.random() * publicSubnetIdArray.length)];
-        var config = {
-          stack: name,
-          keyPair: key.KeyName,
-          logentriesToken: program.logToken,
-          size: program.size,
-          instanceType: program.type,
-          ami: baseAmi,
-          deviceDataBucket: program.deviceDataBucket,
-          zettaUsageBucket: program.zettaUsageBucket,
-          vpc: program.vpc,
-          privateSubnets: privateSubnetIdArray.join(','),
-          publicSubnets: publicSubnetIdArray.join(','),
-          deviceToCloud: program.deviceToCloud
-        };
 
-        stacks.create(AWS, config, function(err) {
+
+        var influxdbUsername = 'stack' + crypto.randomBytes(6).toString('hex');
+        var influxdbPassword = crypto.randomBytes(24).toString('hex');
+        influxdb.createUser({ host: program.influxdbHost, auth: program.influxdbAuth }, influxdbUsername, influxdbPassword, function(err) {
           if (err) {
-            console.error(err);
-            process.exit(1);
+            console.error('Failed to create influxdb user', err);
+            return process.exit(1);
           }
 
-          console.log('Stack Created');
-          if (program.provision) {
-            console.log('Provisioning Default Stack');
+          var config = {
+            stack: name,
+            keyPair: key.KeyName,
+            logentriesToken: program.logToken,
+            size: program.size,
+            instanceType: program.type,
+            ami: baseAmi,
+            deviceDataBucket: program.deviceDataBucket,
+            zettaUsageBucket: program.zettaUsageBucket,
+            vpc: program.vpc,
+            privateSubnets: privateSubnetIdArray.join(','),
+            publicSubnets: publicSubnetIdArray.join(','),
+            deviceToCloud: program.deviceToCloud,
+            influxdbHost: program.influxdbHost,
+            influxdbUsername: influxdbUsername,
+            influxdbPassword: influxdbPassword
+          };
 
-            if (!keyPairPath) {
-              console.log('Cannot provision without keyPairPath');
-              return;
+          stacks.create(AWS, config, function(err) {
+            if (err) {
+              console.error(err);
+              process.exit(1);
             }
 
-            var opts = {
-              stack: name,
-              keyPair: keyPairPath,
-              vpc: program.vpc,
-              privateSubnets: privateSubnetIdArray,
-              publicSubnets: publicSubnetIdArray,
-              tenantMgmtSubnet: tenantMgmtSubnet,
-              deviceToCloud: program.deviceToCloud
-            };
-            
-            // delay 1 minute to allow ec2 instances to be spun up for etcd
-            setTimeout(function() {
-              provision(AWS, opts, function(err, versions) {
-                if (err) {
-                  console.error('errorcli stacks: ', err);
-                  process.exit(1);
-                }
+            console.log('Stack Created');
+            if (program.provision) {
+              console.log('Provisioning Default Stack');
 
-                console.log('Router Created:', versions.router);
-                console.log('Target Created:', versions.target);
-                console.log('Worker Created:', versions.worker);
-                console.log('Tenant Management Created:', versions.tenantMgmt);
-                
-                if (program.deviceToCloud) {
-                  console.log('Database Created:', versions.database);
-                  console.log('Credential Api Created:', versions.credentialApi);
-                  console.log('Rabbitmq Created:', versions.rabbitmq);
-                  console.log('MqttBroker Created:', versions.mqttbroker);
-                }
-              });
-            }, 60000);
+              if (!keyPairPath) {
+                console.log('Cannot provision without keyPairPath');
+                return;
+              }
 
-          }
+              var opts = {
+                stack: name,
+                keyPair: keyPairPath,
+                vpc: program.vpc,
+                privateSubnets: privateSubnetIdArray,
+                publicSubnets: publicSubnetIdArray,
+                tenantMgmtSubnet: tenantMgmtSubnet,
+                deviceToCloud: program.deviceToCloud
+              };
+              
+              // delay 1 minute to allow ec2 instances to be spun up for etcd
+              setTimeout(function() {
+                provision(AWS, opts, function(err, versions) {
+                  if (err) {
+                    console.error('errorcli stacks: ', err);
+                    process.exit(1);
+                  }
+
+                  console.log('Router Created:', versions.router);
+                  console.log('Target Created:', versions.target);
+                  console.log('Worker Created:', versions.worker);
+                  console.log('Tenant Management Created:', versions.tenantMgmt);
+                  
+                  if (program.deviceToCloud) {
+                    console.log('Database Created:', versions.database);
+                    console.log('Credential Api Created:', versions.credentialApi);
+                    console.log('Rabbitmq Created:', versions.rabbitmq);
+                    console.log('MqttBroker Created:', versions.mqttbroker);
+                  }
+                });
+              }, 60000);
+
+            }
+          });
         });
       });
     });

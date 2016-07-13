@@ -20,7 +20,7 @@ coreos:
     listen-peer-urls: http://$private_ipv4:2380
   fleet:
     public-ip: $public_ipv4
-    metadata: role=zetta
+    metadata: role=mqttbroker
   units:
     - name: update-engine.service
       command: stop
@@ -31,15 +31,15 @@ coreos:
       command: stop
     - name: fleet.service
       command: start
-    - name: fake-sqs.service
+    - name: rabbitmq.service
       command: start
-    - name: zetta-target@3001.service
+    - name: mock-postgres.service
       command: start
-    - name: zetta-target@3002.service
+    - name: link-mqtt-internal-broker.service
       command: start
-    - name: zetta-target@3003.service
+    - name: link-mqtt-external-broker.service
       command: start
-    - name: telegraf.service
+    - name: link-credential-api.service
       command: start
     - name: docker.service
       drop-ins:
@@ -68,10 +68,8 @@ write_files:
     content: |
       ZETTA_VERSION=@@ZETTA_VERSION@@
       ZETTA_STACK=@@ZETTA_STACK@@
-      LINK_INSTANCE_TYPE=target
-      ZETTA_DEVICE_DATA_QUEUE=@@ZETTA_DEVICE_DATA_QUEUE@@
-      ZETTA_USAGE_QUEUE=@@ZETTA_USAGE_QUEUE@@
-      AWS_ACCESSKEY=fakekey
-      AWS_SECRET=fakesecret
-      MQTT_INTERNAL_BROKER_URL=@@MQTT_INTERNAL_BROKER_URL@@
+      LINK_INSTANCE_TYPE=mqttbroker
+      CREDENTIAL_DB_CONNECTION_URL=@@CREDENTIAL_DB_CONNECTION_URL@@
+      RABBITMQ_URL=@@RABBITMQ_URL@@
+      CREDENTIAL_API_URL=@@CREDENTIAL_API_URL@@
       INFLUXDB_HOST=@@INFLUXDB_HOST@@

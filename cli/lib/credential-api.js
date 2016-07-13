@@ -129,6 +129,9 @@ var create = module.exports.create = function(AWS, stack, config, done) {
       userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
       userData = userData.replace(/@@CORE_SERVICES_ASG@@/g, stack.Resources['CoreServicesASG'].PhysicalResourceId);
       userData = userData.replace(/@@CREDENTIAL_DB_CONNECTION_URL@@/g, connectionString);
+      userData = userData.replace(/@@INFLUXDB_HOST@@/g, stack.Parameters['InfluxdbHost']);
+      userData = userData.replace(/@@INFLUXDB_USERNAME@@/g, stack.Parameters['InfluxdbUsername']);
+      userData = userData.replace(/@@INFLUXDB_PASSWORD@@/g, stack.Parameters['InfluxdbPassword']);
 
       var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/'+ ROLE + '/cloudformation.json')).toString());
       template.Resources['ServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };

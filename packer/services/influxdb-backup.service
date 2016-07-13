@@ -1,0 +1,11 @@
+[Unit]
+Description=InfluxDB Backup Service
+After=docker.service
+Requires=docker.service
+
+[Service]
+User=root
+Type=oneshot
+TimeoutStartSec=0
+EnvironmentFile=/etc/environment
+ExecStart=/bin/bash /home/core/influxdb_backup.sh

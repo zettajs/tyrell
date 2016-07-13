@@ -1,0 +1,17 @@
+[Unit]
+Description=Grafana Metrics Dashboard
+After=docker.service influxdb.service
+Requires=docker.service influxdb.service
+
+[Service]
+User=core
+TimeoutStartSec=0
+Restart=always
+RestartSec=5
+EnvironmentFile=/etc/environment
+ExecStartPre=-/usr/bin/docker kill grafana
+ExecStartPre=-/usr/bin/docker rm grafana
+ExecStart=/usr/bin/docker run --rm --name grafana -v /var/lib/grafana:/var/lib/grafana -p 20000:3000 grafana/grafana:3.1.0-beta1
+ExecStartPost=-/usr/bin/sleep 30
+ExecStartPost=-/usr/bin/curl -i 'http://admin:admin@127.0.0.1:20000/api/datasources' -X POST -H 'Content-Type: application/json;charset=UTF-8' --data '{"name":"Influx","type":"influxdb","url":"http://${COREOS_PRIVATE_IPV4}:8086","access":"proxy","isDefault":true,"database":"telegraf"}'
+ExecStop=/usr/bin/docker stop grafana

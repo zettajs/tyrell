@@ -45,7 +45,9 @@
           {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"},
           {"IpProtocol": "tcp", "FromPort": "5601", "ToPort": "5601", "CidrIp": "0.0.0.0/0"},
           {"IpProtocol": "tcp", "FromPort": "8081", "ToPort": "8081", "CidrIp": "0.0.0.0/0"},
-          {"IpProtocol": "tcp", "FromPort": "9200", "ToPort": "9200", "CidrIp": "0.0.0.0/0"}
+          {"IpProtocol": "tcp", "FromPort": "9200", "ToPort": "9200", "CidrIp": "0.0.0.0/0"},
+          {"IpProtocol": "tcp", "FromPort": "8086", "ToPort": "8086", "CidrIp": "0.0.0.0/0"},
+          {"IpProtocol": "tcp", "FromPort": "20000", "ToPort": "20000", "CidrIp": "0.0.0.0/0"},
         ],
         "VpcId": {"Ref": "MetricsVpc"}
       }
@@ -109,6 +111,15 @@
                 ],
                 "Effect": "Allow",
                 "Resource": "*"
+              },
+              {
+                  "Effect": "Allow",
+                  "Action": [
+                      "s3:PutObject"
+                  ],
+                  "Resource": [
+                      { "Fn::Join" : [ "", [ "arn:aws:s3:::", { "Ref": "S3BackupBucket" }, "/*" ] ] }
+                  ]
               }
             ]
           }
@@ -123,6 +134,12 @@
           "Ref": "MetricsRole"
         }]
       }
-    }
+    },
+   "S3BackupBucket" : {
+      "Type" : "AWS::S3::Bucket",
+      "Properties" : {
+      },
+      "DeletionPolicy" : "Retain"
+   }
   }
 }

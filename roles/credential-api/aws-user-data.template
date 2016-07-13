@@ -33,9 +33,7 @@ coreos:
       command: start
     - name: journallogs-logstash.service
       command: start
-    - name: statsd-elasticsearch.service
-      command: start
-    - name: link-container-metrics-collector.service
+    - name: telegraf.service
       command: start
     - name: docker.service
       drop-ins:
@@ -62,7 +60,11 @@ write_files:
     permissions: 644
     owner: root
     content: |
-      ZETTA_STACK="@@ZETTA_STACK@@"
-      ZETTA_VERSION="@@ZETTA_VERSION@@"
-      CORE_SERVICES_ASG="@@CORE_SERVICES_ASG@@"
-      CREDENTIAL_DB_CONNECTION_URL="@@CREDENTIAL_DB_CONNECTION_URL@@"
+      ZETTA_STACK=@@ZETTA_STACK@@
+      ZETTA_VERSION=@@ZETTA_VERSION@@
+      LINK_INSTANCE_TYPE=credential-api
+      CORE_SERVICES_ASG=@@CORE_SERVICES_ASG@@
+      CREDENTIAL_DB_CONNECTION_URL=@@CREDENTIAL_DB_CONNECTION_URL@@
+      INFLUXDB_HOST=@@INFLUXDB_HOST@@
+      INFLUXDB_USERNAME=@@INFLUXDB_USERNAME@@
+      INFLUXDB_PASSWORD=@@INFLUXDB_PASSWORD@@

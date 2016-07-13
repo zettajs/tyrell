@@ -37,9 +37,7 @@ coreos:
       command: start
     - name: journallogs-logstash.service
       command: start
-    - name: statsd-elasticsearch.service
-      command: start
-    - name: link-container-metrics-collector.service
+    - name: telegraf.service
       command: start
     - name: docker.service
       drop-ins:
@@ -66,10 +64,13 @@ write_files:
     permissions: 644
     owner: root
     content: |
-      ZETTA_STACK="@@ZETTA_STACK@@"
-      ZETTA_VERSION="@@ZETTA_VERSION@@"
-      ZETTA_DEVICE_DATA_QUEUE="@@ZETTA_DEVICE_DATA_QUEUE@@"
-      ZETTA_USAGE_QUEUE="@@ZETTA_USAGE_QUEUE@@"
-      LOGENTRIES_TOKEN="@@LOGENTRIES_TOKEN@@"
-      CORE_SERVICES_ASG="@@CORE_SERVICES_ASG@@"
-      MQTT_INTERNAL_BROKER_URL="@@MQTT_INTERNAL_BROKER_URL@@"
+      ZETTA_STACK=@@ZETTA_STACK@@
+      ZETTA_VERSION=@@ZETTA_VERSION@@
+      LINK_INSTANCE_TYPE=target
+      ZETTA_DEVICE_DATA_QUEUE=@@ZETTA_DEVICE_DATA_QUEUE@@
+      ZETTA_USAGE_QUEUE=@@ZETTA_USAGE_QUEUE@@
+      CORE_SERVICES_ASG=@@CORE_SERVICES_ASG@@
+      MQTT_INTERNAL_BROKER_URL=@@MQTT_INTERNAL_BROKER_URL@@
+      INFLUXDB_HOST=@@INFLUXDB_HOST@@
+      INFLUXDB_USERNAME=@@INFLUXDB_USERNAME@@
+      INFLUXDB_PASSWORD=@@INFLUXDB_PASSWORD@@

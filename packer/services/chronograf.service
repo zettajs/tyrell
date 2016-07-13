@@ -1,0 +1,17 @@
+[Unit]
+Description=Chronograf is a visualization tool for time series data in InfluxDB.
+After=docker.service influxdb.service
+Requires=docker.service influxdb.service
+
+[Service]
+User=core
+TimeoutStartSec=0
+Restart=always
+RestartSec=5
+EnvironmentFile=/etc/environment
+ExecStartPre=-/usr/bin/docker kill chronograf
+ExecStartPre=-/usr/bin/docker rm chronograf
+ExecStart=/usr/bin/docker run --rm --name chronograf -p 10000:10000 chronograf
+ExecStartPost=-/usr/bin/sleep 5
+ExecStartPost=-/usr/bin/curl -i -X POST -H "Content-Type: application/x-www-form-urlencoded" --data '{"name":"%H","url":"http://${COREOS_PRIVATE_IPV4}:8086"}' http://${COREOS_PRIVATE_IPV4}:10000/api/v0/servers
+ExecStop=/usr/bin/docker stop chronograf

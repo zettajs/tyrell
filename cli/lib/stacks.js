@@ -156,7 +156,10 @@ function generateStackParams(config) {
       { ParameterKey: 'CoreServicesSize', ParameterValue: '' + config.size },
       { ParameterKey: 'StackSubnets', ParameterValue: config.privateSubnets },
       { ParameterKey: 'PublicStackSubnets', ParameterValue: config.publicSubnets },
-      { ParameterKey: 'StackVpc', ParameterValue: config.vpc }
+      { ParameterKey: 'StackVpc', ParameterValue: config.vpc },
+      { ParameterKey: 'InfluxdbHost', ParameterValue: config.influxdbHost },
+      { ParameterKey: 'InfluxdbUsername', ParameterValue: config.influxdbUsername },
+      { ParameterKey: 'InfluxdbPassword', ParameterValue: config.influxdbPassword }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stackName },
