@@ -143,6 +143,7 @@ function generateStackParams(config) {
   template.Resources['CoreServicesLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
   var stackName = config.stack;
+
   var params = {
     StackName: stackName,
     OnFailure: 'DELETE',
@@ -183,7 +184,7 @@ function generateStackParams(config) {
   if (config.deviceToCloud) {
     params.Parameters.push({ ParameterKey: 'EnableDeviceToCloud', ParameterValue: 'true' });
   }
-  
+
   if (config.analytics) {
     params.Parameters.push({ ParameterKey: 'EnableAnalytics', ParameterValue: 'true' });
   }
@@ -199,6 +200,7 @@ var create = module.exports.create = function(AWS, config, done) {
   function checkStackStatus(cb) {
     cloudformation.describeStacks({ StackName: stackName }, function(err, data) {
       if (err) {
+        console.log('err:', err)
         return cb(new Error(err.code + ' ' + err.message));
       }
 
@@ -248,7 +250,7 @@ var remove = module.exports.remove = function(AWS, name, cb) {
       });
     };
   };
-  
+
   async.parallel([
     removeFunc(targets),
     removeFunc(routers),

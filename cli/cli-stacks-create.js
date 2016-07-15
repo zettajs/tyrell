@@ -26,7 +26,7 @@ program
   .option('-v --vpc <vpc>', 'VPC to deploy the stack onto')
   .option('--device-to-cloud', 'Create device to cloud resources.')
   .option('--analytics', 'Create realtime analytics reasources.')
-  .option('--analytics-db <database>', 'Name for analytics db', '')
+  .option('--analytics-db <database>', 'Name for analytics db', 'deviceData')
   .parse(process.argv);
 
 var name = program.args[0];
@@ -82,7 +82,7 @@ coreosamis()
     }
 
     if (program.amiType === 'pv') {
-      program.awsBuildType = 'm1.large';
+      program.type = 'm1.large';
     }
     
     var baseAmi = results[program.amiType]

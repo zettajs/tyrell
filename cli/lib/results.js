@@ -78,11 +78,17 @@ var list = module.exports.list = function(AWS, stackName, cb) {
   });
 };
 
-function getSubnets(AWS, stack, cb) {
+function getSubnets(AWS, stack, config, cb) {
   vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], function(err, data) {
     if (err) {
       return cb(err);
     }
+
+    // if (config.amiType === 'pv') {
+    //   data = data.filter(function(net) {
+    //     return net.az != 'us-east-1e';
+    //   });
+    // }
 
     var privateSubnets = data.filter(function(net) {
       return net.public == false;
@@ -113,12 +119,12 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   var cloudformation = new AWS.CloudFormation();
   var autoscaling = new AWS.AutoScaling();
 
-  getSubnets(AWS, stack, function(err, subnets, publicSubnets) {
-    
+  getSubnets(AWS, stack, config, function(err, subnets, publicSubnets) {
+
     if (err) {
       return done(err);
     }
-    
+
     var userData = fs.readFileSync(path.join(__dirname, '../../roles/'+ ROLE + '/aws-user-data.template')).toString();
 
     userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
