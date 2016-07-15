@@ -79,7 +79,7 @@ coreosamis()
     }
 
     if (program.amiType === 'pv') {
-      program.awsBuildType = 'm1.large';
+      program.type = 'm1.large';
     }
 
     var baseAmi = results[program.amiType]
@@ -91,29 +91,10 @@ coreosamis()
     console.log('Using', baseAmi, 'for core-services machines.');
 
 
-    var tenantMgmtSubnet = publicSubnetIdArray[Math.floor(Math.random() * publicSubnetIdArray.length)];
-
     if(program.analytics && !program.analyticsDb) {
       program.analyticsDb = 'deviceData';
     }
-    var config = {
-      stack: name,
-      keyPair: key.KeyName,
-      logentriesToken: program.logToken,
-      size: program.size,
-      instanceType: program.type,
-      ami: 'ami-cbfdb2a1', // hard code ami to fix issues with etcd support. CoreOS (717.3.0)
-      deviceDataBucket: program.deviceDataBucket,
-      zettaUsageBucket: program.zettaUsageBucket,
-      vpc: program.vpc,
-      privateSubnets: privateSubnetIdArray.join(','),
-      publicSubnets: publicSubnetIdArray.join(','),
-      deviceToCloud: program.deviceToCloud,
-      analytics: program.analytics,
-      analyticsDb: program.analyticsDb
-    };
 
-    stacks.create(AWS, config, function(err) {
 
     getKeyPair(function(err, key) {
       if (err) {
