@@ -32,9 +32,12 @@ var targetDockerCmd = 'docker build -t zetta/link-zetta-target /home/core/target
 var targetRestartCmd = 'sudo systemctl restart zetta-target@{3001..3003}.service';
 var proxyDockerCmd = 'docker build -t zetta/link-router /home/core/proxy/';
 var proxyRestartCmd = 'sudo systemctl restart zetta-proxy.service';
+var tenantMgmtDockerCmd = 'docker build -t zetta/link-tenant-mgmt-api /home/core/tenant-mgmt/';
+var tenantMgmtRestartCmd = 'sudo systemctl restart link-tenant-mgmt-api.service';
 
+var tasks = [];
 
-if (!component || component == 'services') {
+var updateServices = function(callback) {
   async.each(['link-router-01', 'link-target-01', 'link-metrics-01'], function(box, next) {
     runOnBox(box, 'sudo cp /home/core/services/* /etc/systemd/system/', function(err) {
       if (err) {
@@ -42,14 +45,10 @@ if (!component || component == 'services') {
       }
       runOnBox(box, 'sudo systemctl daemon-reload', next);    
     });
-  }, function(err) {
-    if (err) {
-      throw err;
-    }
-  });
-}
+  }, callback);
+};
 
-if (!component || component == 'target') {
+var updateTargets = function(callback) {
   async.each(['link-target-01'], function(box, next) {
     runOnBox(box, targetDockerCmd, function(err) {
       if (err) {
@@ -57,14 +56,21 @@ if (!component || component == 'target') {
       }
       runOnBox(box, targetRestartCmd, next);
     });
-  }, function(err) {
-    if (err) {
-      throw err;
-    }
-  });
-}
+  }, callback);
+};
 
-if (!component || component == 'proxy') {
+var updateTenantMgmt = function(callback) {
+  async.each(['link-target-01'], function(box, next) {
+    runOnBox(box, tenantMgmtDockerCmd, function(err) {
+      if (err) {
+        return next(err);
+      }
+      runOnBox(box, tenantMgmtRestartCmd, next);
+    });
+  }, callback);
+};
+
+var updateRouters = function(callback) {
   async.each(['link-router-01'], function(box, next) {
     runOnBox(box, proxyDockerCmd, function(err) {
       if (err) {
@@ -72,9 +78,28 @@ if (!component || component == 'proxy') {
       }
       runOnBox(box, proxyRestartCmd, next);
     });
-  }, function(err) {
-    if (err) {
-      throw err;
-    }
-  });
+  }, callback);
+};
+
+
+if (!component || component == 'services') {
+  tasks.push(updateServices);
 }
+
+if (!component || component == 'target') {
+  tasks.push(updateTargets);
+}
+
+if (!component || component == 'proxy') {
+  tasks.push(updateRouters);
+}
+
+if (!component || component == 'tenant-mgmt') {
+  tasks.push(updateTenantMgmt);
+}
+
+async.series(tasks, function(err) {
+  if (err) {
+    throw err;
+  }
+});

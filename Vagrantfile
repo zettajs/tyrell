@@ -57,9 +57,11 @@ def init_machine(config, i, type, n)
 
     target_dir = ENV['TYRELL_TARGET_DIR']
     proxy_dir = ENV['TYRELL_PROXY_DIR']
+    tenant_mgmt_dir = ENV['TYRELL_TENANT_MGMT_DIR']
 
     config.vm.synced_folder target_dir, "/home/core/target", id: "target", :nfs => true, :mount_options => ["nolock,vers=3,udp"] if target_dir
     config.vm.synced_folder proxy_dir, "/home/core/proxy", id: "proxy", :nfs => true, :mount_options => ["nolock,vers=3,udp"] if proxy_dir
+    config.vm.synced_folder tenant_mgmt_dir, "/home/core/tenant-mgmt", id: "proxy", :nfs => true, :mount_options => ["nolock,vers=3,udp"] if tenant_mgmt_dir
     config.vm.synced_folder "dev/", "/home/core/dev", id: "dev", :nfs => true, :mount_options => ['nolock,vers=3,udp']
     config.vm.synced_folder "roles/database/sql/", "/home/core/sql", id: "sql", :nfs => true, :mount_options => ["nolock,vers=3,udp"]
     config.vm.synced_folder "packer/services", "/home/core/services", id: "services", :nfs => true, :mount_options => ["nolock,vers=3,udp"]

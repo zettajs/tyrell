@@ -23,6 +23,7 @@ var configs = {
     'ZETTA_VERSION': crypto.randomBytes(6).toString('hex'),
     'ZETTA_STACK': 'vagrant',
     'INFLUXDB_HOST': 'http://link-metrics-01:8086',
+    'TENANT_MANAGEMENT_API': 'http://link-target-01'
   },
   target: {
     'ZETTA_VERSION': version,
