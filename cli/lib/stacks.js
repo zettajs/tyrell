@@ -160,7 +160,7 @@ function generateStackParams(config) {
       { ParameterKey: 'StackVpc', ParameterValue: config.vpc },
       { ParameterKey: 'InfluxdbHost', ParameterValue: config.influxdbHost },
       { ParameterKey: 'InfluxdbUsername', ParameterValue: config.influxdbUsername },
-      { ParameterKey: 'InfluxdbPassword', ParameterValue: config.influxdbPassword }
+      { ParameterKey: 'InfluxdbPassword', ParameterValue: config.influxdbPassword },
       { ParameterKey: 'JWTCipherText', ParameterValue: config.jwt.cipher },
       { ParameterKey: 'JWTKeyARN', ParameterValue: config.jwt.arn }
     ],

@@ -9,6 +9,6 @@ Restart=always
 RestartSec=30
 EnvironmentFile=/etc/environment
 EnvironmentFile=/etc/profile.d/zetta
-ExecStartPre=/bin/sh -c '/usr/bin/etcdctl set /services/zetta/${COREOS_PUBLIC_IPV4}:%i "{\\\"type\\\":\\\"cloud-target\\\",\\\"url\\\":\\\"http://${COREOS_PRIVATE_IPV4}:%i\\\",\\\"publicUrl\\\":\\\"http://${COREOS_PUBLIC_IPV4}:%i\\\",\\\"created\\\":\\\"$(/usr/bin/date --utc \x2b\x25\x25Y\x2d\x25\x25m\x2d\x25\x25dT\x25T.000Z)\\\",\\\"version\\\":\\\"${ZETTA_VERSION}\\\"}"'
+ExecStartPre=/bin/sh -c '/usr/bin/etcdctl set /services/zetta/${COREOS_PRIVATE_IPV4}:%i "{\\\"type\\\":\\\"cloud-target\\\",\\\"url\\\":\\\"http://${COREOS_PRIVATE_IPV4}:%i\\\",\\\"publicUrl\\\":\\\"http://${COREOS_PUBLIC_IPV4}:%i\\\",\\\"created\\\":\\\"$(/usr/bin/date --utc \x2b\x25\x25Y\x2d\x25\x25m\x2d\x25\x25dT\x25T.000Z)\\\",\\\"version\\\":\\\"${ZETTA_VERSION}\\\"}"'
 ExecStart=/bin/sh -c "sleep 60; while true; do if [ \"$(curl -i -X GET -s --connect-timeout 30 --max-time 45 http://${COREOS_PRIVATE_IPV4}:%i | head -n +1 | awk '{print $1}')\" != \"HTTP/1.1\" ]; then docker stop zetta.target.%i; fi; sleep 60; done;"
-ExecStop=/usr/bin/etcdctl rm /services/zetta/${COREOS_PUBLIC_IPV4}:%i
+ExecStop=/usr/bin/etcdctl rm /services/zetta/${COREOS_PRIVATE_IPV4}:%i
