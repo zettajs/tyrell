@@ -5,7 +5,7 @@ var awsUtils = require('./aws-utils');
 var amis = require('./amis');
 var vpc = require('./vpc')
 
-var ROLE = 'influx';
+var ROLE = 'influx-analytics';
 var tagKey = 'zetta:' + ROLE + ':version';
 
 var scale = module.exports.scale = function(AWS, asgName, desired, cb) {

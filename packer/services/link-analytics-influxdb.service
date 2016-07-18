@@ -1,5 +1,5 @@
 [Unit]
-Description=Influxdb service
+Description=Influxdb service for analytics poc
 After=docker.service
 Requires=docker.service
 
@@ -10,9 +10,9 @@ Restart=always
 RestartSec=5
 EnvironmentFile=/etc/environment
 EnvironmentFile=/etc/profile.d/zetta
-ExecStartPre=-/usr/bin/docker kill link-influxdb.service
-ExecStartPre=-/usr/bin/docker rm link-influxdb.service
-ExecStart=/usr/bin/docker run --rm --name link-influxdb.service -p 8083:8083 -p 8086:8086 -v /home/core/influxdb:/influxdb influxdb
+ExecStartPre=-/usr/bin/docker kill link-analytics-influxdb.service
+ExecStartPre=-/usr/bin/docker rm link-analytics-influxdb.service
+ExecStart=/usr/bin/docker run --rm --name link-analytics-influxdb.service -p 8083:8083 -p 8086:8086 -v /home/core/influxdb:/influxdb influxdb
 ExecStartPost=-/usr/bin/sleep 20
 ExecStartPost=-/bin/sh -c 'curl -i -X POST http://${COREOS_PRIVATE_IPV4}:8086/query --data-urlencode "q=CREATE DATABASE deviceData"'
 ExecStartPost=-/usr/bin/sleep 10
@@ -28,4 +28,4 @@ ExecStartPost=-/bin/sh -c 'curl -i -X GET "http://${COREOS_PRIVATE_IPV4}:8086/qu
 ExecStartPost=-/usr/bin/sleep 5
 ExecStartPost=-/bin/sh -c 'curl -i -X GET "http://${COREOS_PRIVATE_IPV4}:8086/query?q=CREATE%20CONTINUOUS%20QUERY%20%22cq.aggregatedata.min%22%20on%20deviceData%20BEGIN%20select%20min(value)%20into%20deviceData.%22aggregateDeviceDataRetention%22.%22aggregatedata.min%22%20from%20deviceData.%22deviceDataRetention%22.%2Fdevicedata.*%2F%20group%20by%20time(1m)%2Cdevice%2Chub%2CdeviceType%2Cstream%20fill(none)%20END"'
 
-ExecStop=/usr/bin/docker stop link-influxdb.service
+ExecStop=/usr/bin/docker stop link-analytics-influxdb.service
