@@ -53,7 +53,7 @@ var configs = {
 };
 
 function generateConfig(cb) {
-  DiscoveryUrl(function(err, url) {
+  DiscoveryUrl(4, function(err, url) {
     if(err) {
       return cb(err);
     }
