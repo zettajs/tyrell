@@ -41,6 +41,8 @@ coreos:
       command: start
     - name: link-analytics-results-udp-tcp-proxy.service
       command: start
+    - name: telegraf.service
+      command: start
     - name: docker.service
       drop-ins:
         - name: 10-logs-driver.conf
@@ -66,4 +68,7 @@ write_files:
     permissions: 644
     owner: root
     content: |
-      ZETTA_VERSION="@@ZETTA_VERSION@@"
+      ZETTA_VERSION=@@ZETTA_VERSION@@
+      ZETTA_STACK=@@ZETTA_STACK@@
+      LINK_INSTANCE_TYPE=analytics
+      INFLUXDB_HOST=@@INFLUXDB_HOST@@

@@ -90,5 +90,5 @@ Vagrant.configure(2) do |config|
   end
 
   count+=1
-  init_machine(config, i, "analytics", count)
+  init_machine(config, 1, "analytics", count)
 end
