@@ -13,6 +13,7 @@ program
   .option('-s, --size <cluster stize>', 'Size of Autoscale group. [1]', 1)
   .option('--version <app version>', 'Logical db version of the app being deployed', crypto.randomBytes(6).toString('hex'))
   .option('-v, --vpc <vpc>', 'VPC to deploy routers to. Will be distributed on private subnets.')
+  .option('--azs <list>', 'AZs to limit the deployment to.')
   .parse(process.argv);
 
 

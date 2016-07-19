@@ -111,7 +111,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
       { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
       { ParameterKey: 'ZettaELB', ParameterValue: stack.Resources['ZettaELB'].PhysicalResourceId },
       { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['RouterRoleInstanceProfile'].PhysicalResourceId },
-      { ParameterKey: 'RouterSubnets', ParameterValue: config.subnets.join(',') }
+      { ParameterKey: 'RouterSubnets', ParameterValue: config.subnets.join(',') },
+      { ParameterKey: 'StackAvailabilityZones', ParameterValue: config.azs }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stack.StackName },

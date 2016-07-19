@@ -70,7 +70,7 @@ function getDbUrl(AWS, stackName, versionId, cb) {
     if (err) {
       return cb(err);
     }
-    
+
     var version = results.filter(function(db) {
       return (db.AppVersion === versionId);
     })[0];
@@ -123,7 +123,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
       if (err) {
         return done(err);
       }
-      
+
       var userData = fs.readFileSync(path.join(__dirname, '../../roles/' + ROLE + '/aws-user-data.template')).toString();
       userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
       userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
@@ -149,7 +149,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
           { ParameterKey: 'Subnets', ParameterValue: subnets.join(',') },
           { ParameterKey: 'SecurityGroups', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['CredentialAPISecurityGroup'].GroupId].join(',') },
           { ParameterKey: 'ClusterSize', ParameterValue: '0' }, // scale after AddToElb process is suspended
-          { ParameterKey: 'ELB', ParameterValue: stack.Resources['CredentialAPIELB'].PhysicalResourceId }
+          { ParameterKey: 'ELB', ParameterValue: stack.Resources['CredentialAPIELB'].PhysicalResourceId },
+          { ParameterKey: 'StackAvailabilityZones', ParameterValue: config.azs }
         ],
         Tags: [
           { Key: 'zetta:stack', Value: stack.StackName },
@@ -211,7 +212,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
                   awsUtils.asgInstancesAvailable(AWS, asgName, {}, done);
                 });
               });
-              
+
             });
           });
         }

@@ -27,6 +27,7 @@ program
   .option('--device-to-cloud', 'Create device to cloud resources.')
   .option('--analytics', 'Create realtime analytics reasources.')
   .option('--analytics-db <database>', 'Name for analytics db', 'deviceData')
+  .option('--azs <list>', 'AZs to limit the deployment to.')
   .parse(process.argv);
 
 var name = program.args[0];
@@ -120,9 +121,11 @@ coreosamis()
           process.exit(1);
         }
 
-        if(program.amiType == 'pv') {
+
+        if(program.azs) {
+          var azsToFilterOn = program.azs.split(',')
           data = data.filter(function(net) {
-            return net.az != 'us-east-1e';
+            return azsToFilterOn.indexOf(net.az) > -1;
           });
         }
 
@@ -143,11 +146,31 @@ coreosamis()
         });
 
         var tenantMgmtSubnet = publicSubnetIdArray[Math.floor(Math.random() * publicSubnetIdArray.length)];
+<<<<<<< ae00f64307ab362214e580c6ab0907f38747064d
 
 
         var influxdbUsername = 'stack' + crypto.randomBytes(6).toString('hex');
         var influxdbPassword = crypto.randomBytes(24).toString('hex');
         influxdb.createUser({ host: program.influxdbHost, auth: program.influxdbAuth }, influxdbUsername, influxdbPassword, function(err) {
+=======
+        var config = {
+          stack: name,
+          keyPair: key.KeyName,
+          logentriesToken: program.logToken,
+          size: program.size,
+          instanceType: program.type,
+          ami: baseAmi,
+          deviceDataBucket: program.deviceDataBucket,
+          zettaUsageBucket: program.zettaUsageBucket,
+          vpc: program.vpc,
+          privateSubnets: privateSubnetIdArray.join(','),
+          publicSubnets: publicSubnetIdArray.join(','),
+          deviceToCloud: program.deviceToCloud,
+          azs: program.azs
+        };
+
+        stacks.create(AWS, config, function(err) {
+>>>>>>> Basic approach.
           if (err) {
             console.error('Failed to create influxdb user', err);
             return process.exit(1);
@@ -179,6 +202,7 @@ coreosamis()
               process.exit(1);
             }
 
+<<<<<<< ae00f64307ab362214e580c6ab0907f38747064d
             console.log('Stack Created');
             if (program.provision) {
               console.log('Provisioning Default Stack');
@@ -221,6 +245,39 @@ coreosamis()
                   }
                 });
               }, 60000);
+=======
+            var opts = {
+              stack: name,
+              keyPair: keyPairPath,
+              vpc: program.vpc,
+              privateSubnets: privateSubnetIdArray,
+              publicSubnets: publicSubnetIdArray,
+              tenantMgmtSubnet: tenantMgmtSubnet,
+              deviceToCloud: program.deviceToCloud
+            };
+
+            // delay 1 minute to allow ec2 instances to be spun up for etcd
+            setTimeout(function() {
+              provision(AWS, opts, function(err, versions) {
+                if (err) {
+                  console.error('errorcli stacks: ', err);
+                  process.exit(1);
+                }
+
+                console.log('Router Created:', versions.router);
+                console.log('Target Created:', versions.target);
+                console.log('Worker Created:', versions.worker);
+                console.log('Tenant Management Created:', versions.tenantMgmt);
+
+                if (program.deviceToCloud) {
+                  console.log('Database Created:', versions.database);
+                  console.log('Credential Api Created:', versions.credentialApi);
+                  console.log('Rabbitmq Created:', versions.rabbitmq);
+                  console.log('MqttBroker Created:', versions.mqttbroker);
+                }
+              });
+            }, 60000);
+>>>>>>> Basic approach.
 
             }
           });

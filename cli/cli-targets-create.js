@@ -15,6 +15,7 @@ program
   .option('-v, --vpc <vpc>', 'VPC to distribute targets on. Deployed to the private subnets.')
   .option('--analytics', 'Enable analytics')
   .option('--analytics-db <database>', 'Enable influx data collection to specified database.');
+  .option('--azs <list>', 'AZs to limit the deployment to.')
   .parse(process.argv);
 
 
@@ -35,7 +36,7 @@ if (!program.ami || !(/ami-*/).test(program.ami)) {
 }
 
 function getSubnets(cb) {
-  vpc.subnetsForVpc(AWS, program.vpc, function(err, data){
+  vpc.subnetsForVpc(AWS, program.vpc, program.azs, function(err, data){
     if(err) {
       cb(err);
     } else {
@@ -66,7 +67,7 @@ stacks.get(AWS, name, function(err, stack) {
     if(program.analytics && !program.analyticsDb) {
       program.analyticsDb = 'deviceData';
     }
- 
+
     var config = {
       ami: program.ami,
       size: program.size,

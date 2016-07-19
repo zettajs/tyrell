@@ -34,7 +34,12 @@
     "MetricsVpc": {
       "Description": "VPC id of the metrics server",
       "Type": "String"
-    }
+    },
+    "StackAvailabilityZones": {
+      "Description":"Availability Zones to deploy ASGs to",
+      "Type": "CommaDelimitedList",
+      "Default": {"Fn::GetAZs": ""}}
+    },
   },
   "Resources": {
     "CoreOsSecurityGroup": {
@@ -55,7 +60,7 @@
     "MetricsASG": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
-        "AvailabilityZones": {"Fn::GetAZs": ""},
+        "AvailabilityZones": {"Ref": "StackAvailabilityZones"},
         "LaunchConfigurationName": {"Ref": "MetricsLaunchConfig"},
         "MinSize": "1",
         "MaxSize": "3",

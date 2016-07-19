@@ -110,7 +110,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
     if (err) {
       return done(err);
     }
-    
+
     var userData = fs.readFileSync(path.join(__dirname, '../../roles/'+ ROLE + '/aws-user-data.template')).toString();
 
     userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
@@ -138,7 +138,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
         { ParameterKey: 'CoreSecurityGroup', ParameterValue: stack.Resources['CoreOsSecurityGroup'].GroupId },
         { ParameterKey: 'RabbitMqELBSecurityGroup', ParameterValue: stack.Resources['RabbitMqELBSecurityGroup'].GroupId },
         { ParameterKey: 'ClusterSize', ParameterValue: '0' }, // scale after AddToElb process is suspended
-        { ParameterKey: 'ELB', ParameterValue: stack.Resources['RabbitMQELB'].PhysicalResourceId }
+        { ParameterKey: 'ELB', ParameterValue: stack.Resources['RabbitMQELB'].PhysicalResourceId },
+        { ParameterKey: 'StackAvailabilityZones', ParameterValue: config.azs }
       ],
       Tags: [
         { Key: 'zetta:stack', Value: stack.StackName },

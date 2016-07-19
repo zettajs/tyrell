@@ -80,7 +80,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
       { ParameterKey: 'DeviceDataS3Bucket', ParameterValue: stack.Outputs['DeviceDataBucket'] },
       { ParameterKey: 'ZettaUsageQueueUrl', ParameterValue: stack.Resources['ZettaUsageQueue'].PhysicalResourceId },
       { ParameterKey: 'ZettaUsageS3Bucket', ParameterValue: stack.Outputs['ZettaUsageBucket'] },
-      { ParameterKey: 'WorkerPrivateSubnets', ParameterValue: config.subnets }
+      { ParameterKey: 'WorkerPrivateSubnets', ParameterValue: config.subnets },
+      { ParameterKey: 'StackAvailabilityZones', ParameterValue: config.azs }
 
     ],
     Tags: [

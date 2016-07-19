@@ -12,6 +12,7 @@ program
   .option('--version <app version>', 'Logical version of the app being deployed', crypto.randomBytes(6).toString('hex'))
   .option('-d, --db <database>', 'DB to connect to. Using logical id')
   .option('-s, --size <cluster stize>', 'Size of Autoscale group. [1]', 1)
+  .option('--azs <list>', 'AZs to limit the deployment to.')
   .parse(process.argv);
 
 
@@ -28,7 +29,7 @@ if (!program.ami || !(/ami-*/).test(program.ami)) {
 
 if (!program.db) {
   program.help();
-  return program.exit(1);  
+  return program.exit(1);
 }
 
 stacks.get(AWS, name, function(err, stack) {

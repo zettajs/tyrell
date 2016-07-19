@@ -41,7 +41,12 @@
     "ExternalELB" : {
       "Description" : "External ELB for autoscale group to be assigned to",
       "Type" : "String"
-    }
+    },
+    "StackAvailabilityZones": {
+      "Description":"Availability Zones to deploy ASGs to",
+      "Type": "CommaDelimitedList",
+      "Default": {"Fn::GetAZs": ""}}
+    },
   },
 
   "Resources": {
@@ -98,7 +103,7 @@
     "AutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
-        "AvailabilityZones": {"Fn::GetAZs": ""},
+        "AvailabilityZones": {"Ref": "StackAvailabilityZones"},
         "LaunchConfigurationName": {"Ref": "ServerLaunchConfig"},
         "MinSize": "0",
         "MaxSize": "12",
