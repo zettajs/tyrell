@@ -1,6 +1,6 @@
 var program = require('commander');
 var AWS = require('aws-sdk'); 
-var analytics = require('./lib/influx');
+var analytics = require('./lib/influx-analytics');
 
 AWS.config.update({region: 'us-east-1'});
 

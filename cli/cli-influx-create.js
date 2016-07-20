@@ -2,7 +2,7 @@ var crypto = require('crypto');
 var program = require('commander');
 var AWS = require('aws-sdk');
 var stacks = require('./lib/stacks');
-var influx = require('./lib/influx');
+var influx = require('./lib/influx-analytics');
 
 AWS.config.update({region: 'us-east-1'});
 
