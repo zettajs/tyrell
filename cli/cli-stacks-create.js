@@ -161,7 +161,7 @@ coreosamis()
             analyticsDb: program.analyticsDb
           };
 
-          stacks.create(AWS, config, function(err) {y
+          stacks.create(AWS, config, function(err) {
             if (err) {
               console.error(err);
               process.exit(1);
