@@ -20,7 +20,7 @@ coreos:
     listen-peer-urls: http://$private_ipv4:2380
   fleet:
     public-ip: $public_ipv4
-    metadata: role=router
+    metadata: role=metrics
   units:
     - name: update-engine.service
       command: stop
@@ -31,17 +31,13 @@ coreos:
       command: stop
     - name: fleet.service
       command: start
-    - name: link-analytics-influxdb.service
+    - name: influxdb.service
       command: start
-    - name: link-analytics-influxdb-check.service
-      command: start
-    - name: link-analytics-results-api.service
-      command: start
-    - name: link-analytics-results-api-check.service
-      command: start
-    - name: link-analytics-results-udp-tcp-proxy.service
+    - name: grafana.service
       command: start
     - name: telegraf.service
+      command: start
+    - name: link-metrics-collector.service
       command: start
     - name: docker.service
       drop-ins:
@@ -70,5 +66,6 @@ write_files:
     content: |
       ZETTA_VERSION=@@ZETTA_VERSION@@
       ZETTA_STACK=@@ZETTA_STACK@@
-      LINK_INSTANCE_TYPE=analytics
+      LINK_INSTANCE_TYPE=metrics
       INFLUXDB_HOST=@@INFLUXDB_HOST@@
+      INFLUXDB_HTTP_AUTH_ENABLED=false

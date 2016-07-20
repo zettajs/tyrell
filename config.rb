@@ -5,7 +5,7 @@
 # after the equals sign..
 
 # Size of the CoreOS cluster created by Vagrant
-$num_instances_zetta=2
+$num_instances_zetta=1
 $num_instances_router=1
 
 # Official CoreOS channel from which updates should be downloaded

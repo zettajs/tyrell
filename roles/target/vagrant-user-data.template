@@ -33,13 +33,13 @@ coreos:
       command: start
     - name: fake-sqs.service
       command: start
-    - name: link-tenant-mgmt-api.service
-      command: start
     - name: zetta-target@3001.service
       command: start
     - name: zetta-target@3002.service
       command: start
     - name: zetta-target@3003.service
+      command: start
+    - name: telegraf.service
       command: start
     - name: docker.service
       drop-ins:
@@ -66,10 +66,13 @@ write_files:
     permissions: 644
     owner: root
     content: |
-      ZETTA_VERSION="@@ZETTA_VERSION@@"
-      ZETTA_DEVICE_DATA_QUEUE="@@ZETTA_DEVICE_DATA_QUEUE@@"
-      ZETTA_USAGE_QUEUE="@@ZETTA_USAGE_QUEUE@@"
-      AWS_ACCESSKEY="fakekey"
-      AWS_SECRET="fakesecret"
-      MQTT_INTERNAL_BROKER_URL="@@MQTT_INTERNAL_BROKER_URL@@"
-      INFLUX_DATABASE="@@INFLUX_DATABASE@@"
+      ZETTA_VERSION=@@ZETTA_VERSION@@
+      ZETTA_STACK=@@ZETTA_STACK@@
+      LINK_INSTANCE_TYPE=target
+      ZETTA_DEVICE_DATA_QUEUE=@@ZETTA_DEVICE_DATA_QUEUE@@
+      ZETTA_USAGE_QUEUE=@@ZETTA_USAGE_QUEUE@@
+      AWS_ACCESSKEY=fakekey
+      AWS_SECRET=fakesecret
+      MQTT_INTERNAL_BROKER_URL=@@MQTT_INTERNAL_BROKER_URL@@
+      INFLUXDB_HOST=@@INFLUXDB_HOST@@
+      INFLUX_DATABASE=@@INFLUX_DATABASE@@

@@ -1,7 +1,7 @@
 [Unit]
 Description=Influx for analytics poc Health Check
-BindsTo=link-influxdb.service
-After=link-influxdb.service
+BindsTo=link-analytics-influxdb.service
+After=link-analytics-influxdb.service
 
 [Service]
 User=core

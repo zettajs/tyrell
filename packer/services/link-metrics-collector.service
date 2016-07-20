@@ -12,5 +12,5 @@ EnvironmentFile=/etc/environment
 EnvironmentFile=/etc/profile.d/zetta
 ExecStartPre=-/usr/bin/docker kill link-metrics-collector
 ExecStartPre=-/usr/bin/docker rm link-metrics-collector
-ExecStart=/usr/bin/docker run --rm --name link-metrics-collector -e STATSD_HOST=${COREOS_PRIVATE_IPV4}:8125 -e COREOS_PRIVATE_IPV4=${COREOS_PRIVATE_IPV4} zetta/link-metrics-collector
+ExecStart=/usr/bin/docker run --rm --name link-metrics-collector --env-file /etc/environment --env-file /etc/profile.d/zetta -e STATSD_HOST=${COREOS_PRIVATE_IPV4}:8125 zetta/link-metrics-collector
 ExecStop=/usr/bin/docker stop link-metrics-collector

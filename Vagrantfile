@@ -14,17 +14,17 @@ CLOUD_CONFIG_PATH = File.join(File.dirname(__FILE__))
 $num_instances_zetta=1
 $num_instances_router=1
 $num_instances_analytics=1
-$instance_name_prefix = "core"
 $update_channel = "stable"
+
+$device_to_cloud = false
+$realtime_analytics = false
 
 if File.exist?(CONFIG)
   require CONFIG
 end
 
-
-def init_machine(config, i, type)
-
-  config.vm.define vm_name = "%s-%02d" % [$instance_name_prefix, i] do |config|
+def init_machine(config, i, type, n)
+  config.vm.define vm_name = "%s-%s-%02d" % ["link", type, i] do |config|
     config.vm.box = "zetta-coreos-%s-build" % $update_channel
     config.vm.hostname = vm_name
 
@@ -48,7 +48,7 @@ def init_machine(config, i, type)
       config.vbguest.auto_update = false
     end
 
-    ip = "172.17.8.#{i+100}"
+    ip = "172.17.8.#{n+100}"
     config.vm.network :private_network, ip: ip
 
     config.vm.provision :file, :source => "#{CLOUD_CONFIG_PATH}/#{type}-user-data", :destination => "/tmp/vagrantfile-user-data"
@@ -63,22 +63,35 @@ def init_machine(config, i, type)
     config.vm.synced_folder proxy_dir, "/home/core/proxy", id: "proxy", :nfs => true, :mount_options => ["nolock,vers=3,udp"] if proxy_dir
     config.vm.synced_folder "dev/", "/home/core/dev", id: "dev", :nfs => true, :mount_options => ['nolock,vers=3,udp']
     config.vm.synced_folder "roles/database/sql/", "/home/core/sql", id: "sql", :nfs => true, :mount_options => ["nolock,vers=3,udp"]
+    config.vm.synced_folder "packer/services", "/home/core/services", id: "services", :nfs => true, :mount_options => ["nolock,vers=3,udp"]
 
     config.vm.network "forwarded_port", guest: 2375, host: 2375, auto_correct: true
   end
 end
 
 Vagrant.configure(2) do |config|
+  count = 0
+
+  count+=1
+  init_machine(config, 1, "metrics", count)
 
   (1..$num_instances_zetta).each do |i|
-    init_machine(config, i, "target")
+    count+=1
+    init_machine(config, i, "target", count)
   end
 
-  (($num_instances_zetta+1)..($num_instances_router+$num_instances_zetta)).each do |i|
-    init_machine(config, i, "router")
+  (1..$num_instances_router).each do |i|
+    count+=1
+    init_machine(config, i, "router", count)
   end
 
-  (($num_instances_router+$num_instances_zetta+1)..($num_instances_router+$num_instances_zetta+$num_instances_analytics)).each do |i|
-    init_machine(config, i, "analytics")
+  if $device_to_cloud then
+    count+=1
+    init_machine(config, 1, "mqttbroker", count)
+  end
+
+  if $realtime_analytics then
+    count+=1
+    init_machine(config, 1, "analytics", count)
   end
 end

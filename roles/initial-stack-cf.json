@@ -67,6 +67,21 @@
       "Default" : "false",
       "Description" : "Enable MQTT Device to Cloud"
     },
+    "InfluxdbHost" : {
+      "Type" : "String",
+      "Default" : "",
+      "Description" : "Influxdb Host for metrics collection"
+    },
+    "InfluxdbUsername" : {
+      "Type" : "String",
+      "Default" : "",
+      "Description" : "Influxdb Username for metrics collection"
+    },
+    "InfluxdbPassword" : {
+      "Type" : "String",
+      "Default" : "",
+      "Description" : "Influxdb Password for metrics collection"
+    },
     "EnableAnalytics" : {
       "Type" : "String",
       "Default" : "false",

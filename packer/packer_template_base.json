@@ -102,6 +102,16 @@
     "destination": "/home/core/.dockercfg"
   },
   {
+    "type": "file",
+    "source": "tele.conf",
+    "destination": "/home/core/tele.conf"
+  },
+  {
+    "type": "file",
+    "source": "influxdb.conf",
+    "destination": "/home/core/influxdb.conf"
+  },
+  {
     "type": "shell",
     "inline": "sudo rm /etc/machine-id"
   },
@@ -112,27 +122,16 @@
   {
     "only": ["virtualbox-iso"],
     "type": "shell",
-    "inline": "docker pull adammagaluk/elasticmq"
+    "inline": [
+      "docker pull adammagaluk/elasticmq",
+      "docker pull postgres",
+      "docker pull influxdb",
+      "docker pull grafana/grafana:3.1.0-beta1"
+    ]
   },
   {
-    "only": ["virtualbox-iso"],
-    "type": "shell",
-    "inline": "docker pull postgres"
-  },
-  {
-    "only": ["amazon-ebs"],
-    "type": "shell",
-    "inline": "docker pull mdobson/statsd-elasticsearch"
-  },
-  {
-    "only": ["amazon-ebs"],
     "type": "shell",
     "inline": "docker pull zetta/link-metrics-collector"
-  },
-  {
-    "only": ["amazon-ebs"],
-    "type": "shell",
-    "inline": "docker pull zetta/link-container-metrics-collector"
   },
   {
     "only": ["amazon-ebs"],
@@ -168,6 +167,10 @@
   },
   {
     "type": "shell",
+    "inline": "docker pull telegraf"
+  },
+  {
+    "type": "shell",
     "inline": "docker pull zetta/link-realtime-analytics-results-api"
   },
   {
@@ -176,7 +179,7 @@
   },
   {
     "type": "shell",
-    "inline": "docker pull zetta/link-realtime-analytics-results-udp-tcp-proxy"  
+    "inline": "docker pull zetta/link-realtime-analytics-results-udp-tcp-proxy"
   }
   ],
   "post-processors": [

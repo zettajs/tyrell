@@ -12,7 +12,7 @@ var TYRELL_VERSION = require('./package.json').version;
 program
   .option('-v, --verbose', 'Display packer build output')
   .option('-c, --channel [channel]', 'CoreOS update channel [stable], used only for Vagrant', 'stable')
-  .option('--core-os-version [version]', 'CoreOS version to get ami value', '835.9.0')
+  .option('--core-os-version [version]', 'CoreOS version to get ami value', '1010.6.0')
   .option('--ami-type [hvm|pv]', 'AWS ami virtualization type', 'hvm')
   .option('--aws-build-type [instance type]', 'AWS instance type to build with. Note: If virtualization pv is used build type is m1.large', 't2.medium')
   .option('--root-device-name [device name]', 'AWS root device name', '/dev/xvda')

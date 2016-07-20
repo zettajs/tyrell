@@ -155,9 +155,12 @@ function generateStackParams(config) {
       { ParameterKey: 'CoreServicesAMI', ParameterValue: config.ami },
       { ParameterKey: 'CoreServicesInstanceType', ParameterValue: config.instanceType },
       { ParameterKey: 'CoreServicesSize', ParameterValue: '' + config.size },
-      { ParameterKey: 'StackSubnets', ParameterValue: config.privateSubnets.join(',') },
-      { ParameterKey: 'PublicStackSubnets', ParameterValue: config.publicSubnets.join(',') },
-      { ParameterKey: 'StackVpc', ParameterValue: config.vpc }
+      { ParameterKey: 'StackSubnets', ParameterValue: config.privateSubnets },
+      { ParameterKey: 'PublicStackSubnets', ParameterValue: config.publicSubnets },
+      { ParameterKey: 'StackVpc', ParameterValue: config.vpc },
+      { ParameterKey: 'InfluxdbHost', ParameterValue: config.influxdbHost },
+      { ParameterKey: 'InfluxdbUsername', ParameterValue: config.influxdbUsername },
+      { ParameterKey: 'InfluxdbPassword', ParameterValue: config.influxdbPassword }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stackName },
