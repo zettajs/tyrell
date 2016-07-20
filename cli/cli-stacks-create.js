@@ -26,7 +26,11 @@ program
   .option('-v --vpc <vpc>', 'VPC to deploy the stack onto')
   .option('--device-to-cloud', 'Create device to cloud resources.')
   .option('--analytics', 'Create realtime analytics reasources.')
+<<<<<<< HEAD
+  .option('--analytics-db <database>', 'Name for analytics db', '')
+=======
   .option('--analytics-db <database>', 'Name for analytics db', 'deviceData')
+>>>>>>> e9e455be1056cdf511df4bc092f024292c5d97c4
   .parse(process.argv);
 
 var name = program.args[0];
@@ -84,7 +88,7 @@ coreosamis()
     if (program.amiType === 'pv') {
       program.type = 'm1.large';
     }
-    
+
     var baseAmi = results[program.amiType]
     if (!baseAmi) {
       console.error('Could not ami matching version or ami type.');
@@ -92,6 +96,12 @@ coreosamis()
     }
 
     console.log('Using', baseAmi, 'for core-services machines.');
+
+
+    if(program.analytics && !program.analyticsDb) {
+      program.analyticsDb = 'deviceData';
+    }
+
 
     getKeyPair(function(err, key) {
       if (err) {
@@ -187,7 +197,7 @@ coreosamis()
                 analytics: program.analytics,
                 analyticsDb: program.analyticsDb
               };
-              
+
               // delay 1 minute to allow ec2 instances to be spun up for etcd
               setTimeout(function() {
                 provision(AWS, opts, function(err, versions) {
@@ -200,7 +210,7 @@ coreosamis()
                   console.log('Target Created:', versions.target);
                   console.log('Worker Created:', versions.worker);
                   console.log('Tenant Management Created:', versions.tenantMgmt);
-                  
+
                   if (program.deviceToCloud) {
                     console.log('Database Created:', versions.database);
                     console.log('Credential Api Created:', versions.credentialApi);

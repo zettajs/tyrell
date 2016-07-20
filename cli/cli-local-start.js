@@ -64,7 +64,7 @@ function generateConfig(cb) {
       var config = template.toString().replace(discoveryToken, url);
       Object.keys(configs[type]).forEach(function(token) {
         config = config.replace('@@' + token + '@@', configs[type][token]);
-      });      
+      });
       fs.writeFileSync(path.join(Vagrant.vagrantPath(), type + '-user-data'), config);
     })
 

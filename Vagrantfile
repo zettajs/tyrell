@@ -17,6 +17,7 @@ $num_instances_analytics=1
 $update_channel = "stable"
 
 $device_to_cloud = false
+$realtime_analytics = false
 
 if File.exist?(CONFIG)
   require CONFIG
@@ -89,6 +90,8 @@ Vagrant.configure(2) do |config|
     init_machine(config, 1, "mqttbroker", count)
   end
 
-  count+=1
-  init_machine(config, 1, "analytics", count)
+  if $realtime_analytics then
+    count+=1
+    init_machine(config, 1, "analytics", count)
+  end
 end

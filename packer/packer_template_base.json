@@ -179,7 +179,7 @@
   },
   {
     "type": "shell",
-    "inline": "docker pull zetta/link-realtime-analytics-results-udp-tcp-proxy"  
+    "inline": "docker pull zetta/link-realtime-analytics-results-udp-tcp-proxy"
   }
   ],
   "post-processors": [
