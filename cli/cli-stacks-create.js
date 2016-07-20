@@ -26,11 +26,7 @@ program
   .option('-v --vpc <vpc>', 'VPC to deploy the stack onto')
   .option('--device-to-cloud', 'Create device to cloud resources.')
   .option('--analytics', 'Create realtime analytics reasources.')
-<<<<<<< HEAD
-  .option('--analytics-db <database>', 'Name for analytics db', '')
-=======
   .option('--analytics-db <database>', 'Name for analytics db', 'deviceData')
->>>>>>> e9e455be1056cdf511df4bc092f024292c5d97c4
   .parse(process.argv);
 
 var name = program.args[0];
