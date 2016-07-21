@@ -44,7 +44,7 @@ if (program.vpc === undefined) {
 
 
 function getSubnets(cb) {
-  vpc.subnetsForVpc(AWS, program.vpc, function(err, data){
+  vpc.subnetsForVpc(AWS, program.vpc, program.azs, function(err, data){
     if(err) {
       cb(err);
     } else {
@@ -123,10 +123,7 @@ coreosamis()
 
 
         if(program.azs) {
-          var azsToFilterOn = program.azs.split(',')
-          data = data.filter(function(net) {
-            return azsToFilterOn.indexOf(net.az) > -1;
-          });
+
         }
 
         var privateSubnets = data.filter(function(net){

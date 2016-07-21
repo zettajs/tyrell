@@ -91,7 +91,7 @@ function getDbUrl(AWS, stackName, versionId, cb) {
 
 
 // Get subnets use stacks vpc parameter
-function getSubnets(AWS, stack, cb) {
+function getSubnets(AWS, stack, azs, cb) {
   vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], function(err, data) {
     if (err) {
       return cb(err);
