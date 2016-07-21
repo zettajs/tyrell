@@ -134,6 +134,11 @@ function routeELB(AWS, type, opts, cb) {
       type: require('./mqttbrokers'),
       tag: 'zetta:mqttbroker:version',
       asg: 'AutoScale'
+    },
+    'results': {
+      type: require('./results'),
+      tag: 'zetta:results:version',
+      asg: 'AutoScale'
     }
   };
 
@@ -221,6 +226,10 @@ module.exports.routeRabbitMq = function(AWS, opts, cb) {
 module.exports.routeCredentialApi = function(AWS, opts, cb) {
   return routeELB(AWS, 'credential-api', opts, cb);
 };
+
+module.exports.routeResults = function(AWS, opts, cb) {
+  return routeELB(AWS, 'results', opts, cb);
+}
 
 module.exports.route = function(AWS, opts, cb) {
   return routeELB(AWS, 'routers', opts, cb);

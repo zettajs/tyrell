@@ -13,6 +13,8 @@ program
   .option('-s, --size <cluster stize>', 'Size of Autoscale group. [1]', 1)
   .option('--version <app version>', 'Logical version of the app being deployed', crypto.randomBytes(6).toString('hex'))
   .option('-v, --vpc <vpc>', 'VPC to distribute targets on. Deployed to the private subnets.')
+  .option('--analytics', 'Enable analytics')
+  .option('--analytics-db <database>', 'Enable influx data collection to specified database.');
   .parse(process.argv);
 
 
@@ -20,6 +22,11 @@ var name = program.args[0];
 if (!name) {
   program.help();
   process.exit(1);
+}
+
+var influx = '';
+if(program.influx) {
+  influx = program.influx;
 }
 
 if (!program.ami || !(/ami-*/).test(program.ami)) {
@@ -56,12 +63,18 @@ stacks.get(AWS, name, function(err, stack) {
       return netObject.id;
     });
 
+    if(program.analytics && !program.analyticsDb) {
+      program.analyticsDb = 'deviceData';
+    }
+ 
     var config = {
       ami: program.ami,
       size: program.size,
       type: program.type,
       version: program.version,
-      subnets: subnetIdArray
+      subnets: subnetIdArray,
+      analytics: program.analytics,
+      analyticsDb: program.analyticsDb
     };
 
     console.log('Creating CF Version', program.version);

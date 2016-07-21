@@ -7,6 +7,7 @@ program
   .command('credential-api [stack]', 'update the credential api version')
   .command('rabbitmq [stack]', 'update the rabbitmq version')
   .command('mqttbrokers [stack]', 'update the mqttbroker version')
+  .command('results [stack]', 'update the results version')
   .parse(process.argv);
 
 if (program.args.length 

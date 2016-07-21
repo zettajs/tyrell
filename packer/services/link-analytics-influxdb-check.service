@@ -1,0 +1,14 @@
+[Unit]
+Description=Influx for analytics poc Health Check
+BindsTo=link-analytics-influxdb.service
+After=link-analytics-influxdb.service
+
+[Service]
+User=core
+Restart=always
+RestartSec=30
+EnvironmentFile=/etc/environment
+EnvironmentFile=/etc/profile.d/zetta
+ExecStartPre=/bin/sh -c '/usr/bin/etcdctl set /influx/${COREOS_PRIVATE_IPV4} "{\\\"url\\\":\\\"http://${COREOS_PRIVATE_IPV4}:8086\\\",\\\"created\\\":\\\"$(/usr/bin/date --utc +%%Y-%%m-%%dT%%T.000Z)\\\"}"'
+ExecStart=/bin/sh -c "sleep 60; while true; do if [ \"$(curl -i -X GET -s --connect-timeout 30 --max-time 45 http://${COREOS_PRIVATE_IPV4}:8086/ping | head -n +1 | awk '{print $2}')\" != \"204\" ]; then docker stop link-analytics-influxdb.service; fi; sleep 60; done;"
+ExecStop=/usr/bin/etcdctl rm /influx/${COREOS_PRIVATE_IPV4}

@@ -168,6 +168,18 @@
   {
     "type": "shell",
     "inline": "docker pull telegraf"
+  },
+  {
+    "type": "shell",
+    "inline": "docker pull zetta/link-realtime-analytics-results-api"
+  },
+  {
+    "type": "shell",
+    "inline": "docker pull influxdb"
+  },
+  {
+    "type": "shell",
+    "inline": "docker pull zetta/link-realtime-analytics-results-udp-tcp-proxy"
   }
   ],
   "post-processors": [

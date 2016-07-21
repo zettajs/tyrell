@@ -13,14 +13,15 @@ CLOUD_CONFIG_PATH = File.join(File.dirname(__FILE__))
 
 $num_instances_zetta=1
 $num_instances_router=1
+$num_instances_analytics=1
 $update_channel = "stable"
 
 $device_to_cloud = false
+$realtime_analytics = false
 
 if File.exist?(CONFIG)
   require CONFIG
 end
-
 
 def init_machine(config, i, type, n)
   config.vm.define vm_name = "%s-%s-%02d" % ["link", type, i] do |config|
@@ -87,5 +88,10 @@ Vagrant.configure(2) do |config|
   if $device_to_cloud then
     count+=1
     init_machine(config, 1, "mqttbroker", count)
+  end
+
+  if $realtime_analytics then
+    count+=1
+    init_machine(config, 1, "analytics", count)
   end
 end

@@ -25,6 +25,8 @@ program
   .option('--influxdb-auth <username:password>', 'Metrics influxdb username:password', 'admin:2ee54aed802910f2f4e74dfbc143dbbd')
   .option('-v --vpc <vpc>', 'VPC to deploy the stack onto')
   .option('--device-to-cloud', 'Create device to cloud resources.')
+  .option('--analytics', 'Create realtime analytics reasources.')
+  .option('--analytics-db <database>', 'Name for analytics db', 'deviceData')
   .parse(process.argv);
 
 var name = program.args[0];
@@ -80,9 +82,9 @@ coreosamis()
     }
 
     if (program.amiType === 'pv') {
-      program.awsBuildType = 'm1.large';
+      program.type = 'm1.large';
     }
-    
+
     var baseAmi = results[program.amiType]
     if (!baseAmi) {
       console.error('Could not ami matching version or ami type.');
@@ -90,6 +92,12 @@ coreosamis()
     }
 
     console.log('Using', baseAmi, 'for core-services machines.');
+
+
+    if(program.analytics && !program.analyticsDb) {
+      program.analyticsDb = 'deviceData';
+    }
+
 
     getKeyPair(function(err, key) {
       if (err) {
@@ -154,7 +162,9 @@ coreosamis()
             deviceToCloud: program.deviceToCloud,
             influxdbHost: program.influxdbHost,
             influxdbUsername: influxdbUsername,
-            influxdbPassword: influxdbPassword
+            influxdbPassword: influxdbPassword,
+            analytics: program.analytics,
+            analyticsDb: program.analyticsDb
           };
 
           stacks.create(AWS, config, function(err) {
@@ -179,9 +189,11 @@ coreosamis()
                 privateSubnets: privateSubnetIdArray,
                 publicSubnets: publicSubnetIdArray,
                 tenantMgmtSubnet: tenantMgmtSubnet,
-                deviceToCloud: program.deviceToCloud
+                deviceToCloud: program.deviceToCloud,
+                analytics: program.analytics,
+                analyticsDb: program.analyticsDb
               };
-              
+
               // delay 1 minute to allow ec2 instances to be spun up for etcd
               setTimeout(function() {
                 provision(AWS, opts, function(err, versions) {
@@ -194,7 +206,7 @@ coreosamis()
                   console.log('Target Created:', versions.target);
                   console.log('Worker Created:', versions.worker);
                   console.log('Tenant Management Created:', versions.tenantMgmt);
-                  
+
                   if (program.deviceToCloud) {
                     console.log('Database Created:', versions.database);
                     console.log('Credential Api Created:', versions.credentialApi);

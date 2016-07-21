@@ -71,7 +71,8 @@ var subnetsForVpc = module.exports.subnetsForVpc = function(AWS, vpcId, cb) {
     data.Subnets.forEach(function(subnet) {
       var obj = {
         id: subnet.SubnetId,
-        public: subnet.MapPublicIpOnLaunch
+        public: subnet.MapPublicIpOnLaunch,
+        az: subnet.AvailabilityZone
       };
       subnets.push(obj);
     });

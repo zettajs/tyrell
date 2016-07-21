@@ -30,16 +30,16 @@ var traffic = require('./traffic');
 
 var DEFAULTS = {
   routerSize: 1, // Number of router instances
-  routerType: 't2.micro', // Router types
-  versionSize: 1, // number of zetta target instances
-  versionType: 't2.micro', // zetta target instances type
-  workerType: 't2.medium',
+  routerType: 'm1.small', // Router types
+  versionSize: 3, // number of zetta target instances
+  versionType: 'm1.large', // zetta target instances type
+  workerType: 'm1.small',
   dbSize: 5, //GB
   dbMultiAZ: false,
   dbInstanceType: 'db.t2.micro',
-  credentialApiInstanceType: 't2.micro',
-  rabbitmqInstanceType: 't2.micro',
-  mqttbrokerInstanceType: 't2.micro'
+  credentialApiInstanceType: 'm1.small',
+  rabbitmqInstanceType: 'm1.small',
+  mqttbrokerInstanceType: 'm1.small'
 };
 
 module.exports = function(AWS, opts, callback) {
@@ -84,7 +84,7 @@ module.exports = function(AWS, opts, callback) {
           routers.create(AWS, stack, config, next);
         },
         function(next) {
-          var config = { ami: images[0], size: opts.versionSize, type: opts.versionType, version: versionKeys.target, subnets: opts.privateSubnets };
+          var config = { ami: images[0], size: opts.versionSize, type: opts.versionType, version: versionKeys.target, subnets: opts.privateSubnets, analyticsDb: opts.analyticsDb };
           targets.create(AWS, stack, config, next);
         },
         function(next) {
@@ -98,7 +98,7 @@ module.exports = function(AWS, opts, callback) {
         // Add RDS Postgres db if device-to-cloud is enabled
         function(next) {
           if (opts.deviceToCloud !== true) return next();
-          
+
           var config = { size: opts.dbSize, type: opts.dbInstanceType, version: versionKeys.database, multiAz: opts.dbMultiAZ };
           databases.create(AWS, stack, config, function(err) {
             if (err) {
@@ -113,16 +113,16 @@ module.exports = function(AWS, opts, callback) {
         // Add RabbitMQ  if device-to-cloud is enabled
         function(next) {
           if (opts.deviceToCloud !== true) return next();
-          
+
           var config = { ami: images[0], type: opts.rabbitmqInstanceType, version: versionKeys.rabbitmq, size: 1 };
           rabbitmq.create(AWS, stack, config, next);
         },
         // Add mqttbrokers if device-to-cloud is enabled
         function(next) {
           if (opts.deviceToCloud !== true) return next();
-          
+
           var config = { ami: images[0], type: opts.mqttbrokerInstanceType, version: versionKeys.mqttbroker, size: 1 };
-          mqttbrokers.create(AWS, stack, config, next);          
+          mqttbrokers.create(AWS, stack, config, next);
         }
       ];
 
@@ -183,7 +183,7 @@ module.exports = function(AWS, opts, callback) {
               if (!version) {
                 return next(new Error('Unable to find rabbitmq version'));
               }
-              
+
               var config = { version: version,  elbName: stack.Resources['RabbitMQELB'].PhysicalResourceId, stack: opts.stack };
               traffic.routeRabbitMq(AWS, config, next);
             });
@@ -203,7 +203,7 @@ module.exports = function(AWS, opts, callback) {
               if (!version) {
                 return next(new Error('Unable to find mqttbroker version'));
               }
-              
+
               var config = { version: version,  elbName: [stack.Resources['InternalMQTTELB'].PhysicalResourceId, stack.Resources['ExternalMQTTELB'].PhysicalResourceId], stack: opts.stack };
               traffic.routeMqttBroker(AWS, config, next);
             });
@@ -224,7 +224,7 @@ module.exports = function(AWS, opts, callback) {
               if (!version) {
                 return next(new Error('Unable to find credential api version'));
               }
-              
+
               var config = { version: version,  elbName: stack.Resources['CredentialAPIELB'].PhysicalResourceId, stack: opts.stack };
               traffic.routeCredentialApi(AWS, config, next);
             });

@@ -20,7 +20,7 @@ coreos:
     listen-peer-urls: http://$private_ipv4:2380
   fleet:
     public-ip: $public_ipv4
-    metadata: role=zetta
+    metadata: role=router
   units:
     - name: update-engine.service
       command: stop
@@ -31,13 +31,15 @@ coreos:
       command: stop
     - name: fleet.service
       command: start
-    - name: fake-sqs.service
+    - name: link-analytics-influxdb.service
       command: start
-    - name: zetta-target@3001.service
+    - name: link-analytics-influxdb-check.service
       command: start
-    - name: zetta-target@3002.service
+    - name: link-analytics-results-api.service
       command: start
-    - name: zetta-target@3003.service
+    - name: link-analytics-results-api-check.service
+      command: start
+    - name: link-analytics-results-udp-tcp-proxy.service
       command: start
     - name: telegraf.service
       command: start
@@ -68,11 +70,5 @@ write_files:
     content: |
       ZETTA_VERSION=@@ZETTA_VERSION@@
       ZETTA_STACK=@@ZETTA_STACK@@
-      LINK_INSTANCE_TYPE=target
-      ZETTA_DEVICE_DATA_QUEUE=@@ZETTA_DEVICE_DATA_QUEUE@@
-      ZETTA_USAGE_QUEUE=@@ZETTA_USAGE_QUEUE@@
-      AWS_ACCESSKEY=fakekey
-      AWS_SECRET=fakesecret
-      MQTT_INTERNAL_BROKER_URL=@@MQTT_INTERNAL_BROKER_URL@@
+      LINK_INSTANCE_TYPE=analytics
       INFLUXDB_HOST=@@INFLUXDB_HOST@@
-      INFLUX_DATABASE=@@INFLUX_DATABASE@@

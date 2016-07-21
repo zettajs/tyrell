@@ -31,6 +31,7 @@ var configs = {
     'ZETTA_DEVICE_DATA_QUEUE': 'http://link-target-01:9324/queue/device-data',
     'ZETTA_USAGE_QUEUE': 'http://link-target-01:9324/queue/zetta-usage',
     'MQTT_INTERNAL_BROKER_URL': 'mqtt://link-router-01:2883',
+    'INFLUX_DATABASE': 'deviceData'
   },
   metrics: {
     'ZETTA_VERSION': crypto.randomBytes(6).toString('hex'),
@@ -45,10 +46,15 @@ var configs = {
     'RABBITMQ_URL': 'amqp://link-mqttbroker-01:5672',
     'CREDENTIAL_API_URL': 'http://link-mqttbroker-01:2000'
   },
+  analytics: {
+    'ZETTA_VERSION': crypto.randomBytes(6).toString('hex'),
+    'ZETTA_STACK': 'vagrant',
+    'INFLUXDB_HOST': 'http://link-metrics-01:8086'
+  }
 };
 
 function generateConfig(cb) {
-  DiscoveryUrl(function(err, url) {
+  DiscoveryUrl(4, function(err, url) {
     if(err) {
       return cb(err);
     }
@@ -58,7 +64,7 @@ function generateConfig(cb) {
       var config = template.toString().replace(discoveryToken, url);
       Object.keys(configs[type]).forEach(function(token) {
         config = config.replace('@@' + token + '@@', configs[type][token]);
-      });      
+      });
       fs.writeFileSync(path.join(Vagrant.vagrantPath(), type + '-user-data'), config);
     })
 
