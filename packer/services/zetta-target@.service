@@ -13,5 +13,5 @@ EnvironmentFile=/etc/environment
 EnvironmentFile=/etc/profile.d/zetta
 ExecStartPre=-/usr/bin/docker kill zetta.target.%i
 ExecStartPre=-/usr/bin/docker rm zetta.target.%i
-ExecStart=/usr/bin/docker run --rm --name zetta.target.%i -p %i:%i --env-file /etc/environment --env-file /etc/profile.d/zetta -e AWS_REGION="us-east-1" -e VERSION=${ZETTA_VERSION} -e DEVICE_DATA_QUEUE=${ZETTA_DEVICE_DATA_QUEUE} -e USAGE_QUEUE=${ZETTA_USAGE_QUEUE} -e MAPPED_PORT=%i -e MQTT_BROKER_URL=${MQTT_INTERNAL_BROKER_URL} zetta/link-zetta-target
+ExecStart=/usr/bin/docker run --rm --name zetta.target.%i -p %i:%i --memory ${TARGET_MEMORY_LIMIT} --env-file /etc/environment --env-file /etc/profile.d/zetta -e AWS_REGION="us-east-1" -e VERSION=${ZETTA_VERSION} -e DEVICE_DATA_QUEUE=${ZETTA_DEVICE_DATA_QUEUE} -e USAGE_QUEUE=${ZETTA_USAGE_QUEUE} -e MAPPED_PORT=%i -e MQTT_BROKER_URL=${MQTT_INTERNAL_BROKER_URL} zetta/link-zetta-target
 ExecStop=/usr/bin/docker stop zetta.target.%i
