@@ -128,8 +128,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
         { ParameterKey: 'ZettaTargetSecurityGroup', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['TargetSecurityGroup'].GroupId].join(',') },
         { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
         { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['TargetRoleInstanceProfile'].PhysicalResourceId },
-        { ParameterKey: 'TargetSubnets', ParameterValue: config.subnets.join(',') },
-        { ParameterKey: 'StackAvailabilityZones', ParameterValue: config.azs }
+        { ParameterKey: 'TargetSubnets', ParameterValue: config.subnets.join(',') }
       ],
       Tags: [
         { Key: 'zetta:stack', Value: stack.StackName },

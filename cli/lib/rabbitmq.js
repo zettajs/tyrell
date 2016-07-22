@@ -138,8 +138,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
         { ParameterKey: 'CoreSecurityGroup', ParameterValue: stack.Resources['CoreOsSecurityGroup'].GroupId },
         { ParameterKey: 'RabbitMqELBSecurityGroup', ParameterValue: stack.Resources['RabbitMqELBSecurityGroup'].GroupId },
         { ParameterKey: 'ClusterSize', ParameterValue: '0' }, // scale after AddToElb process is suspended
-        { ParameterKey: 'ELB', ParameterValue: stack.Resources['RabbitMQELB'].PhysicalResourceId },
-        { ParameterKey: 'StackAvailabilityZones', ParameterValue: config.azs }
+        { ParameterKey: 'ELB', ParameterValue: stack.Resources['RabbitMQELB'].PhysicalResourceId }
       ],
       Tags: [
         { Key: 'zetta:stack', Value: stack.StackName },

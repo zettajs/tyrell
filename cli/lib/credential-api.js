@@ -149,8 +149,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
           { ParameterKey: 'Subnets', ParameterValue: subnets.join(',') },
           { ParameterKey: 'SecurityGroups', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['CredentialAPISecurityGroup'].GroupId].join(',') },
           { ParameterKey: 'ClusterSize', ParameterValue: '0' }, // scale after AddToElb process is suspended
-          { ParameterKey: 'ELB', ParameterValue: stack.Resources['CredentialAPIELB'].PhysicalResourceId },
-          { ParameterKey: 'StackAvailabilityZones', ParameterValue: config.azs }
+          { ParameterKey: 'ELB', ParameterValue: stack.Resources['CredentialAPIELB'].PhysicalResourceId }
         ],
         Tags: [
           { Key: 'zetta:stack', Value: stack.StackName },

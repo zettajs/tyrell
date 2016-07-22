@@ -138,8 +138,7 @@ function generateStackParams(stackName, config) {
       { ParameterKey: 'BastionInstanceType', ParameterValue: config.instanceType },
       { ParameterKey: 'BastionSize', ParameterValue: '' + config.size },
       { ParameterKey: 'BastionSubnets', ParameterValue: config.subnets },
-      { ParameterKey: 'BastionVpc', ParameterValue: config.vpc },
-      { ParameterKey: 'StackAvailabilityZones', ParameterValue: config.azs }
+      { ParameterKey: 'BastionVpc', ParameterValue: config.vpc }
     ],
     Tags: [
       { Key: 'versions:tyrell', Value: require('../package.json').version }

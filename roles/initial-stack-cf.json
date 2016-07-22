@@ -58,11 +58,6 @@
       "Description": "Public subnets that the Load Balancer should distribute boxes on.",
       "Type": "CommaDelimitedList"
     },
-    "StackAvailabilityZones": {
-      "Description":"Availability Zones to deploy ASGs to",
-      "Type": "CommaDelimitedList",
-      "Default": {"Fn::GetAZs": ""}}
-    },
     "StackVpc": {
       "Type": "String",
       "Description": "The VPC to associate security groups to."
@@ -526,7 +521,6 @@
     "CoreServicesASG": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
-        "AvailabilityZones": {"Ref": "StackAvailabilityZones"},
         "LaunchConfigurationName": {"Ref": "CoreServicesLaunchConfig"},
         "MinSize": "3",
         "MaxSize": "5",

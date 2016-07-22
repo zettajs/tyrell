@@ -161,7 +161,6 @@ function generateStackParams(config) {
       { ParameterKey: 'InfluxdbHost', ParameterValue: config.influxdbHost },
       { ParameterKey: 'InfluxdbUsername', ParameterValue: config.influxdbUsername },
       { ParameterKey: 'InfluxdbPassword', ParameterValue: config.influxdbPassword }
-      { ParameterKey: 'StackAvailabilityZones', ParameterValue: config.azs }
     ],
     Tags: [
       { Key: 'zetta:stack', Value: stackName },

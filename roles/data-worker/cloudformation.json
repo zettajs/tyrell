@@ -46,19 +46,13 @@
     "WorkerPrivateSubnets": {
       "Description": "Private subnets that the ASG should distribute boxes on.",
       "Type": "CommaDelimitedList"
-    },
-    "StackAvailabilityZones": {
-      "Description":"Availability Zones to deploy ASGs to",
-      "Type": "CommaDelimitedList",
-      "Default": {"Fn::GetAZs": ""}}
-    },
+    }
   },
 
   "Resources": {
     "DeviceDataAutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
-        "AvailabilityZones": {"Ref": "StackAvailabilityZones"},
         "LaunchConfigurationName": {"Ref": "DeviceDataLaunchConfig"},
         "MinSize": "0",
         "MaxSize": "0",
@@ -107,7 +101,6 @@
     "ZettaUsageAutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
-        "AvailabilityZones": {"Fn::GetAZs": ""},
         "LaunchConfigurationName": {"Ref": "ZettaUsageLaunchConfig"},
         "MinSize": "0",
         "MaxSize": "0",

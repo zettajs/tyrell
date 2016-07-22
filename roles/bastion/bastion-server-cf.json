@@ -22,12 +22,7 @@
     "BastionVpc": {
       "Description": "VPC id of the bastion server",
       "Type": "String"
-    },
-    "StackAvailabilityZones": {
-      "Description":"Availability Zones to deploy ASGs to",
-      "Type": "CommaDelimitedList",
-      "Default": {"Fn::GetAZs": ""}}
-    },
+    }
   },
   "Resources": {
     "CoreOsSecurityGroup": {
@@ -42,8 +37,7 @@
     },
     "BastionASG": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
-      "Properties": {
-        "AvailabilityZones": {"Ref": "StackAvailabilityZones"},
+      "Properties": {  
         "LaunchConfigurationName": {"Ref": "BastionLaunchConfig"},
         "MinSize": "1",
         "MaxSize": "3",

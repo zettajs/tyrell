@@ -141,8 +141,7 @@ function generateStackParams(config) {
       { ParameterKey: 'MetricsSize', ParameterValue: '' + config.size },
       { ParameterKey: 'MetricsDiskSize', ParameterValue: '' + config.diskSize },
       { ParameterKey: 'MetricsSubnets', ParameterValue: '' + config.subnets },
-      { ParameterKey: 'MetricsVpc', ParameterValue: '' + config.vpc },
-      { ParameterKey: 'StackAvailabilityZones', ParameterValue: config.azs }
+      { ParameterKey: 'MetricsVpc', ParameterValue: '' + config.vpc }
     ],
     Tags: [
       { Key: 'metrics:stack', Value: stackName },
