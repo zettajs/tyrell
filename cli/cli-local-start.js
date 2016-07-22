@@ -31,7 +31,8 @@ var configs = {
     'ZETTA_DEVICE_DATA_QUEUE': 'http://link-target-01:9324/queue/device-data',
     'ZETTA_USAGE_QUEUE': 'http://link-target-01:9324/queue/zetta-usage',
     'MQTT_INTERNAL_BROKER_URL': 'mqtt://link-router-01:2883',
-    'INFLUX_DATABASE': 'deviceData'
+    'INFLUX_DATABASE': 'deviceData',
+    'TARGET_MEMORY_LIMIT': '0'
   },
   metrics: {
     'ZETTA_VERSION': crypto.randomBytes(6).toString('hex'),
@@ -54,7 +55,7 @@ var configs = {
 };
 
 function generateConfig(cb) {
-  DiscoveryUrl(4, function(err, url) {
+  DiscoveryUrl(3, function(err, url) {
     if(err) {
       return cb(err);
     }
