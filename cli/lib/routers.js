@@ -94,6 +94,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   userData = userData.replace(/@@INFLUXDB_HOST@@/g, stack.Parameters['InfluxdbHost']);
   userData = userData.replace(/@@INFLUXDB_USERNAME@@/g, stack.Parameters['InfluxdbUsername']);
   userData = userData.replace(/@@INFLUXDB_PASSWORD@@/g, stack.Parameters['InfluxdbPassword']);
+  userData = userData.replace(/@@ROUTER_MEMORY_LIMIT@@/g, config.memoryLimit);
 
   var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/router/cloudformation.json')).toString());
   template.Resources['ServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };

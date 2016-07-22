@@ -12,6 +12,7 @@ program
   .option('--type <instance type>', 'Instance type to use. [t2.micro]', 't2.micro')
   .option('--version <app version>', 'Logical version of the app being deployed', crypto.randomBytes(6).toString('hex'))
   .option('-v, --vpc <vpc>', 'Indicate which VPC to deploy to.')
+  .option('--memory-limit <limit>', 'Limit tenant mgmt containers memory.', '0')
   .parse(process.argv);
 
 
@@ -63,7 +64,8 @@ stacks.get(AWS, name, function(err, stack) {
       type: program.type,
       version: program.version,
       vpc: program.vpc,
-      subnet: randomSubnet
+      subnet: randomSubnet,
+      memoryLimit: program.memoryLimit
     };
 
     console.log('Creating CF Version', program.version);

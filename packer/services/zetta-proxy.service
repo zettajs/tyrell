@@ -12,5 +12,5 @@ EnvironmentFile=/etc/environment
 EnvironmentFile=/etc/profile.d/zetta
 ExecStartPre=-/usr/bin/docker kill zetta.proxy
 ExecStartPre=-/usr/bin/docker rm zetta.proxy
-ExecStart=/usr/bin/docker run --rm --name zetta.proxy --env-file /etc/environment --env-file /etc/profile.d/zetta -e AWS_REGION="us-east-1" -e PORT=3000 -p 80:3000 zetta/link-router
+ExecStart=/usr/bin/docker run --rm --name zetta.proxy --memory ${ROUTER_MEMORY_LIMIT} --env-file /etc/environment --env-file /etc/profile.d/zetta -e AWS_REGION="us-east-1" -e PORT=3000 -p 80:3000 zetta/link-router
 ExecStop=/usr/bin/docker stop zetta.proxy

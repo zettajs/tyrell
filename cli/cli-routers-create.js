@@ -13,6 +13,7 @@ program
   .option('-s, --size <cluster stize>', 'Size of Autoscale group. [1]', 1)
   .option('--version <app version>', 'Logical db version of the app being deployed', crypto.randomBytes(6).toString('hex'))
   .option('-v, --vpc <vpc>', 'VPC to deploy routers to. Will be distributed on private subnets.')
+  .option('--memory-limit <limit>', 'Limit router\'s container memory.', '0')
   .parse(process.argv);
 
 
@@ -62,7 +63,8 @@ stacks.get(AWS, name, function(err, stack) {
       size: program.size,
       type: program.type,
       version: program.version,
-      subnets: subnetIdArray
+      subnets: subnetIdArray,
+      memoryLimit: program.memoryLimit
     };
 
     console.log('Creating CF Version', config.version);

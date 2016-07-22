@@ -23,6 +23,7 @@ var configs = {
     'ZETTA_VERSION': crypto.randomBytes(6).toString('hex'),
     'ZETTA_STACK': 'vagrant',
     'INFLUXDB_HOST': 'http://link-metrics-01:8086',
+    'ROUTER_MEMORY_LIMIT': '0'
   },
   target: {
     'ZETTA_VERSION': version,
@@ -32,7 +33,8 @@ var configs = {
     'ZETTA_USAGE_QUEUE': 'http://link-target-01:9324/queue/zetta-usage',
     'MQTT_INTERNAL_BROKER_URL': 'mqtt://link-router-01:2883',
     'INFLUX_DATABASE': 'deviceData',
-    'TARGET_MEMORY_LIMIT': '0'
+    'TARGET_MEMORY_LIMIT': '0',
+    'TENANT_MGMT_MEMORY_LIMIT': '0'
   },
   metrics: {
     'ZETTA_VERSION': crypto.randomBytes(6).toString('hex'),
