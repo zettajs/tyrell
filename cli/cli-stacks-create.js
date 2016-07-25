@@ -27,6 +27,7 @@ program
   .option('--device-to-cloud', 'Create device to cloud resources.')
   .option('--analytics', 'Create realtime analytics reasources.')
   .option('--analytics-db <database>', 'Name for analytics db', 'deviceData')
+  .option('--azs <list>', 'AZs to limit the deployment to.')
   .parse(process.argv);
 
 var name = program.args[0];
@@ -43,7 +44,7 @@ if (program.vpc === undefined) {
 
 
 function getSubnets(cb) {
-  vpc.subnetsForVpc(AWS, program.vpc, function(err, data){
+  vpc.subnetsForVpc(AWS, program.vpc, program.azs, function(err, data){
     if(err) {
       cb(err);
     } else {
@@ -139,9 +140,11 @@ coreosamis()
         var tenantMgmtSubnet = publicSubnetIdArray[Math.floor(Math.random() * publicSubnetIdArray.length)];
 
 
+
         var influxdbUsername = 'stack' + crypto.randomBytes(6).toString('hex');
         var influxdbPassword = crypto.randomBytes(24).toString('hex');
         influxdb.createUser({ host: program.influxdbHost, auth: program.influxdbAuth }, influxdbUsername, influxdbPassword, function(err) {
+
           if (err) {
             console.error('Failed to create influxdb user', err);
             return process.exit(1);
@@ -164,7 +167,8 @@ coreosamis()
             influxdbUsername: influxdbUsername,
             influxdbPassword: influxdbPassword,
             analytics: program.analytics,
-            analyticsDb: program.analyticsDb
+            analyticsDb: program.analyticsDb,
+            azs: program.azs
           };
 
           stacks.create(AWS, config, function(err) {
@@ -221,5 +225,4 @@ coreosamis()
         });
       });
     });
-
   });

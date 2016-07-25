@@ -100,7 +100,7 @@ function getSubnets(AWS, stack, cb) {
 
 function getRabbitAndCredentialELB(AWS, stack, cb) {
   var elb = new AWS.ELB();
-  
+
   var rabbitElbName = stack.Resources['RabbitMQELB'].PhysicalResourceId;
   var credentialElbName = stack.Resources['CredentialAPIELB'].PhysicalResourceId;
   elb.describeLoadBalancers({ LoadBalancerNames: [rabbitElbName, credentialElbName] }, function(err, data) {
@@ -109,7 +109,7 @@ function getRabbitAndCredentialELB(AWS, stack, cb) {
     }
     function retDns(obj) { return obj.DNSName; }
     function byName(name, obj) { return obj.LoadBalancerName === name; }
-    
+
     var rabbitMq = data.LoadBalancerDescriptions.filter(byName.bind(null, rabbitElbName)).map(retDns)[0];
     var credentialApi = data.LoadBalancerDescriptions.filter(byName.bind(null, credentialElbName)).map(retDns)[0];
     return cb(null, rabbitMq, credentialApi);
@@ -129,15 +129,15 @@ var create = module.exports.create = function(AWS, stack, config, done) {
     if (err) {
       return done(err);
     }
-    
+
     getRabbitAndCredentialELB(AWS, stack, function(err, rabbitMq, credentialApi) {
       if (err) {
         return done(err);
       }
-      
+
       credentialApi = url.format({ protocol: 'http:', hostname: credentialApi });
       rabbitMq = url.format({ slashes: true, protocol: 'ampq:', hostname: rabbitMq, port: '5672' });
-            
+
       var userData = fs.readFileSync(path.join(__dirname, '../../roles/'+ ROLE + '/aws-user-data.template')).toString();
       userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
       userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);

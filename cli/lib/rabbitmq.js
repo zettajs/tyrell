@@ -110,7 +110,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
     if (err) {
       return done(err);
     }
-    
+
     var userData = fs.readFileSync(path.join(__dirname, '../../roles/'+ ROLE + '/aws-user-data.template')).toString();
 
     userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);

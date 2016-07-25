@@ -53,7 +53,6 @@
     "RouterAutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
-        "AvailabilityZones": {"Fn::GetAZs": ""},
         "LaunchConfigurationName": {"Ref": "ServerLaunchConfig"},
         "MinSize": "0",
         "MaxSize": "12",

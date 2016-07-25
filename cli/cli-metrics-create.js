@@ -14,6 +14,7 @@ program
   .option('-k, --keyPair <key_pair>', 'Specify existing keypair to use to create metrics stack')
   .option('-d, --diskSize <size>', 'Specify size of disk in GB', '40')
   .option('-v, --vpc <vpc>', 'Specify a vpc for the metrics stack to be to publicly deployed on.')
+  .option('--azs <list>', 'AZs to limit the deployment to.')
   .parse(process.argv);
 
 
@@ -48,7 +49,7 @@ function getKeyPair(cb) {
 }
 
 function getSubnets(cb) {
-  vpc.subnetsForVpc(AWS, program.vpc, function(err, data){
+  vpc.subnetsForVpc(AWS, program.vpc, program.azs, function(err, data){
     if(err) {
       cb(err);
     } else {

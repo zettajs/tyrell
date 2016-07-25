@@ -69,7 +69,7 @@ function getInternalMQTTElb(AWS, stack, cb) {
   if (!stack.Resources['InternalMQTTELB']) {
     return cb();
   }
-  
+
   var elbName = stack.Resources['InternalMQTTELB'].PhysicalResourceId;
   elb.describeLoadBalancers({ LoadBalancerNames: [ elbName ] }, function(err, data) {
     if (err) {
@@ -77,7 +77,7 @@ function getInternalMQTTElb(AWS, stack, cb) {
     }
     function retDns(obj) { return obj.DNSName; }
     function byName(name, obj) { return obj.LoadBalancerName === name; }
-    
+
     var elbDnsName = data.LoadBalancerDescriptions.filter(byName.bind(null, elbName)).map(retDns)[0];
     return cb(null, elbDnsName);
   });
@@ -95,7 +95,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
     if (err) {
       return done(err);
     }
-    
+
     var userData = fs.readFileSync(path.join(__dirname, '../../roles/target/aws-user-data.template')).toString();
     userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
     userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
@@ -108,14 +108,14 @@ var create = module.exports.create = function(AWS, stack, config, done) {
     userData = userData.replace(/@@INFLUXDB_USERNAME@@/g, stack.Parameters['InfluxdbUsername']);
     userData = userData.replace(/@@INFLUXDB_PASSWORD@@/g, stack.Parameters['InfluxdbPassword']);
     userData = userData.replace(/@@TARGET_MEMORY_LIMIT@@/g, config.memoryLimit);
-    
+
     if (mqttDnsName) {
-      userData = userData.replace(/@@MQTT_INTERNAL_BROKER_URL@@/g, 'mqtt://' + mqttDnsName + ':2883'); 
+      userData = userData.replace(/@@MQTT_INTERNAL_BROKER_URL@@/g, 'mqtt://' + mqttDnsName + ':2883');
     }
 
     var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/target/cloudformation.json')).toString());
     template.Resources['ZettaServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
-    
+
     var stackName = stack.StackName + '-target-' + config.version;
     var params = {
       StackName: stackName,

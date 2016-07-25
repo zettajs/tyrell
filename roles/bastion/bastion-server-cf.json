@@ -37,8 +37,7 @@
     },
     "BastionASG": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
-      "Properties": {
-        "AvailabilityZones": {"Fn::GetAZs": ""},
+      "Properties": {  
         "LaunchConfigurationName": {"Ref": "BastionLaunchConfig"},
         "MinSize": "1",
         "MaxSize": "3",

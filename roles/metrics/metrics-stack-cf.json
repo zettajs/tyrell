@@ -55,7 +55,6 @@
     "MetricsASG": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
-        "AvailabilityZones": {"Fn::GetAZs": ""},
         "LaunchConfigurationName": {"Ref": "MetricsLaunchConfig"},
         "MinSize": "1",
         "MaxSize": "3",

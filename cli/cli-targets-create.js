@@ -16,6 +16,7 @@ program
   .option('--analytics', 'Enable analytics')
   .option('--analytics-db <database>', 'Enable influx data collection to specified database.')
   .option('--memory-limit <limit>', 'Limit target docker containers memory.', '0')
+  .option('--azs <list>', 'AZs to limit the deployment to.')
   .parse(process.argv);
 
 var name = program.args[0];
@@ -35,7 +36,7 @@ if (!program.ami || !(/ami-*/).test(program.ami)) {
 }
 
 function getSubnets(cb) {
-  vpc.subnetsForVpc(AWS, program.vpc, function(err, data){
+  vpc.subnetsForVpc(AWS, program.vpc, program.azs, function(err, data){
     if(err) {
       cb(err);
     } else {
@@ -66,7 +67,7 @@ stacks.get(AWS, name, function(err, stack) {
     if(program.analytics && !program.analyticsDb) {
       program.analyticsDb = 'deviceData';
     }
- 
+
     var config = {
       ami: program.ami,
       size: program.size,

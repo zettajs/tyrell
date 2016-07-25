@@ -53,7 +53,6 @@
     "DeviceDataAutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
-        "AvailabilityZones": {"Fn::GetAZs": ""},
         "LaunchConfigurationName": {"Ref": "DeviceDataLaunchConfig"},
         "MinSize": "0",
         "MaxSize": "0",
@@ -102,7 +101,6 @@
     "ZettaUsageAutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
-        "AvailabilityZones": {"Fn::GetAZs": ""},
         "LaunchConfigurationName": {"Ref": "ZettaUsageLaunchConfig"},
         "MinSize": "0",
         "MaxSize": "0",

@@ -13,6 +13,7 @@ program
   .option('-s, --size <size>', 'Specify cluster size for a bastion stack', '1')
   .option('-k, --keyPair <key_pair>', 'Specify existing keypair to use to create a bastion stack')
   .option('-v, --vpc <vpc>', 'Id of the VPC to use.')
+  .option('--azs <list>', 'AZs to limit the deployment to.')
   .parse(process.argv);
 
 var stack = program.args[0];
@@ -47,7 +48,7 @@ function getKeyPair(cb) {
 }
 
 function getSubnets(cb) {
-  vpc.subnetsForVpc(AWS, program.vpc, function(err, data){
+  vpc.subnetsForVpc(AWS, program.vpc, program.azs, function(err, data){
     if(err) {
       cb(err);
     } else {

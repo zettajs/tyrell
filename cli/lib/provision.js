@@ -27,6 +27,7 @@ var traffic = require('./traffic');
 //  opts.versionSize - Defaults 1
 //  opts.versionType - Defaults t2.micro
 //  opts.workerType  - Defaults t2.medium
+//  opts.azs - AvailabilityZones to assign to asgs
 
 var DEFAULTS = {
   routerSize: 1, // Number of router instances
@@ -80,15 +81,15 @@ module.exports = function(AWS, opts, callback) {
 
       var createTasks = [
         function(next) {
-          var config = { ami: images[0], size: opts.routerSize, type: opts.routerType, version: versionKeys.router, subnets: opts.privateSubnets  };
+          var config = { ami: images[0], size: opts.routerSize, type: opts.routerType, version: versionKeys.router, subnets: opts.privateSubnets, azs: opts.azs  };
           routers.create(AWS, stack, config, next);
         },
         function(next) {
-          var config = { ami: images[0], size: opts.versionSize, type: opts.versionType, version: versionKeys.target, subnets: opts.privateSubnets, analyticsDb: opts.analyticsDb };
+          var config = { ami: images[0], size: opts.versionSize, type: opts.versionType, version: versionKeys.target, subnets: opts.privateSubnets, analyticsDb: opts.analyticsDb, azs: opts.azs };
           targets.create(AWS, stack, config, next);
         },
         function(next) {
-          var config = { ami: images[1], type: opts.workerType, version: versionKeys.worker, subnets: opts.privateSubnets.join(',') };
+          var config = { ami: images[1], type: opts.workerType, version: versionKeys.worker, subnets: opts.privateSubnets.join(','), azs: opts.azs };
           workers.create(AWS, stack, config, next);
         },
         function(next) {
@@ -106,22 +107,21 @@ module.exports = function(AWS, opts, callback) {
             }
 
             // Create credential-api, need db to be created first
-            var config = { ami: images[0], type: opts.credentialApiInstanceType, version: versionKeys.credentialApi, dbVersion: versionKeys.database, size: 1 };
+            var config = { ami: images[0], type: opts.credentialApiInstanceType, version: versionKeys.credentialApi, dbVersion: versionKeys.database, size: 1, azs: opts.azs };
             credentialApi.create(AWS, stack, config, next);
           });
         },
         // Add RabbitMQ  if device-to-cloud is enabled
         function(next) {
           if (opts.deviceToCloud !== true) return next();
-
-          var config = { ami: images[0], type: opts.rabbitmqInstanceType, version: versionKeys.rabbitmq, size: 1 };
+          var config = { ami: images[0], type: opts.rabbitmqInstanceType, version: versionKeys.rabbitmq, size: 1, azs: opts.azs };
           rabbitmq.create(AWS, stack, config, next);
         },
         // Add mqttbrokers if device-to-cloud is enabled
         function(next) {
           if (opts.deviceToCloud !== true) return next();
 
-          var config = { ami: images[0], type: opts.mqttbrokerInstanceType, version: versionKeys.mqttbroker, size: 1 };
+          var config = { ami: images[0], type: opts.mqttbrokerInstanceType, version: versionKeys.mqttbroker, size: 1, azs: opts.azs };
           mqttbrokers.create(AWS, stack, config, next);
         }
       ];

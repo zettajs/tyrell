@@ -50,7 +50,7 @@ var get = module.exports.get = function(AWS, stackName, cb) {
   });
 };
 
-var subnetsForVpc = module.exports.subnetsForVpc = function(AWS, vpcId, cb) {
+var subnetsForVpc = module.exports.subnetsForVpc = function(AWS, vpcId, azs, cb) {
   var params = {
     Filters:[
       {
@@ -76,6 +76,13 @@ var subnetsForVpc = module.exports.subnetsForVpc = function(AWS, vpcId, cb) {
       };
       subnets.push(obj);
     });
+
+    if(azs) {
+      var azsToFilterOn = azs.split(',')
+      subnets = subnets.filter(function(net) {
+        return azsToFilterOn.indexOf(net.az) > -1;
+      });  
+    }
 
     cb(err, subnets);
   });

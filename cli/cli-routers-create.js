@@ -14,6 +14,7 @@ program
   .option('--version <app version>', 'Logical db version of the app being deployed', crypto.randomBytes(6).toString('hex'))
   .option('-v, --vpc <vpc>', 'VPC to deploy routers to. Will be distributed on private subnets.')
   .option('--memory-limit <limit>', 'Limit router\'s container memory.', '0')
+  .option('--azs <list>', 'AZs to limit the deployment to.')
   .parse(process.argv);
 
 
@@ -29,7 +30,7 @@ if (!program.ami) {
 }
 
 function getSubnets(cb) {
-  vpc.subnetsForVpc(AWS, program.vpc, function(err, data){
+  vpc.subnetsForVpc(AWS, program.vpc, program.azs, function(err, data){
     if(err) {
       cb(err);
     } else {

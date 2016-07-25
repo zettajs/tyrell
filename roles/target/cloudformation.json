@@ -50,7 +50,6 @@
     "ZettaAutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
-        "AvailabilityZones": {"Fn::GetAZs": ""},
         "LaunchConfigurationName": {"Ref": "ZettaServerLaunchConfig"},
         "MinSize": "0",
         "MaxSize": "12",

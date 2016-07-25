@@ -12,6 +12,7 @@ program
   .option('--type <instance type>', 'Instance type to use. [t2.medium]', 't2.medium')
   .option('--version <app version>', 'Logical db version of the app being deployed', crypto.randomBytes(6).toString('hex'))
   .option('--vpc <vpc>', 'VPC where workers will be deployed on a private subnet.')
+  .option('--azs <list>', 'AZs to limit the deployment to.')
   .parse(process.argv);
 
 

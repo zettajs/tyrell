@@ -80,7 +80,7 @@ var list = module.exports.list = function(AWS, stackName, cb) {
 
 
 function getSubnets(AWS, stack, config, cb) {
-  vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], function(err, data) {
+  vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], config.azs, function(err, data) {
     if (err) {
       return cb(err);
     }

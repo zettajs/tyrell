@@ -12,6 +12,7 @@ program
   .option('--ami-type [hvm|pv]', 'AWS ami virtualization type', 'hvm')
   .option('--version <app version>', 'Logical version of the app being deployed', crypto.randomBytes(6).toString('hex'))
   .option('-s, --size <cluster stize>', 'Size of Autoscale group. [1]', 1)
+  .option('--azs <list>', 'AZs to limit the deployment to.')
   .parse(process.argv);
 
 
@@ -39,7 +40,8 @@ stacks.get(AWS, name, function(err, stack) {
     ami: program.ami,
     type: program.type,
     version: program.version,
-    size: program.size
+    size: program.size,
+    azs: program.azs
   };
 
   console.log('Creating CF Version', program.version);

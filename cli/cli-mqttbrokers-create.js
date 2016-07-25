@@ -11,6 +11,7 @@ program
   .option('--type <instance type>', 'Instance type to use. [t2.micro]', 't2.micro')
   .option('--version <app version>', 'Logical version of the app being deployed', crypto.randomBytes(6).toString('hex'))
   .option('-s, --size <cluster stize>', 'Size of Autoscale group. [1]', 1)
+  .option('--azs <list>', 'AZs to limit the deployment to.')
   .parse(process.argv);
 
 var name = program.args[0];

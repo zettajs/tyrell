@@ -521,7 +521,6 @@
     "CoreServicesASG": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
-        "AvailabilityZones": {"Fn::GetAZs": ""},
         "LaunchConfigurationName": {"Ref": "CoreServicesLaunchConfig"},
         "MinSize": "3",
         "MaxSize": "5",

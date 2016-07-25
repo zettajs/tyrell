@@ -70,7 +70,7 @@ function getDbUrl(AWS, stackName, versionId, cb) {
     if (err) {
       return cb(err);
     }
-    
+
     var version = results.filter(function(db) {
       return (db.AppVersion === versionId);
     })[0];
@@ -91,7 +91,7 @@ function getDbUrl(AWS, stackName, versionId, cb) {
 
 
 // Get subnets use stacks vpc parameter
-function getSubnets(AWS, stack, cb) {
+function getSubnets(AWS, stack, azs, cb) {
   vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], function(err, data) {
     if (err) {
       return cb(err);
@@ -123,7 +123,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
       if (err) {
         return done(err);
       }
-      
+
       var userData = fs.readFileSync(path.join(__dirname, '../../roles/' + ROLE + '/aws-user-data.template')).toString();
       userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
       userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
@@ -211,7 +211,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
                   awsUtils.asgInstancesAvailable(AWS, asgName, {}, done);
                 });
               });
-              
+
             });
           });
         }
