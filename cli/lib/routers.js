@@ -75,6 +75,26 @@ var list = module.exports.list = function(AWS, stackName, cb) {
   });
 };
 
+function getTenantMgmtInternalELBDNS(AWS, stack, cb) {
+  var elb = new AWS.ELB();
+
+  // ELB is not always created with stack
+  if (!stack.Resources['InternalTenantMgmtAPIELB']) {
+    return cb();
+  }
+  
+  var elbName = stack.Resources['InternalTenantMgmtAPIELB'].PhysicalResourceId;
+  elb.describeLoadBalancers({ LoadBalancerNames: [ elbName ] }, function(err, data) {
+    if (err) {
+      return cb(err);
+    }
+    function retDns(obj) { return obj.DNSName; }
+    function byName(name, obj) { return obj.LoadBalancerName === name; }
+    
+    var elbDnsName = data.LoadBalancerDescriptions.filter(byName.bind(null, elbName)).map(retDns)[0];
+    return cb(null, elbDnsName);
+  });
+}
 
 // config
 // - version
@@ -85,100 +105,107 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   var cloudformation = new AWS.CloudFormation();
   var autoscaling = new AWS.AutoScaling();
 
-  var userData = fs.readFileSync(path.join(__dirname, '../../roles/router/aws-user-data.template')).toString();
-
-  userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
-  userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
-  userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
-  userData = userData.replace(/@@CORE_SERVICES_ASG@@/g, stack.Resources['CoreServicesASG'].PhysicalResourceId);
-  userData = userData.replace(/@@INFLUXDB_HOST@@/g, stack.Parameters['InfluxdbHost']);
-  userData = userData.replace(/@@INFLUXDB_USERNAME@@/g, stack.Parameters['InfluxdbUsername']);
-  userData = userData.replace(/@@INFLUXDB_PASSWORD@@/g, stack.Parameters['InfluxdbPassword']);
-  userData = userData.replace(/@@JWT_CIPHER_TEXT@@/g, stack.Parameters['JWTCipherText'] || '');
-  var tenantMgmtApi = 'http://internal-tenant-mgmt.' + stack.StackName + '.iot.apigee.net';
-  userData = userData.replace(/@@TENANT_MANAGEMENT_API@@/g, tenantMgmtApi);
-
-  var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/router/cloudformation.json')).toString());
-  template.Resources['ServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
-
-  var stackName = stack.StackName + '-router-' + config.version;
-  var params = {
-    StackName: stackName,
-    OnFailure: 'DELETE',
-    Parameters: [
-      { ParameterKey: 'ZettaStack', ParameterValue: stack.StackName },
-      { ParameterKey: 'InstanceType', ParameterValue: config.type },
-      { ParameterKey: 'ClusterSize', ParameterValue: '0' }, // scale after AddToElb process is suspended
-      { ParameterKey: 'AMI', ParameterValue: config.ami },
-      { ParameterKey: 'RouterSecurityGroups', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['RouterSecurityGroup'].GroupId].join(',') },
-      { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
-      { ParameterKey: 'ZettaELB', ParameterValue: stack.Resources['ZettaELB'].PhysicalResourceId },
-      { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['RouterRoleInstanceProfile'].PhysicalResourceId },
-      { ParameterKey: 'RouterSubnets', ParameterValue: config.subnets.join(',') }
-    ],
-    Tags: [
-      { Key: 'zetta:stack', Value: stack.StackName },
-      { Key: 'zetta:router:version', Value: config.version },
-      { Key: 'versions:tyrell', Value: require('../package.json').version }
-    ],
-    TemplateBody: JSON.stringify(template),
-    TimeoutInMinutes: 5
-  };
-
-  function checkStackStatus(cb) {
-    cloudformation.describeStacks({ StackName: stackName }, function(err, data) {
-      if (err) {
-        return cb(new Error(err.code + ' ' + err.message));
-      }
-
-      if (!data.Stacks[0]) {
-        return cb(new Error('Stack does not exist'));
-      }
-
-      return cb(null, data.Stacks[0].StackStatus === 'CREATE_COMPLETE', data.Stacks[0]);
-    });
-  }
-
-  cloudformation.createStack(params, function(err, data) {
+  // Get the Tenant Mgmt ELB if it exists on stack
+  getTenantMgmtInternalELBDNS(AWS, stack, function(err, tenantMgmtDnsName) {
     if (err) {
-      return done(new Error(err.code + ' ' + err.message));
+      return done(err);
+    }
+    
+    var userData = fs.readFileSync(path.join(__dirname, '../../roles/router/aws-user-data.template')).toString();
+
+    userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
+    userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
+    userData = userData.replace(/@@LOGENTRIES_TOKEN@@/g, stack.Parameters['LogentriesToken']);
+    userData = userData.replace(/@@CORE_SERVICES_ASG@@/g, stack.Resources['CoreServicesASG'].PhysicalResourceId);
+    userData = userData.replace(/@@INFLUXDB_HOST@@/g, stack.Parameters['InfluxdbHost']);
+    userData = userData.replace(/@@INFLUXDB_USERNAME@@/g, stack.Parameters['InfluxdbUsername']);
+    userData = userData.replace(/@@INFLUXDB_PASSWORD@@/g, stack.Parameters['InfluxdbPassword']);
+    userData = userData.replace(/@@JWT_CIPHER_TEXT@@/g, stack.Parameters['JWTCipherText'] || '');
+    
+    userData = userData.replace(/@@TENANT_MANAGEMENT_API@@/g, 'http://' + tenantMgmtDnsName);
+
+    var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/router/cloudformation.json')).toString());
+    template.Resources['ServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
+
+    var stackName = stack.StackName + '-router-' + config.version;
+    var params = {
+      StackName: stackName,
+      OnFailure: 'DELETE',
+      Parameters: [
+        { ParameterKey: 'ZettaStack', ParameterValue: stack.StackName },
+        { ParameterKey: 'InstanceType', ParameterValue: config.type },
+        { ParameterKey: 'ClusterSize', ParameterValue: '0' }, // scale after AddToElb process is suspended
+        { ParameterKey: 'AMI', ParameterValue: config.ami },
+        { ParameterKey: 'RouterSecurityGroups', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['RouterSecurityGroup'].GroupId].join(',') },
+        { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
+        { ParameterKey: 'ZettaELB', ParameterValue: stack.Resources['ZettaELB'].PhysicalResourceId },
+        { ParameterKey: 'InstanceProfile', ParameterValue: stack.Resources['RouterRoleInstanceProfile'].PhysicalResourceId },
+        { ParameterKey: 'RouterSubnets', ParameterValue: config.subnets.join(',') }
+      ],
+      Tags: [
+        { Key: 'zetta:stack', Value: stack.StackName },
+        { Key: 'zetta:router:version', Value: config.version },
+        { Key: 'versions:tyrell', Value: require('../package.json').version }
+      ],
+      TemplateBody: JSON.stringify(template),
+      TimeoutInMinutes: 5
+    };
+
+    function checkStackStatus(cb) {
+      cloudformation.describeStacks({ StackName: stackName }, function(err, data) {
+        if (err) {
+          return cb(new Error(err.code + ' ' + err.message));
+        }
+
+        if (!data.Stacks[0]) {
+          return cb(new Error('Stack does not exist'));
+        }
+
+        return cb(null, data.Stacks[0].StackStatus === 'CREATE_COMPLETE', data.Stacks[0]);
+      });
     }
 
-    function check() {
-      checkStackStatus(function(err, status, stack) {
-        if (err) {
-          return done(err);
-        }
-        if (!status) {
-          return setTimeout(check, 5000);
-        }
+    cloudformation.createStack(params, function(err, data) {
+      if (err) {
+        return done(new Error(err.code + ' ' + err.message));
+      }
 
-        awsUtils.getAsgFromStack(AWS, stack.StackId, 'RouterAutoScale', function(err, asgName) {
+      function check() {
+        checkStackStatus(function(err, status, stack) {
           if (err) {
             return done(err);
           }
+          if (!status) {
+            return setTimeout(check, 5000);
+          }
 
-          var params = {
-            AutoScalingGroupName: asgName, ScalingProcesses: ['AddToLoadBalancer']
-          };
-
-          autoscaling.suspendProcesses(params, function(err, data) {
+          awsUtils.getAsgFromStack(AWS, stack.StackId, 'RouterAutoScale', function(err, asgName) {
             if (err) {
               return done(err);
             }
 
-            scale(AWS, asgName, config.size, function(err) {
+            var params = {
+              AutoScalingGroupName: asgName, ScalingProcesses: ['AddToLoadBalancer']
+            };
+
+            autoscaling.suspendProcesses(params, function(err, data) {
               if (err) {
                 return done(err);
               }
-              awsUtils.asgInstancesAvailable(AWS, asgName, {}, done);
-            });
-          });
 
+              scale(AWS, asgName, config.size, function(err) {
+                if (err) {
+                  return done(err);
+                }
+                awsUtils.asgInstancesAvailable(AWS, asgName, {}, done);
+              });
+            });
+
+          });
         });
-      });
-    }
-    check();
+      }
+      check();
+    });
   });
 };
 

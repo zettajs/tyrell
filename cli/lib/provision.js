@@ -92,7 +92,8 @@ module.exports = function(AWS, opts, callback) {
           workers.create(AWS, stack, config, next);
         },
         function(next) {
-          var config = { ami: images[0], type: opts.versionType, version: versionKeys.tenantMgmt, subnet: opts.tenantMgmtSubnet, vpc: opts.vpc };
+          var config = { ami: images[0], type: opts.versionType, version: versionKeys.tenantMgmt, size: 1 };
+
           tenantMgmt.create(AWS, stack, config, next);
         },
         // Add RDS Postgres db if device-to-cloud is enabled
@@ -164,8 +165,15 @@ module.exports = function(AWS, opts, callback) {
               if (!version) {
                 return next(new Error('Unable to find tenant mgmt version'));
               }
-              stack.DnsZone = 'iot.apigee.net.';
-              traffic.tenantMgmt.route(AWS, stack, version, next);
+
+              var config = { 
+                version: version,
+                replace: true,
+                elbName: [stack.Resources['InternalTenantMgmtAPIELB'].PhysicalResourceId, stack.Resources['ExternalTenantMgmtAPIELB'].PhysicalResourceId],
+                stack: opts.stack
+              };
+
+              traffic.tenantMgmtApi(AWS, config, next);
             });
           },
           // Route rabbitmq if created
