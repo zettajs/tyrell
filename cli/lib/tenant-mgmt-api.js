@@ -121,7 +121,8 @@ var create = module.exports.create = function(AWS, stack, config, done) {
         { ParameterKey: 'Subnets', ParameterValue: subnets.join(',') },
         { ParameterKey: 'ClusterSize', ParameterValue: '0' }, // scale after AddToElb process is suspended
         { ParameterKey: 'InternalELB', ParameterValue: stack.Resources['InternalTenantMgmtAPIELB'].PhysicalResourceId },
-        { ParameterKey: 'ExternalELB', ParameterValue: stack.Resources['ExternalTenantMgmtAPIELB'].PhysicalResourceId }
+        { ParameterKey: 'ExternalELB', ParameterValue: stack.Resources['ExternalTenantMgmtAPIELB'].PhysicalResourceId },
+        { ParameterKey: 'JWTKeyARN', ParameterValue: stack.Parameters['JWTKeyARN'] }
       ],
       Tags: [
         { Key: 'zetta:stack', Value: stack.StackName },
