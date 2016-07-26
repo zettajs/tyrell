@@ -396,6 +396,45 @@
       "Properties": {
         "GroupDescription": "Tenant Management API SG",
         "SecurityGroupIngress": [
+          {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0"}
+        ],
+        "VpcId": {"Ref": "StackVpc"}
+      }
+    },
+    "ExternalELBTenantMgmtIngress": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "80",
+        "ToPort": "80",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "ExternalTenantMgmtELBSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["TenantMgmtSecurityGroup", "GroupId"]
+        }
+      }
+    },
+    "InternalELBTenantMgmtIngress": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "80",
+        "ToPort": "80",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "InternalTenantMgmtELBSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["TenantMgmtSecurityGroup", "GroupId"]
+        }
+      }
+    },
+
+    "ExternalTenantMgmtELBSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Tenant Management External ELB API SG",
+        "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "CidrIp": "0.0.0.0/0"}
         ],
         "VpcId": {"Ref": "StackVpc"}
@@ -412,6 +451,29 @@
         },
         "GroupId": {
           "Fn::GetAtt" : ["TenantMgmtSecurityGroup", "GroupId"]
+        }
+      }
+    },
+
+    "InternalTenantMgmtELBSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Tenant Management Internal ELB API SG",
+        "SecurityGroupIngress": [],
+        "VpcId": {"Ref": "StackVpc"}
+      }
+    },
+    "RouterTenantMgmtInternalELBIngress": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "80",
+        "ToPort": "80",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "RouterSecurityGroup", "GroupId" ]
+        },
+        "GroupId": {
+          "Fn::GetAtt" : ["InternalTenantMgmtELBSecurityGroup", "GroupId"]
         }
       }
     },
@@ -576,6 +638,57 @@
       }
     },
 
+    "ExternalTenantMgmtAPIELB" : {
+      "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties" : {
+        "CrossZone": true,
+        "Listeners" : [
+          { "LoadBalancerPort" : "80", "InstancePort" : "80", "Protocol" : "TCP" }
+        ],
+        "ConnectionSettings": {
+           "IdleTimeout" : 3600
+        },
+        "HealthCheck" : {
+          "Target": "HTTP:80/",
+          "HealthyThreshold": "2",
+          "UnhealthyThreshold": "5",
+          "Interval": "30",
+          "Timeout": "5"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled" : "true",
+          "Timeout" : "60"
+        },
+        "SecurityGroups": [ { "Fn::GetAtt" : [ "ExternalTenantMgmtELBSecurityGroup", "GroupId" ] } ],
+        "Subnets": {"Ref": "PublicStackSubnets"}
+      }
+    },
+    "InternalTenantMgmtAPIELB" : {
+      "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties" : {
+        "CrossZone": true,
+        "Listeners" : [
+          { "LoadBalancerPort" : "80", "InstancePort" : "80", "Protocol" : "TCP" }
+        ],
+        "ConnectionSettings": {
+           "IdleTimeout" : 3600
+        },
+        "HealthCheck" : {
+          "Target": "HTTP:80/",
+          "HealthyThreshold": "2",
+          "UnhealthyThreshold": "5",
+          "Interval": "30",
+          "Timeout": "5"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled" : "true",
+          "Timeout" : "60"
+        },
+        "SecurityGroups": [ { "Fn::GetAtt" : [ "InternalTenantMgmtELBSecurityGroup", "GroupId" ] } ],
+        "Subnets": {"Ref": "StackSubnets"},
+        "Scheme": "internal"
+      }
+    },
 
     "DeviceDataQueue": {
        "Type": "AWS::SQS::Queue",

@@ -6,12 +6,9 @@ var stacks = require('./lib/stacks');
 
 AWS.config.update({region: 'us-east-1'});
 
-var DefaultZone = 'iot.apigee.net.';
-
 program
   .option('--version <api version>', 'Logical version of the api being deployed', null)
   .option('--no-replace', 'Do not replace any versions.')
-  .option('--zone <hosted zone>', 'DNS zone', DefaultZone)
   .parse(process.argv);
 
 var name = program.args[0];
@@ -26,20 +23,22 @@ stacks.get(AWS, name, function(err, stack) {
     process.exit(1);
   }
 
-  stack.DnsZone = program.zone;
-
   if (!program.version) {
-    // list current version
-    traffic.tenantMgmt.get(AWS, stack, function(err, instances) {
-      if (err) {
-        console.error(err);
-        process.exit(1);
-      }
-      
-      instances.forEach(function(instance) {
-        console.log(instance.InstanceId, instance.PublicIpAddress, instance.Tags['zetta:tenant-mgmt-api:version'])
-      })
-    });
+    var showInstancesInElb = function(logicalName, cb) {
+      traffic.list(AWS, stack.Resources[logicalName].PhysicalResourceId, function(err, instances) {
+        if (err) {
+          console.error(err);
+          process.exit(1);
+        }
+        console.log(logicalName);
+        console.log('\tInstanceId ElbState  State   Version      AutoScaleGroup')
+        instances.forEach(function(instance) {
+          console.log('\t',instance.InstanceId, instance.ELBState, instance.State.Name, instance.Tags['zetta:mqttbroker:version'], instance.Tags['aws:autoscaling:groupName'])
+        });
+      });
+    };
+    showInstancesInElb('ExternalTenantMgmtAPIELB');
+    showInstancesInElb('InternalTenantMgmtAPIELB');
     return;
   }
 
@@ -60,7 +59,14 @@ stacks.get(AWS, name, function(err, stack) {
       process.exit(1);
     }
 
-    traffic.tenantMgmt.route(AWS, stack, version, function(err) {
+    var opts = { 
+      version: version,
+      replace: program.replace,
+      elbName: [stack.Resources['InternalTenantMgmtAPIELB'].PhysicalResourceId, stack.Resources['ExternalTenantMgmtAPIELB'].PhysicalResourceId],
+      stack: name
+    };
+
+    traffic.tenantMgmtApi(AWS, opts, function(err) {
       if (err) {
         console.error(err);
         process.exit(1);
