@@ -1,7 +1,7 @@
 [Unit]
 Description=Link Metrics to statsd
-After=docker.service statsd-elasticsearch.service
-Requires=docker.service statsd-elasticsearch.service
+After=docker.service
+Requires=docker.service
 
 [Service]
 User=core
