@@ -292,6 +292,18 @@ var update = module.exports.update = function(AWS, name, configUpdates, cb) {
       stack: name,
     };
 
+    if (stack.Parameters['UseExistingDeviceDataBucket'] === 'true') {
+      config.deviceDataBucket = stack.Parameters['ExistingDeviceDataBucket'];
+    }
+
+    if (stack.Parameters['UseExistingZettaUsageBucket'] === 'true') {
+      config.zettaUsageBucket = stack.Parameters['ExistingZettaUsageBucket'];
+    }
+
+    if (stack.Parameters['EnableDeviceToCloud'] === 'true') {
+      config.deviceToCloud = true;
+    }
+
     Object.keys(configUpdates).forEach(function(k) {
       config[k] = configUpdates[k];
     });
