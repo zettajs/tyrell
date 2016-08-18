@@ -13,4 +13,12 @@ EnvironmentFile=/etc/profile.d/zetta
 ExecStartPre=-/usr/bin/docker kill influxdb
 ExecStartPre=-/usr/bin/docker rm influxdb
 ExecStart=/usr/bin/docker run --rm --name influxdb -e INFLUXDB_HTTP_AUTH_ENABLED=${INFLUXDB_HTTP_AUTH_ENABLED} -v /home/core/influxdb:/var/lib/influxdb -v /home/core/influxdb.conf:/etc/influxdb/influxdb.conf:ro -p 8086:8086 -p 8088:8088 influxdb -config /etc/influxdb/influxdb.conf
+ExecStartPost=-/usr/bin/sleep 20
+ExecStartPost=-/bin/sh -c 'curl -i -X POST -u ${INFLUXDB_USERNAME}:${INFLUXDB_PASSWORD} http://${COREOS_PRIVATE_IPV4}:8086/query --data-urlencode "q=CREATE DATABASE linkusage"'
+ExecStartPost=-/usr/bin/sleep 10
+ExecStartPost=-/bin/sh -c 'curl -i -X GET -u ${INFLUXDB_USERNAME}:${INFLUXDB_PASSWORD} "http://${COREOS_PRIVATE_IPV4}:8086/query?q=CREATE+CONTINUOUS+QUERY+%22cq.linkusage.hub_http_count.sum%22+ON+telegraf+BEGIN+SELECT+sum(value)+AS+total+INTO+linkusage.%22default%22.%22hub_http_count%22+FROM+linkusage_hub_http_count+GROUP+BY+%22link_stack%22%2C+%22tenantId%22%2C+%22targetName%22%2C+time(1d)+fill(0)+END&db=telegraf"'
+ExecStartPost=-/usr/bin/sleep 5
+ExecStartPost=-/bin/sh -c 'curl -i -X GET -u ${INFLUXDB_USERNAME}:${INFLUXDB_PASSWORD} "http://${COREOS_PRIVATE_IPV4}:8086/query?q=CREATE+CONTINUOUS+QUERY+%22cq.linkusage.hub_messages_bytes.sum%22+ON+telegraf+BEGIN+SELECT+sum(value)+AS+total+INTO+linkusage.%22default%22.%22hub_messages_bytes%22+FROM+linkusage_hub_messages_bytes+GROUP+BY+%22link_stack%22%2C+%22tenantId%22%2C+%22targetName%22%2C+time(1d)+fill(0)+END&db=telegraf"'
+ExecStartPost=-/usr/bin/sleep 5
+ExecStartPost=-/bin/sh -c 'curl -i -X GET -u ${INFLUXDB_USERNAME}:${INFLUXDB_PASSWORD} "http://${COREOS_PRIVATE_IPV4}:8086/query?q=CREATE+CONTINUOUS+QUERY+%22cq.linkusage.hub_messages_count.sum%22+ON+telegraf+BEGIN+SELECT+sum(value)+AS+total+INTO+linkusage.%22default%22.%22hub_messages_count%22+FROM+linkusage_hub_messages_count+GROUP+BY+%22link_stack%22%2C+%22tenantId%22%2C+%22targetName%22%2C+time(1d)+fill(0)+END&db=telegraf"'
 ExecStop=/usr/bin/docker stop influxdb
