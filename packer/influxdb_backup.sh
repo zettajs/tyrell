@@ -17,6 +17,8 @@ docker run --rm -v $BACKUP_FOLDER:$BACKUP_FOLDER influxdb influxd backup -host $
 
 # backup telegraf databae
 docker run --rm -v $BACKUP_FOLDER:$BACKUP_FOLDER influxdb influxd backup -database telegraf -retention default -host $COREOS_PRIVATE_IPV4:8088 $BACKUP_FOLDER/$NOW/data
+# backup linkusage databae
+docker run --rm -v $BACKUP_FOLDER:$BACKUP_FOLDER influxdb influxd backup -database linkusage -retention default -host $COREOS_PRIVATE_IPV4:8088 $BACKUP_FOLDER/$NOW/data
 
 # upload to s3
 tar cfzv $BACKUP_FOLDER/backup-$NOW.tar.gz -C $BACKUP_FOLDER/$NOW .
