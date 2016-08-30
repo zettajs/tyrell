@@ -180,6 +180,10 @@
   {
     "type": "shell",
     "inline": "docker pull zetta/link-realtime-analytics-results-udp-tcp-proxy"
+  },
+  {
+    "type": "shell",
+    "inline": "docker pull zetta/link-usage-api"
   }
   ],
   "post-processors": [

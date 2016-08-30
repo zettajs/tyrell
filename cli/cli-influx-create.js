@@ -27,10 +27,6 @@ if (!program.ami || !(/ami-*/).test(program.ami)) {
   return program.exit(1);
 }
 
-if (program.amiType === 'pv') {
-  program.type = 'm1.large';
-}
-
 stacks.get(AWS, name, function(err, stack) {
   if (err) {
     console.error(err);

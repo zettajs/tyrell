@@ -35,12 +35,13 @@ var DEFAULTS = {
   versionSize: 3, // number of zetta target instances
   versionType: 'm1.large', // zetta target instances type
   workerType: 'm1.small',
+  usageApiType: 'm1.small', // Usage api instance type
   dbSize: 5, //GB
   dbMultiAZ: false,
   dbInstanceType: 'db.t2.micro',
   credentialApiInstanceType: 'm1.small',
   rabbitmqInstanceType: 'm1.small',
-  mqttbrokerInstanceType: 'm1.small'
+  mqttbrokerInstanceType: 'm1.small',
 };
 
 module.exports = function(AWS, opts, callback) {
@@ -76,7 +77,8 @@ module.exports = function(AWS, opts, callback) {
         database: crypto.randomBytes(6).toString('hex'),
         credentialApi: crypto.randomBytes(6).toString('hex'),
         rabbitmq: crypto.randomBytes(6).toString('hex'),
-        mqttbroker: crypto.randomBytes(6).toString('hex')
+        mqttbroker: crypto.randomBytes(6).toString('hex'),
+        usageApi: crypto.randomBytes(6).toString('hex')
       };
 
       var createTasks = [
@@ -95,6 +97,10 @@ module.exports = function(AWS, opts, callback) {
         function(next) {
           var config = { ami: images[0], type: opts.versionType, version: versionKeys.tenantMgmt, subnet: opts.tenantMgmtSubnet, vpc: opts.vpc };
           tenantMgmt.create(AWS, stack, config, next);
+        },
+        function(next) {
+          var config = { ami: images[0], type: opts.usageApiType, version: versionKeys.usageApi, azs: opts.azs };
+          usageApi.create(AWS, stack, config, next);
         },
         // Add RDS Postgres db if device-to-cloud is enabled
         function(next) {
@@ -228,7 +234,27 @@ module.exports = function(AWS, opts, callback) {
               var config = { version: version,  elbName: stack.Resources['CredentialAPIELB'].PhysicalResourceId, stack: opts.stack };
               traffic.routeCredentialApi(AWS, config, next);
             });
+          },
+          // Route Usage Api if created
+          function (next) {
+            usageApi.list(AWS, opts.stack, function(err, versions) {
+              if (err) {
+                return next(err);
+              }
+
+              var version = versions.filter(function(version) {
+                return (version.AppVersion === versionKeys.usageApi);
+              })[0];
+
+              if (!version) {
+                return next(new Error('Unable to find usage api version'));
+              }
+
+              var config = { version: version,  elbName: stack.Resources['UsageAPIELB'].PhysicalResourceId, stack: opts.stack };
+              traffic.routeUsageApi(AWS, config, next);
+            });
           }
+
         ];
 
         async.parallel(routeTasks, function(err) {

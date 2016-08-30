@@ -12,6 +12,11 @@ module.exports.createUser = function(opts, username, password, callback) {
   query(opts, q, callback);
 };
 
+module.exports.createUsageApiUser = function(opts, username, password, callback) {
+  var q = 'CREATE USER ' + username + ' WITH PASSWORD \'' + password + '\'; GRANT READ ON linkusage TO ' + username;
+  query(opts, q, callback);
+};
+
 function query(opts, query, callback) {
   var postData = querystring.stringify({
     'q' : query
