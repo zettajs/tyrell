@@ -39,7 +39,8 @@ stacks.get(AWS, name, function(err, stack) {
     version: program.version,
     size: program.size,
     azs: program.azs,
-    memoryLimit: program.memoryLimit
+    memoryLimit: program.memoryLimit,
+    azs: program.azs
   };
 
   console.log('Creating CF Version', program.version);

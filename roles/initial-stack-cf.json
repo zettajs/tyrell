@@ -385,12 +385,12 @@
       }
     },
 
-    "UsageAPISecurityGroupIngress80": {
+    "UsageAPISecurityGroupIngress4000": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
         "IpProtocol": "tcp",
-        "FromPort": "80",
-        "ToPort": "8-",
+        "FromPort": "4000",
+        "ToPort": "4000",
         "SourceSecurityGroupId": {
           "Fn::GetAtt" : [ "UsageAPIELBSecurityGroup", "GroupId" ]
         },

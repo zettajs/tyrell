@@ -21,7 +21,7 @@
     {
 			"type": "file",
 			"source": "files/authorized_keys",
-			"destination": "/home/core/.ssh/authorized_keys"
+			"destination": "/home/ec2-user/.ssh/authorized_keys"
 		},
     {
       "type": "file",

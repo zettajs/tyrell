@@ -1,5 +1,6 @@
 var fs = require('fs');
 var path = require('path');
+var crypto = require('crypto');
 var async = require('async');
 var awsUtils = require('./aws-utils');
 var amis = require('./amis');
@@ -79,8 +80,8 @@ var list = module.exports.list = function(AWS, stackName, cb) {
   });
 };
 
-function getSubnets(AWS, stack, cb) {
-  vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], function(err, data) {
+function getSubnets(AWS, stack, config, cb) {
+  vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], config.azs, function(err, data) {
     if (err) {
       return cb(err);
     }
@@ -142,7 +143,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
           { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
           { ParameterKey: 'ZettaStack', ParameterValue: stack.StackName },
           { ParameterKey: 'Subnets', ParameterValue: subnets.join(',') },
-          { ParameterKey: 'SecurityGroups', ParameterValue: stack.Resources['UsageAPISecurityGroup'].GroupId },
+          { ParameterKey: 'SecurityGroups', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['UsageAPISecurityGroup'].GroupId].join(',') },
           { ParameterKey: 'ClusterSize', ParameterValue: '0' }, // scale after AddToElb process is suspended
           { ParameterKey: 'ELB', ParameterValue: stack.Resources['UsageAPIELB'].PhysicalResourceId}
         ],

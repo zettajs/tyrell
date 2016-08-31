@@ -9,6 +9,7 @@ var mqttbrokers = require('./mqttbrokers');
 var rabbitmq = require('./rabbitmq');
 var credentialApi = require('./credential-api');
 var tenantMgmt = require('./tenant-mgmt-api');
+var usageApi = require('./usage-api');
 var amis = require('./amis');
 var traffic = require('./traffic');
 
