@@ -92,7 +92,7 @@ function getDbUrl(AWS, stackName, versionId, cb) {
 
 // Get subnets use stacks vpc parameter
 function getSubnets(AWS, stack, azs, cb) {
-  vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], function(err, data) {
+  vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], azs, function(err, data) {
     if (err) {
       return cb(err);
     }
@@ -114,7 +114,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   var autoscaling = new AWS.AutoScaling();
 
   // get private subnets
-  getSubnets(AWS, stack, function(err, subnets) {
+  getSubnets(AWS, stack, config.azs, function(err, subnets) {
     if (err) {
       return done(err);
     }

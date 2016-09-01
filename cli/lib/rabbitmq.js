@@ -79,8 +79,8 @@ var list = module.exports.list = function(AWS, stackName, cb) {
 };
 
 
-function getSubnets(AWS, stack, cb) {
-  vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], function(err, data) {
+function getSubnets(AWS, stack, azs, cb) {
+  vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], azs, function(err, data) {
     if (err) {
       return cb(err);
     }
@@ -106,7 +106,7 @@ var create = module.exports.create = function(AWS, stack, config, done) {
   var cloudformation = new AWS.CloudFormation();
   var autoscaling = new AWS.AutoScaling();
 
-  getSubnets(AWS, stack, function(err, subnets) {
+  getSubnets(AWS, stack, config.azs, function(err, subnets) {
     if (err) {
       return done(err);
     }

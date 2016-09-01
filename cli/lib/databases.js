@@ -150,7 +150,7 @@ var list = module.exports.list = function(AWS, stackName, cb) {
 
 // Get privates subnets from stack's vpc param
 function getSubnets(AWS, stack, cb) {
-  vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], function(err, data) {
+  vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], null, function(err, data) {
     if (err) {
       return cb(err);
     }
