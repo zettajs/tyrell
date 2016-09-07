@@ -9,6 +9,8 @@ var databases = require('./databases');
 var rabbitmq = require('./rabbitmq');
 var mqttbrokers = require('./mqttbrokers');
 var credentialApi = require('./credential-api');
+var usageApi = require('./usage-api');
+var resultsApi = require('./results');
 var utils = require('./aws-utils');
 
 var get = module.exports.get = function(AWS, stackName, cb) {
@@ -259,7 +261,9 @@ var remove = module.exports.remove = function(AWS, name, cb) {
     removeFunc(databases),
     removeFunc(rabbitmq),
     removeFunc(mqttbrokers),
-    removeFunc(credentialApi)
+    removeFunc(credentialApi),
+    removeFunc(usageApi),
+    removeFunc(resultsApi)
   ], function(err) {
     if (err) {
       return cb(err);

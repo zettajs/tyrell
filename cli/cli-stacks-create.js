@@ -82,10 +82,6 @@ coreosamis()
       return process.exit(1);
     }
 
-    if (program.amiType === 'pv') {
-      program.type = 'm1.large';
-    }
-
     var baseAmi = results[program.amiType]
     if (!baseAmi) {
       console.error('Could not ami matching version or ami type.');

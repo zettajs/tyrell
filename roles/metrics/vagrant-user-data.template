@@ -39,6 +39,8 @@ coreos:
       command: start
     - name: link-metrics-collector.service
       command: start
+    - name: link-usage-api.service
+      command: start
     - name: docker.service
       drop-ins:
         - name: 10-logs-driver.conf

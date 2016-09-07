@@ -7,6 +7,7 @@ program
   .command('bastion [stack-name]', 'list bastion and sub commands')
   .command('traffic [stack-name]', 'switch elb traffic to a specific router ASG')
   .command('workers [stack-name]', 'sqs data workers')
+  .command('usage-api [stack-name]', 'usage api')
   .command('tenant-mgmt-api [stack-name]', 'tenant mgmt api')
   .command('credential-api [stack-name]', 'credential api')
   .command('databases [stack-name]', 'databases')

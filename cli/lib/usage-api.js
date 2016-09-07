@@ -1,12 +1,13 @@
-var url = require('url');
 var fs = require('fs');
 var path = require('path');
+var crypto = require('crypto');
 var async = require('async');
 var awsUtils = require('./aws-utils');
-var databases = require('./databases')
-var vpc = require('./vpc');
+var amis = require('./amis');
+var vpc = require('./vpc')
+var influxdb = require('./influxdb');
 
-var ROLE = 'credential-api';
+var ROLE = 'usage-api';
 var tagKey = 'zetta:' + ROLE + ':version';
 
 var scale = module.exports.scale = function(AWS, asgName, desired, cb) {
@@ -29,15 +30,17 @@ var list = module.exports.list = function(AWS, stackName, cb) {
     }
 
     var stacks = stacks.Stacks.filter(function(stack) {
-      return stack.Tags.filter(function(tag) { return tag.Key === tagKey }).length > 0;
+      return stack.Tags.filter(function(tag) {
+        return tag.Key === tagKey;
+      }).length > 0;
     });
 
+    // filter stack name
     stacks = stacks.filter(function(stack) {
       return stack.Tags.filter(function(tag) {
         return tag.Key === 'zetta:stack' && tag.Value === stackName;
       }).length > 0;
     });
-
 
     async.map(stacks, function(stack, next) {
       cloudformation.describeStackResources({ StackName: stack.StackName }, function(err, data) {
@@ -50,49 +53,35 @@ var list = module.exports.list = function(AWS, stackName, cb) {
           resources[r.LogicalResourceId] = r;
         });
 
-        stack.AppVersion = stack.Tags.filter(function(t) { return t.Key === tagKey})[0].Value;
+        stack.AppVersion = stack.Tags.filter(function(t) { return t.Key === tagKey })[0].Value;
         stack.Resources = resources;
 
-        // stack.Resources['Instance'].PhysicalResourceId
-        next(null, stack);
+        autoscaling.describeAutoScalingGroups({ AutoScalingGroupNames: [ stack.Resources['AutoScale'].PhysicalResourceId]}, function(err, data) {
+          if (err) {
+            return next(err);
+          }
+          stack.AutoScale = data.AutoScalingGroups[0];
+
+          stack.AutoScale.AddToLoadBalancer = stack.AutoScale.SuspendedProcesses.every(function(p) {
+            return p.ProcessName !== 'AddToLoadBalancer';
+          });
+
+          var AMI = stack.Parameters.filter(function(p) { return p.ParameterKey === 'AMI'; })[0];
+          amis.get(AWS, AMI.ParameterValue, function(err, build) {
+            if (err) {
+              return next(err);
+            }
+            stack.AMI = build;
+            next(null, stack);
+          });
+        });
       });
     }, cb);
   });
 };
 
-// config
-//  - version
-//  - type
-//  - size
-
-function getDbUrl(AWS, stackName, versionId, cb) {
-  databases.list(AWS, stackName, function(err, results) {
-    if (err) {
-      return cb(err);
-    }
-
-    var version = results.filter(function(db) {
-      return (db.AppVersion === versionId);
-    })[0];
-
-    if (!version) {
-      return cb(new Error('Could not find db'));
-    }
-
-    var connectionString = version.Outputs.filter(function(param) {
-      return param.OutputKey === 'ConnectionString';
-    })[0].OutputValue;
-
-    var parsed = url.parse(connectionString);
-    parsed.auth = 'credential_api:credential_api';
-    return cb(null, url.format(parsed));
-  });
-}
-
-
-// Get subnets use stacks vpc parameter
-function getSubnets(AWS, stack, azs, cb) {
-  vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], azs, function(err, data) {
+function getSubnets(AWS, stack, config, cb) {
+  vpc.subnetsForVpc(AWS, stack.Parameters['StackVpc'], config.azs, function(err, data) {
     if (err) {
       return cb(err);
     }
@@ -109,34 +98,41 @@ function getSubnets(AWS, stack, azs, cb) {
   });
 }
 
+// config
+// - version
+// - type
+// - size
+// - ami
 var create = module.exports.create = function(AWS, stack, config, done) {
   var cloudformation = new AWS.CloudFormation();
   var autoscaling = new AWS.AutoScaling();
 
-  // get private subnets
-  getSubnets(AWS, stack, config.azs, function(err, subnets) {
+  getSubnets(AWS, stack, config, function(err, subnets) {
     if (err) {
       return done(err);
     }
 
-    getDbUrl(AWS, stack.StackName, config.dbVersion, function(err, connectionString) {
+    var influxdbUsername = 'usage' + crypto.randomBytes(6).toString('hex');
+    var influxdbPassword = crypto.randomBytes(24).toString('hex');
+    influxdb.createUsageApiUser({ host: stack.Parameters['InfluxdbHost'], auth: 'admin:2ee54aed802910f2f4e74dfbc143dbbd' }, influxdbUsername, influxdbPassword, function(err) {
       if (err) {
         return done(err);
       }
 
-      var userData = fs.readFileSync(path.join(__dirname, '../../roles/' + ROLE + '/aws-user-data.template')).toString();
+      var userData = fs.readFileSync(path.join(__dirname, '../../roles/'+ ROLE + '/aws-user-data.template')).toString();
+
       userData = userData.replace(/@@ZETTA_STACK@@/g, stack.StackName);
       userData = userData.replace(/@@ZETTA_VERSION@@/g, config.version);
       userData = userData.replace(/@@CORE_SERVICES_ASG@@/g, stack.Resources['CoreServicesASG'].PhysicalResourceId);
-      userData = userData.replace(/@@CREDENTIAL_DB_CONNECTION_URL@@/g, connectionString);
       userData = userData.replace(/@@INFLUXDB_HOST@@/g, stack.Parameters['InfluxdbHost']);
-      userData = userData.replace(/@@INFLUXDB_USERNAME@@/g, stack.Parameters['InfluxdbUsername']);
-      userData = userData.replace(/@@INFLUXDB_PASSWORD@@/g, stack.Parameters['InfluxdbPassword']);
-
+      userData = userData.replace(/@@INFLUXDB_USERNAME@@/g, influxdbUsername);
+      userData = userData.replace(/@@INFLUXDB_PASSWORD@@/g, influxdbPassword);
+      userData = userData.replace(/@@LINK_USAGE_MEMORY_LIMIT@@/g, config.memoryLimit || '0');
+      
       var template = JSON.parse(fs.readFileSync(path.join(__dirname, '../../roles/'+ ROLE + '/cloudformation.json')).toString());
       template.Resources['ServerLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
-      var stackName = stack.StackName + '-' + ROLE + '-' + config.version;
+      var stackName = stack.StackName + '-'+ ROLE +'-' + config.version;
       var params = {
         StackName: stackName,
         OnFailure: 'DELETE',
@@ -147,9 +143,9 @@ var create = module.exports.create = function(AWS, stack, config, done) {
           { ParameterKey: 'KeyPair', ParameterValue: stack.Parameters['KeyPair'] },
           { ParameterKey: 'ZettaStack', ParameterValue: stack.StackName },
           { ParameterKey: 'Subnets', ParameterValue: subnets.join(',') },
-          { ParameterKey: 'SecurityGroups', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['CredentialAPISecurityGroup'].GroupId].join(',') },
+          { ParameterKey: 'SecurityGroups', ParameterValue: [stack.Resources['CoreOsSecurityGroup'].GroupId, stack.Resources['UsageAPISecurityGroup'].GroupId].join(',') },
           { ParameterKey: 'ClusterSize', ParameterValue: '0' }, // scale after AddToElb process is suspended
-          { ParameterKey: 'ELB', ParameterValue: stack.Resources['CredentialAPIELB'].PhysicalResourceId }
+          { ParameterKey: 'ELB', ParameterValue: stack.Resources['UsageAPIELB'].PhysicalResourceId}
         ],
         Tags: [
           { Key: 'zetta:stack', Value: stack.StackName },
@@ -184,11 +180,9 @@ var create = module.exports.create = function(AWS, stack, config, done) {
             if (err) {
               return done(err);
             }
-
             if (!status) {
               return setTimeout(check, 5000);
             }
-
 
             awsUtils.getAsgFromStack(AWS, stack.StackId, 'AutoScale', function(err, asgName) {
               if (err) {

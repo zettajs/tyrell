@@ -8,6 +8,7 @@ program
   .command('rabbitmq [stack]', 'update the rabbitmq version')
   .command('mqttbrokers [stack]', 'update the mqttbroker version')
   .command('results [stack]', 'update the results version')
+  .command('usage-api [stack]', 'usage api version')
   .parse(process.argv);
 
 if (program.args.length 

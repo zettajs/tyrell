@@ -1,0 +1,16 @@
+[Unit]
+Description=Link Usage API
+After=docker.service
+Requires=docker.service
+
+[Service]
+User=core
+TimeoutStartSec=0
+Restart=always
+RestartSec=5
+EnvironmentFile=/etc/environment
+EnvironmentFile=/etc/profile.d/zetta
+ExecStartPre=-/usr/bin/docker kill link-usage-api
+ExecStartPre=-/usr/bin/docker rm link-usage-api
+ExecStart=/usr/bin/docker run --rm --name link-usage-api --memory ${LINK_USAGE_MEMORY_LIMIT} --env-file /etc/environment --env-file /etc/profile.d/zetta -e PORT=4000 -p 4000:4000 zetta/link-usage-api
+ExecStop=/usr/bin/docker stop link-usage-api

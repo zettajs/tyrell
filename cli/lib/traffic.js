@@ -139,6 +139,11 @@ function routeELB(AWS, type, opts, cb) {
       type: require('./results'),
       tag: 'zetta:results:version',
       asg: 'AutoScale'
+    },
+    'usage-api': {
+      type: require('./usage-api'),
+      tag: 'zetta:usage-api:version',
+      asg: 'AutoScale'
     }
   };
 
@@ -225,6 +230,10 @@ module.exports.routeRabbitMq = function(AWS, opts, cb) {
 
 module.exports.routeCredentialApi = function(AWS, opts, cb) {
   return routeELB(AWS, 'credential-api', opts, cb);
+};
+
+module.exports.routeUsageApi = function(AWS, opts, cb) {
+  return routeELB(AWS, 'usage-api', opts, cb);
 };
 
 module.exports.routeResults = function(AWS, opts, cb) {
