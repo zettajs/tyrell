@@ -4,9 +4,9 @@ require 'fileutils'
 
 Vagrant.require_version ">= 1.6.0"
 
-require_relative 'vagrant/change_host_name.rb'
-require_relative 'vagrant/configure_networks.rb'
-require_relative 'vagrant/base_mac.rb'
+require_relative 'third-party/vagrant/change_host_name.rb'
+require_relative 'third-party/vagrant/configure_networks.rb'
+require_relative 'third-party/vagrant/base_mac.rb'
 
 CONFIG = File.join(File.dirname(__FILE__), "config.rb")
 CLOUD_CONFIG_PATH = File.join(File.dirname(__FILE__))

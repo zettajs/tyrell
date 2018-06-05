@@ -1,10 +1,10 @@
-
 # -*- mode: ruby -*-
 # # vi: set ft=ruby :
 
 # NOTE: This monkey-patching of the coreos guest plugin is a terrible
 # hack that needs to be removed once the upstream plugin works with
 # alpha CoreOS images.
+# https://github.com/coreos/coreos-overlay/tree/master/coreos-base/oem-vagrant/files/box
 
 require 'tempfile'
 require Vagrant.source_root.join("plugins/guests/coreos/cap/change_host_name.rb")
