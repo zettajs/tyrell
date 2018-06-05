@@ -19,3 +19,7 @@ See [Getting Started Docs](https://github.com/apigee-internal/tyrell/wiki/Gettin
 - Virtualbox
 - Docker for Mac
 - AWS API Credentials
+
+## Disclaimer
+
+This is not an officially supported Google product.
