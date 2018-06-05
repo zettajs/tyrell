@@ -58,7 +58,7 @@ node cli workers create example -a ami-654321
 
 ## Stacks
 
-Stacks would refer to example "Centralite", these would exist through deploying new versions of the actual application.
+Stacks would refer to example "MyOrg", these would exist through deploying new versions of the actual application.
 
 
 ### List Stacks
