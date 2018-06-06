@@ -70,3 +70,16 @@ write_files:
       INFLUXDB_USERNAME=@@INFLUXDB_USERNAME@@
       INFLUXDB_PASSWORD=@@INFLUXDB_PASSWORD@@
       JWT_CIPHER_TEXT=@@JWT_CIPHER_TEXT@@
+      TENANT_MGMT_MEMORY_LIMIT=@@TENANT_MGMT_MEMORY_LIMIT@@
+  - path: /etc/ssh/sshd_config
+    permissions: 0600
+    owner: root:root
+    content: |
+      # Use most defaults for sshd configuration.
+      UsePrivilegeSeparation sandbox
+      Subsystem sftp internal-sftp
+
+      PermitRootLogin no
+      AllowUsers core
+      PasswordAuthentication no
+      ChallengeResponseAuthentication no
