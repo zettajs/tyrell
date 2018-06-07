@@ -31,9 +31,9 @@ if (!name) {
 }
 
 var params = {
-  influxdbHost: 'http://metrics.iot.apigee.net:8086',
-  influxdbUsername: 'stack9e607d998687',
-  influxdbPassword: '9021be821a92b204b9f569d685b0d1dff6f0b25ca46747a5',
+  influxdbHost: '<>',
+  influxdbUsername: '<>',
+  influxdbPassword: '<>',
 };
 
 stacks.update(AWS, name, params, function(err) {

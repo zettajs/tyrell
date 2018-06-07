@@ -35,8 +35,8 @@ program
   .option('--no-provision', 'Do create routers/versions/workers with the latest ami.')
   .option('--device-data-bucket <bucket name>', 'Specify existing device data bucket')
   .option('--zetta-usage-bucket <bucket name>', 'Specify existing device data bucket')
-  .option('--influxdb-host <influx host>', 'Metrics influxdb host', 'http://metrics.iot.apigee.net:8086')
-  .option('--influxdb-auth <username:password>', 'Metrics influxdb username:password', 'admin:2ee54aed802910f2f4e74dfbc143dbbd')
+  .option('--influxdb-host <influx host>', 'Metrics influxdb host')
+  .option('--influxdb-auth <username:password>', 'Metrics influxdb username:password')
   .option('-v --vpc <vpc>', 'VPC to deploy the stack onto')
   .option('--device-to-cloud', 'Create device to cloud resources.')
   .option('--analytics', 'Create realtime analytics reasources.')
@@ -55,7 +55,6 @@ if (program.vpc === undefined) {
   console.error('Must provide vpc');
   process.exit(1);
 }
-
 
 function getSubnets(cb) {
   vpc.subnetsForVpc(AWS, program.vpc, program.azs, function(err, data){
@@ -149,38 +148,7 @@ coreosamis()
 
         var tenantMgmtSubnet = publicSubnetIdArray[Math.floor(Math.random() * publicSubnetIdArray.length)];
 
-
-
-        var influxdbUsername = 'stack' + crypto.randomBytes(6).toString('hex');
-        var influxdbPassword = crypto.randomBytes(24).toString('hex');
-        influxdb.createUser({ host: program.influxdbHost, auth: program.influxdbAuth }, influxdbUsername, influxdbPassword, function(err) {
-
-          if (err) {
-            console.error('Failed to create influxdb user', err);
-            return process.exit(1);
-          }
-
-          var config = {
-            stack: name,
-            keyPair: key.KeyName,
-            logentriesToken: program.logToken,
-            size: program.size,
-            instanceType: program.type,
-            ami: baseAmi,
-            deviceDataBucket: program.deviceDataBucket,
-            zettaUsageBucket: program.zettaUsageBucket,
-            vpc: program.vpc,
-            privateSubnets: privateSubnetIdArray.join(','),
-            publicSubnets: publicSubnetIdArray.join(','),
-            deviceToCloud: program.deviceToCloud,
-            influxdbHost: program.influxdbHost,
-            influxdbUsername: influxdbUsername,
-            influxdbPassword: influxdbPassword,
-            analytics: program.analytics,
-            analyticsDb: program.analyticsDb,
-            azs: program.azs
-          };
-
+        function createStack() {
           stacks.create(AWS, config, function(err) {
             if (err) {
               console.error(err);
@@ -232,7 +200,47 @@ coreosamis()
 
             }
           });
-        });
+        };
+
+        var config = {
+          stack: name,
+          keyPair: key.KeyName,
+          logentriesToken: program.logToken,
+          size: program.size,
+          instanceType: program.type,
+          ami: baseAmi,
+          deviceDataBucket: program.deviceDataBucket,
+          zettaUsageBucket: program.zettaUsageBucket,
+          vpc: program.vpc,
+          privateSubnets: privateSubnetIdArray.join(','),
+          publicSubnets: publicSubnetIdArray.join(','),
+          deviceToCloud: program.deviceToCloud,
+          analytics: program.analytics,
+          analyticsDb: program.analyticsDb,
+          azs: program.azs,
+          influxdbHost: '',
+          influxdbUsername: '',
+          influxdbPassword: ''
+        };
+
+        if (program.influxdbHost) {
+          var influxdbUsername = 'stack' + crypto.randomBytes(6).toString('hex');
+          var influxdbPassword = crypto.randomBytes(24).toString('hex');
+          console.log('Creating InfluxDB username/password for stack');
+          influxdb.createUser({ host: program.influxdbHost, auth: program.influxdbAuth }, influxdbUsername, influxdbPassword, function(err) {
+            if (err) {
+              console.error('Failed to create influxdb user', err);
+              return process.exit(1);
+            }
+            config.influxdbHost = program.influxdbHost;
+            config.influxdbUsername = influxdbUsername;
+            config.influxdbPassword = influxdbPassword;
+            createStack(config);
+          });
+        } else {
+          console.log('Metrics disabled.');
+          createStack(config);
+        }
       });
     });
   });

@@ -45,7 +45,7 @@ coreos:
         TimeoutStartSec=0
         Restart=on-failure
         RestartSec=10
-        ExecStartPre=/usr/bin/docker pull monsantoco/etcd-aws-cluster:latest
+        ExecStartPre=/usr/bin/docker pull zetta/etcd-aws-cluster:latest
         ExecStartPre=/usr/bin/docker run -e ETCD_CLIENT_PORT=4001 --rm=true -v /etc/sysconfig/:/etc/sysconfig/ zetta/etcd-aws-cluster:latest
         ExecStart=/usr/bin/systemctl start etcd2
     - name: fleet.service

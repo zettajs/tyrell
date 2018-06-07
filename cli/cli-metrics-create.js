@@ -32,6 +32,7 @@ program
   .parse(process.argv);
 
 
+
 var name = program.args[0];
 if (!name) {
   program.help();
@@ -40,7 +41,7 @@ if (!name) {
 
 if (!program.ami) {
   program.help();
-  return program.exit(1);
+  return process.exit(1);
 }
 
 function getKeyPair(cb) {
@@ -76,7 +77,7 @@ function getSubnets(cb) {
 getKeyPair(function(err, key) {
   if(err) {
     console.error(err);
-    program.exit(1);
+    process.exit(1);
   }
 
   var keyPairPath = null;
@@ -91,7 +92,7 @@ getKeyPair(function(err, key) {
   getSubnets(function(err, data){
     if(err) {
       console.error(err);
-      program.exit(1);
+      process.exit(1);
     }
 
     var publicSubnets = data.filter(function(net){
@@ -111,7 +112,7 @@ getKeyPair(function(err, key) {
       keyPair: key.KeyName,
       diskSize: program.diskSize,
       vpc: program.vpc,
-      subnets: publicSubnets
+      subnets: subnetIdArray.join(',')
     };
 
     metrics.create(AWS, config, function(err, stack) {
