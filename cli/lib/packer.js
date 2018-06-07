@@ -15,7 +15,6 @@
 var spawn = require('child_process').spawn;
 var http = require('http');
 var base = 'packer';
-var isoDigestLink = 'http://stable.release.core-os.net/amd64-usr/current/coreos_production_iso.DIGESTS';
 
 function changeToPackerDirectory() {
   process.chdir(__dirname);
@@ -39,7 +38,8 @@ exports.packerPath = function() {
   return process.cwd();  
 };
 
-exports.isoMd5 = function(cb) {
+exports.isoMd5 = function(version, cb) {
+  var isoDigestLink = 'http://stable.release.core-os.net/amd64-usr/' + version + '/coreos_production_iso.DIGESTS';
   http.get(isoDigestLink, function(res) {
     if(res.statusCode !== 200) {
       cb(new Error('Cannot retrieve DIGESTS file.'));  

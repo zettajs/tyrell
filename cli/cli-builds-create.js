@@ -152,8 +152,6 @@ coreosamis()
       return process.exit(1);
     }
     
-    console.log('Using ami ', baseAmi, 'building with', program.awsBuildType);
-    
     if (program.worker) {
       console.log('Building Device data worker');
 
@@ -199,11 +197,14 @@ coreosamis()
     }
 
     if(platform === 'vagrant') {
-      Packer.isoMd5(function(err, md5) {
+      console.log('Platform', platform, program.coreOsVersion);
+      Packer.isoMd5(program.coreOsVersion, function(err, md5) {
         if(program.metrics){
+          console.log('Building Metrics');
           var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_metrics_service.json');
           var packerTemplateFile = require(packerTemplateFilePath);
           packerTemplateFile.variables.checksum = md5;
+          packerTemplateFile.variables.version = program.coreOsVersion;
           var metricsConfigPath = writeToFile(packerTemplateFile, 'metrics_packer.json');
           
           async.parallel([
@@ -216,9 +217,11 @@ coreosamis()
             }
           });
         } else if(program.bastion){
+          console.log('Building bastion');
           var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_bastion_server.json');
           var packerTemplateFile = require(packerTemplateFilePath);
           packerTemplateFile.variables.checksum = md5;
+          packerTemplateFile.variables.version = program.coreOsVersion;
           var bastionConfigPath = writeToFile(packerTemplateFile, 'bastion_packer.json');
           
           async.parallel([
@@ -231,13 +234,14 @@ coreosamis()
             }
           });
         } else {
+          
           var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_template_base.json');
-          var packerTemplateFile = require(packerTemplateFilePath);
+          var packerTemplateFile = require(packerTemplateFilePath);          
           packerTemplateFile.variables.checksum = md5;
+          packerTemplateFile.variables.version = program.coreOsVersion;
           var zettaProvisioningTemplate = updateProvisioningTemplate(require(path.join(Packer.packerPath(), 'zetta_provisions.json')), containerCommands);  
           var zettaConfig = extendProvisionsTemplate(packerTemplateFile, zettaProvisioningTemplate);
           var zettaConfigPath = writeToFile(zettaConfig, 'zetta_packer.json');
-
           async.parallel([
             function(next) { buildBox(zettaConfigPath, 'zetta', next) },
           ], function(err) {
@@ -278,13 +282,13 @@ coreosamis()
 
       });    
     } else if (platform === 'aws') {
+      console.log('Using ami ', baseAmi, 'building with', program.awsBuildType);
       if (program.metrics){
         var packerTemplateFilePath = path.join(Packer.packerPath(), 'packer_metrics_service.json');
         var packerTemplateFile = require(packerTemplateFilePath);
         var credentials = new AWS.SharedIniFileCredentials({profile: 'default'});
         packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID || credentials.accessKeyId;
         packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY || credentials.secretAccessKey;
-        console.log(packerTemplateFile.variables);
 
         var config = extendProvisionsTemplate(packerTemplateFile, { ami_tags: {
           'versions:tyrell': TYRELL_VERSION,
@@ -306,7 +310,6 @@ coreosamis()
         var credentials = new AWS.SharedIniFileCredentials({profile: 'default'});
         packerTemplateFile.variables.aws_access_key = process.env.AWS_ACCESS_KEY_ID || credentials.accessKeyId;
         packerTemplateFile.variables.aws_secret_key = process.env.AWS_SECRET_ACCESS_KEY || credentials.secretAccessKey;
-        console.log(packerTemplateFile.variables);
 
         var config = extendProvisionsTemplate(packerTemplateFile, { ami_tags: {
           'versions:tyrell': TYRELL_VERSION,

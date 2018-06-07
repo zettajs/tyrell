@@ -30,7 +30,17 @@ if (!name) {
   process.exit(1);
 }
 
+<<<<<<< HEAD
 stacks.update(AWS, name, {}, function(err) {
+=======
+var params = {
+  influxdbHost: '<>',
+  influxdbUsername: '<>',
+  influxdbPassword: '<>',
+};
+
+stacks.update(AWS, name, params, function(err) {
+>>>>>>> b28acd2... b/79585331 Get vagrant locally working
   if (err) {
     console.error(err);
     process.exit(1);

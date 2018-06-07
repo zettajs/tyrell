@@ -139,13 +139,13 @@ var list = module.exports.list = function(AWS, cb) {
 
 function generateStackParams(config) {
   var template = require('../../roles/metrics/metrics-stack-cf.json');
-  var userData = fs.readFileSync(path.join(__dirname, '../../roles/metrics/metrics-user-data')).toString();
+  var userData = fs.readFileSync(path.join(__dirname, '../../roles/metrics/aws-user-data.template')).toString();
   template.Resources['MetricsLaunchConfig'].Properties.UserData = { 'Fn::Base64': userData };
 
   var stackName = config.stack;
   var params = {
     StackName: stackName,
-    OnFailure: 'DELETE',
+    //OnFailure: 'DELETE',
     Capabilities: ['CAPABILITY_IAM'],
     Parameters: [
       { ParameterKey: 'KeyPair', ParameterValue: config.keyPair },

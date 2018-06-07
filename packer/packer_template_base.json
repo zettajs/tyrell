@@ -7,7 +7,7 @@
     "aws_build_type": "t2.medium",
     "aws_root_device": "/dev/xvda",
     "channel": "stable",
-    "version": "current",
+    "version": "@@COREOS_VERSION@@",
     "checksum_type":"md5",
     "output_name": "new"
   },
@@ -116,15 +116,9 @@
     "inline": "sudo rm /etc/machine-id"
   },
   {
-    "type": "shell",
-    "inline": "docker pull zetta/rabbitmq-autocluster"
-  },
-  {
     "only": ["virtualbox-iso"],
     "type": "shell",
     "inline": [
-      "docker pull adammagaluk/elasticmq",
-      "docker pull postgres",
       "docker pull influxdb",
       "docker pull grafana/grafana:3.1.0-beta1"
     ]

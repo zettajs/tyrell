@@ -4,7 +4,7 @@
 		"aws_secret_key": "@@AWS_SECRET_KEY@@",
 		"checksum": "@@COREOS_MD5_CHECKSUM@@",
 		"channel": "stable",
-		"version": "current",
+		"version": "@@COREOS_VERSION@@",
 		"checksum_type": "md5",
 		"output_name": "bastion"
 	},

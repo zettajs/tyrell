@@ -47,7 +47,7 @@
           {"IpProtocol": "tcp", "FromPort": "8081", "ToPort": "8081", "CidrIp": "0.0.0.0/0"},
           {"IpProtocol": "tcp", "FromPort": "9200", "ToPort": "9200", "CidrIp": "0.0.0.0/0"},
           {"IpProtocol": "tcp", "FromPort": "8086", "ToPort": "8086", "CidrIp": "0.0.0.0/0"},
-          {"IpProtocol": "tcp", "FromPort": "20000", "ToPort": "20000", "CidrIp": "0.0.0.0/0"},
+          {"IpProtocol": "tcp", "FromPort": "20000", "ToPort": "20000", "CidrIp": "0.0.0.0/0"}
         ],
         "VpcId": {"Ref": "MetricsVpc"}
       }
