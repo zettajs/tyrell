@@ -47,9 +47,14 @@ if(!platform) {
 
 var verbose = program.verbose;
 
+
+// For private docker repos the Packer machine needs to be able to pull from the registry.
+// Copy local .dockercfg to packer dir. 
 var configPath = path.join(Packer.packerPath(), '.dockercfg');
 var homeConfigPath = path.join(process.env.HOME, '.dockercfg');
-var exists = fs.existsSync(configPath);
+//if(!fs.existsSync(configPath)) {
+//  fs.createReadStream(homeConfigPath).pipe(fs.createWriteStream(configPath));
+//}
 
 var containerNames = {
   ROUTER: 'zetta/link-router',
@@ -99,9 +104,7 @@ if(customTarget) {
   containerCommands.push(pullTag);
 }
 
-if(!exists) {
-  fs.createReadStream(homeConfigPath).pipe(fs.createWriteStream(configPath));
-}
+
 
 function extendProvisionsTemplate(orig, updates) {
   var config = JSON.parse(JSON.stringify(orig));

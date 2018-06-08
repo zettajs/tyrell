@@ -18,6 +18,12 @@ var AWS = require('aws-sdk');
 var metrics = require('./lib/metrics');
 var fs = require('fs');
 
+var DNS_ZONE = process.env.DNS_ZONE;
+if (!DNS_ZONE) {
+  console.error('Set env var DNS_ZONE to the route53 DNS zone. Eg. iot.company.net')
+  process.exit(1);
+}
+
 AWS.config.update({region: 'us-east-1'});
 
 program
@@ -37,12 +43,17 @@ if (!subdomain) {
   return program.exit(1);
 }
 
-var full = subdomain + '.iot.apigee.net';
-var zoneName = 'iot.apigee.net.';
+var full = subdomain + '.' + DNS_ZONE;
+var zoneName = DNS_ZONE + '.';
 
 function route(AWS, stack, domain) {
   var route53 = new AWS.Route53();
   metrics.get(AWS, stack, function(err, stack) {
+    if (err) {
+      console.error(err);
+      return process.exit(1);
+    }
+
     var publicIp = stack.Resources['MetricsASG'].Instances[0].PublicIpAddress;  
     route53.listHostedZones({}, function(err, data) {
       var found = data.HostedZones.some(function(zone) {

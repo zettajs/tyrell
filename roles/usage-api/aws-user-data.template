@@ -30,9 +30,9 @@ coreos:
     - name: link-usage-api.service
       command: start
     - name: link-logstash@8081.service
-      command: start
+      command: stop
     - name: journallogs-logstash.service
-      command: start
+      command: stop
     - name: telegraf.service
       command: start
     - name: docker.service

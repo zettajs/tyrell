@@ -32,20 +32,24 @@ var verbose = program.verbose;
 var newConfig = program.newconfig;
 var version = crypto.randomBytes(6).toString('hex');
 
+// link-metrics-01 -> 172.17.8.101
+// link-target-01  -> 172.17.8.102
+// link-router-01  -> 172.17.8.103
+
 var configs = {
   router: {
     'ZETTA_VERSION': crypto.randomBytes(6).toString('hex'),
     'ZETTA_STACK': 'vagrant',
-    'INFLUXDB_HOST': 'http://link-metrics-01:8086',
+    'INFLUXDB_HOST': 'http://172.17.8.101:8086',
     'ROUTER_MEMORY_LIMIT': '0'
   },
   target: {
     'ZETTA_VERSION': version,
     'ZETTA_STACK': 'vagrant',
-    'INFLUXDB_HOST': 'http://link-metrics-01:8086',
-    'ZETTA_DEVICE_DATA_QUEUE': 'http://link-target-01:9324/queue/device-data',
-    'ZETTA_USAGE_QUEUE': 'http://link-target-01:9324/queue/zetta-usage',
-    'MQTT_INTERNAL_BROKER_URL': 'mqtt://link-router-01:2883',
+    'INFLUXDB_HOST': 'http://172.17.8.101:8086',
+    'ZETTA_DEVICE_DATA_QUEUE': 'http://172.17.8.102:9324/queue/device-data',
+    'ZETTA_USAGE_QUEUE': 'http://172.17.8.102:9324/queue/zetta-usage',
+    'MQTT_INTERNAL_BROKER_URL': 'mqtt://172.17.8.103:2883',
     'INFLUX_DATABASE': 'deviceData',
     'TARGET_MEMORY_LIMIT': '0',
     'TENANT_MGMT_MEMORY_LIMIT': '0'
@@ -53,12 +57,12 @@ var configs = {
   metrics: {
     'ZETTA_VERSION': crypto.randomBytes(6).toString('hex'),
     'ZETTA_STACK': 'vagrant',
-    'INFLUXDB_HOST': 'http://link-metrics-01:8086'
+    'INFLUXDB_HOST': 'http://172.17.8.101:8086'
   },
   mqttbroker: {
     'ZETTA_VERSION': crypto.randomBytes(6).toString('hex'),
     'ZETTA_STACK': 'vagrant',
-    'INFLUXDB_HOST': 'http://link-metrics-01:8086',
+    'INFLUXDB_HOST': 'http://172.17.8.101:8086',
     'CREDENTIAL_DB_CONNECTION_URL': 'postgres://postgres:mysecretpassword@link-mqttbroker-01/postgres',
     'RABBITMQ_URL': 'amqp://link-mqttbroker-01:5672',
     'CREDENTIAL_API_URL': 'http://link-mqttbroker-01:2000'
@@ -66,7 +70,7 @@ var configs = {
   analytics: {
     'ZETTA_VERSION': crypto.randomBytes(6).toString('hex'),
     'ZETTA_STACK': 'vagrant',
-    'INFLUXDB_HOST': 'http://link-metrics-01:8086'
+    'INFLUXDB_HOST': 'http://172.17.8.101:8086'
   }
 };
 
@@ -101,7 +105,7 @@ function startCluster() {
       }
 
       var sqs = new AWS.SQS({ region: 'us-east-1',
-                              endpoint: 'http://link-target-01:9324',
+                              endpoint: 'http://172.17.8.102:9324',
                               accessKeyId: 'key',
                               secretAccessKey: 'secret'
                             });

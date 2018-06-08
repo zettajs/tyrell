@@ -59,6 +59,12 @@ var DEFAULTS = {
   mqttbrokerInstanceType: 'm1.small',
 };
 
+var DNS_ZONE = process.env.DNS_ZONE;
+if (!DNS_ZONE) {
+  console.error('Set env var DNS_ZONE to the route53 DNS zone. Eg. iot.company.net')
+  process.exit(1);
+}
+
 module.exports = function(AWS, opts, callback) {
 
   if (!opts.stack) {
@@ -185,7 +191,8 @@ module.exports = function(AWS, opts, callback) {
               if (!version) {
                 return next(new Error('Unable to find tenant mgmt version'));
               }
-              stack.DnsZone = 'iot.apigee.net.';
+              
+              stack.DnsZone = DNS_ZONE + '.';
               traffic.tenantMgmt.route(AWS, stack, version, next);
             });
           },

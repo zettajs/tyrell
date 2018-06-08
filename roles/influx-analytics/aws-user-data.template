@@ -34,11 +34,9 @@ coreos:
     - name: link-analytics-results-udp-tcp-proxy.service
       command: start
     - name: link-logstash@8081.service
-      command: start
+      command: stop
     - name: journallogs-logstash.service
-      command: start
-    - name: statsd-elasticsearch.service
-      command: start
+      command: stop
     - name: link-container-metrics-collector.service
       command: start
     - name: telegraf.service

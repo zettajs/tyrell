@@ -20,7 +20,13 @@ var stacks = require('./lib/stacks');
 
 AWS.config.update({region: 'us-east-1'});
 
-var DefaultZone = 'iot.apigee.net.';
+var DNS_ZONE = process.env.DNS_ZONE;
+if (!DNS_ZONE) {
+  console.error('Set env var DNS_ZONE to the route53 DNS zone. Eg. iot.company.net')
+  process.exit(1);
+}
+
+var DefaultZone = DNS_ZONE + '.';
 
 program
   .option('--version <api version>', 'Logical version of the api being deployed', null)

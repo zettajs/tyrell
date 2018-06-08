@@ -107,11 +107,6 @@
     "destination": "/home/core/tele.conf"
   },
   {
-    "type": "file",
-    "source": "influxdb.conf",
-    "destination": "/home/core/influxdb.conf"
-  },
-  {
     "type": "shell",
     "inline": "sudo rm /etc/machine-id"
   },
@@ -119,9 +114,17 @@
     "only": ["virtualbox-iso"],
     "type": "shell",
     "inline": [
-      "docker pull influxdb",
+      "docker pull influxdb:0.13",
+      "docker pull elasticsearch:2.4",
+      "docker pull kibana:4.6.0",
       "docker pull grafana/grafana:3.1.0-beta1"
     ]
+  },
+  {
+    "only": ["virtualbox-iso"],
+    "type": "file",
+    "source": "influxdb.conf",
+    "destination": "/home/core/influxdb.conf"
   },
   {
     "type": "shell",
@@ -135,7 +138,7 @@
   {
     "only": ["amazon-ebs"],
     "type": "shell",
-    "inline": "docker pull logstash"
+    "inline": "docker pull logstash:2.4"
   },
   {
     "only": ["amazon-ebs"],

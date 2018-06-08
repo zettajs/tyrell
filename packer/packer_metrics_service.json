@@ -80,19 +80,19 @@
   },
   {
     "type": "shell",
-    "inline": "docker pull elasticsearch"
+    "inline": "docker pull elasticsearch:2.4"
   },
   {
     "type": "shell",
-    "inline": "docker pull kibana"
+    "inline": "docker pull kibana:4.6.0"
   },
   {
     "type": "shell",
-    "inline": "docker pull logstash"
+    "inline": "docker pull logstash:2.4"
   },
   {
     "type": "shell",
-    "inline": "docker pull influxdb"
+    "inline": "docker pull influxdb:0.13"
   },
   {
     "type": "shell",
@@ -110,6 +110,11 @@
   {
     "type": "shell",
     "inline": "sudo cp -R /home/core/services/* /etc/systemd/system"
+  },
+  {
+    "type": "file",
+    "source": "influxdb.conf",
+    "destination": "/home/core/influxdb.conf"
   }
   ],
   "post-processors": [
