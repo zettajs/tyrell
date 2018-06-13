@@ -1,12 +1,82 @@
 # Tyrell
 
-Stack Deploy Utility for Zetta Cloud
+Stack Deploy Utility for Zetta Link Cloud
 
 ![tyrell-logo](assets/tyrell.png)
 
-Want to create a Zetta deployment with Latest CoreOS? Here's how!
+## What is Link
+
+Link provides a highly available and multi-tenanted version of [Zetta](https://github.com/zettjs/zetta).
+
+### Main Components of Link
+
+ - [Link Router](...) - A proxy that sits in front of N-number of Zetta instances to provide a highly available version of Zetta. And provides 
+ multiple tenants that exist within the Zetta API controlled through the `x-apigee-iot-tenant` header. API that it implements is a standard
+ Zetta API. Is responsible for allocating and assigning Zetta targets to tenants. Routers read and write data to a etcd cluster to get a list
+ of Zetta targets and write peer information per tenant.
+ - [Link Zetta Target](...) - A Zetta instance configured with a few plugins to write device data and usage to AWS SQS. As part of Link the startup scripts
+ register each zetta target instance in etcd cluster under `/services/zetta/<ip:port>`. *N-Number of zetta targets can run per instance depending on instance size, defaults to 10 use t2.large*
+ - [Link Tenant Management](...) - Management API to update/delete Link tenants. Can scale the number of Zetta instances allocated to a tenant. Provides a
+ list of peers associated with the tenant.
+ - [Link Metrics Collector](...) - Small program that runs and collects data from etcd2 cluster about the number of tenants, peeers, etc... and records
+ them to InfluxDB through a Telegraf metric. *Note: Does not have it's own role but instead runs on the tenant management server*
+ - [s3 Device Data Worker](...) - Simple program that reads device and usage data from AWS SQS and write S3 files. *Note: Tyrell does not use CoreOS for these
+ boxes and schedules the ASG to scale up and down once on the hour to clear the queue*
+
+ ### Future Components
+ 
+ In the process of developing Link we created a few others components of Link that never made it to production.
+
+ - [Link Usage API](...) - Provided a API that returned analytic data on zetta device data and usage data stored in InfluxDB.
+ - [Link Link TCP/UDP API](...) - ?
+ - [Internal/External MQTT Brokers](...) - Provided as part of our Device to Cloud POC that provided low powered devices to communicate
+ over MQTT using a light weight Zetta protocol. Zetta targets were provisioned with MQTT scouts that generated Zetta device APIS
+ for the devices allowing them to be controlled over HTTP.
+ - [Credential API](...) - Provided as part of our Device to Cloud POC that provided low powered devices to communicate
+ over MQTT using a light weight Zetta protocol. Credential API created and managed MQTT device credentials.
+
+## What is Tyrell
+
+Tyrell is a utility to deploy and manage Link stacks, a independent grouping of Link components, in AWS. Machines run 
+[CoreOS](https://coreos.com/) however mainy of features of CoreOS have been disabled by default such as auto-updates, deploying components
+with fleetctl, etc... So at it's core Link only needs a etcd2 cluster which CoreOS provides and all services are deployed as Docker containers
+on the instances. Tyrell uses Packer to create an AMI that has all Docker containers of each individual components on saved. This can map 
+to specific releases of the two main components routers and targets. The rest is deploying instances to AWS using Cloudformation and other
+AWS services.
+
+What is a Role? In the `roles/...` directory you will see a number of directories. A role maps to a component within the system and provides
+details on how to create a version of that using a Cloudformation template and cloud-init file for both local vagrant and aws. The Cf template
+specifies the AWS components needed like Security Groups, Autoscale groups, etc... The cloud-init files specifies what link services start and 
+a way to pass in env variables where needed. 
+
+Within the `roles/initial-stack-cf.json` that is the Cloudformation Stack that is created once per stack. It contains all the static resources
+like Security groups, ELBs, SQS queues, s3 buckets, etc... that do not change between component updates. When Cf stacks are created per component
+versions many parameters are referenced from this stack, tyrell will pull the Stack using the AWS API and use it's resources/parameters to pass
+values to the component stacks.
+
+### High Level Development Flow
+
+1. Build Docker containers for component.
+1. Build ami for stack using Packer and pulls all Docker containers in.
+1. Deploy ASG of each component.
+1. Blue-Green traffic routing for an active version of the component.
+
+
+### Vagrant
+
+Tyrell provides features to deploy a "cluster" locally using Vagrant as well. However with updates to Virtualbox support for this feature
+is quite spotty. It also does not provide a one-to-one mapping as a AWS stack but does provide a core functionality.
+
+```
+# Build a vbox file using Packer
+node cli builds create -v  --router-tag v0.6.1 --target-tag v0.6.0 --core-os-version 1010.6.0 vagrant
+# Deploy Vagrant file. Generates the user-data files and runs `vagrant up` then sets the Zetta version in the etcd cluster in `/zetta/version`
+node cli local start -n -v
+```
 
 ## Getting Started AWS
+
+Want to create a Zetta deployment with Latest CoreOS? Here's how!
 
 ### Build AMIs
 
