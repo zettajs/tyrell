@@ -10,29 +10,28 @@ Link provides a highly available and multi-tenanted version of [Zetta](https://g
 
 ### Main Components of Link
 
- - [Link Router](...) - A proxy that sits in front of N-number of Zetta instances to provide a highly available version of Zetta. And provides 
+ - [Link Router](https://github.com/zettajs/link-router) - A proxy that sits in front of N-number of Zetta instances to provide a highly available version of Zetta. And provides 
  multiple tenants that exist within the Zetta API controlled through the `x-apigee-iot-tenant` header. API that it implements is a standard
  Zetta API. Is responsible for allocating and assigning Zetta targets to tenants. Routers read and write data to a etcd cluster to get a list
  of Zetta targets and write peer information per tenant.
- - [Link Zetta Target](...) - A Zetta instance configured with a few plugins to write device data and usage to AWS SQS. As part of Link the startup scripts
+ - [Link Zetta Target](https://github.com/zettajs/link-zetta-target) - A Zetta instance configured with a few plugins to write device data and usage to AWS SQS. As part of Link the startup scripts
  register each zetta target instance in etcd cluster under `/services/zetta/<ip:port>`. *N-Number of zetta targets can run per instance depending on instance size, defaults to 10 use t2.large*
- - [Link Tenant Management](...) - Management API to update/delete Link tenants. Can scale the number of Zetta instances allocated to a tenant. Provides a
+ - [Link Tenant Management](https://github.com/zettajs/link-tenant-mgmt-api) - Management API to update/delete Link tenants. Can scale the number of Zetta instances allocated to a tenant. Provides a
  list of peers associated with the tenant.
- - [Link Metrics Collector](...) - Small program that runs and collects data from etcd2 cluster about the number of tenants, peeers, etc... and records
+ - [Link Metrics Collector](https://github.com/zettajs/link-metrics-collector) - Small program that runs and collects data from etcd2 cluster about the number of tenants, peeers, etc... and records
  them to InfluxDB through a Telegraf metric. *Note: Does not have it's own role but instead runs on the tenant management server*
- - [s3 Device Data Worker](...) - Simple program that reads device and usage data from AWS SQS and write S3 files. *Note: Tyrell does not use CoreOS for these
+ - [s3 Device Data Worker](https://github.com/zettajs/link-sqs-data-worker) - Simple program that reads device and usage data from AWS SQS and write S3 files. *Note: Tyrell does not use CoreOS for these
  boxes and schedules the ASG to scale up and down once on the hour to clear the queue*
 
  ### Future Components
  
  In the process of developing Link we created a few others components of Link that never made it to production.
 
- - [Link Usage API](...) - Provided a API that returned analytic data on zetta device data and usage data stored in InfluxDB.
- - [Link Link TCP/UDP API](...) - ?
- - [Internal/External MQTT Brokers](...) - Provided as part of our Device to Cloud POC that provided low powered devices to communicate
+ - [Link Usage API](https://github.com/zettajs/link-usage-api) - Provided a API that returned analytic data on zetta device data and usage data stored in InfluxDB.
+ - [Internal/External MQTT Brokers](https://github.com/zettajs/link-device-to-cloud-poc) - Provided as part of our Device to Cloud POC that provided low powered devices to communicate
  over MQTT using a light weight Zetta protocol. Zetta targets were provisioned with MQTT scouts that generated Zetta device APIS
  for the devices allowing them to be controlled over HTTP.
- - [Credential API](...) - Provided as part of our Device to Cloud POC that provided low powered devices to communicate
+ - [Credential API](https://github.com/zettajs/link-device-to-cloud-poc) - Provided as part of our Device to Cloud POC that provided low powered devices to communicate
  over MQTT using a light weight Zetta protocol. Credential API created and managed MQTT device credentials.
 
 ## What is Tyrell
@@ -78,11 +77,34 @@ node cli local start -n -v
 
 Want to create a Zetta deployment with Latest CoreOS? Here's how!
 
+First install the prerequisites:
+
+### AWS CLI
+```
+# Install the AWS CLI
+brew install awscli
+aws configure
+```
+
+### Packer
+
+[Packer 0.12.0](https://releases.hashicorp.com/packer/0.12.0)
+
+### Install CLI
+
+*Note: Use node.js 0.12.x*
+
+```
+git clone https://github.com/zettajs/tyrell.git
+cd tyrell/cli
+npm install
+```
+
 ### Build AMIs
 
 First build the proper AMIs in AWS.
 
-#### Build Service Image
+#### 1. Build Service Image
 
 Build Link application ami, has link-router, link-zetta-target, link-tenant-mgmt-api, etc...
 Creates a Packer config from `packer/packer_template_base.json`. Modifies parameters during build process.
@@ -97,7 +119,7 @@ node cli builds create -v  --router-tag v0.6.1 --target-tag v0.6.0 --ami-type hv
 node cli builds
 ```
 
-#### Create Metrics AMI
+#### 2. Create Metrics AMI
 
 Has services for operational metrics. Influxdb, Grafana, ElasticSearch. Creates a Packer config from `packer/packer_metrics_service.json`. Modifies parameters during build process.
 
@@ -106,7 +128,7 @@ node cli builds create -v --metrics --ami-type hvm aws
 NOTE: Record the AMI for further commands.
 ```
 
-#### Create Data Worker AMI
+#### 3. Create Data Worker AMI
 
 AMI that has the data-worker application to process device/usage data from SQS and write to s3.
 Creates a Packer config from `packer/packer_data_worker.json`. Modifies parameters during build process.
@@ -121,7 +143,7 @@ node cli builds create -v --worker --ami-type hvm aws
 node cli builds --worker
 ```
 
-### Create the VPC
+### 4. Create the VPC
 
 Create a VPC to associate a Link Stack to. Multiple link stacks can exist within a VPC.
 Note: you may be limited by the number of VPCs in an AWS account. "The maximum number of VPCs has been reached."
@@ -140,7 +162,7 @@ test-vpc	vpc-233b5755
 export VPC_ID=vpc-233b5755
 ```
 
-### Create Metrics Service
+### 5. Create Metrics Service
 
 Before creating any Link stacks you need to ensure you have a metrics instance that contains InfluxDB. To 
 allow the stacks to write to the service. Metric Box runs:
@@ -172,7 +194,7 @@ export METRICS_HOST=http://<ip or dns>:8086
 export INFLUX_AUTH=admin:<password>
 ```
 
-### Create Stack
+### 6. Create Stack
 
 A stack creates a CloudFormation stack which contains all the security groups, ELBs, S3 buckets, etc... for the Link stack to function. 
 Doesn't deploy any components though they are created in separate CloudFormation Stacks. Stack is later referenced during component bring up
@@ -186,7 +208,7 @@ node cli stacks create -v $VPC_ID --no-provision --ami-type hvm --core-os-versio
 node cli stacks create -v $VPC_ID --no-provision --ami-type hvm --core-os-version 1010.6.0 -t t2.large
 ```
 
-### Create Link Routers
+### 7. Create Link Routers
 
 Link routers provide a multi-tenanted Zetta API infront if N number of Zetta targets. This is exposed as the "Zetta API" to Link. Tenants are separated by
 the HTTP header `x-apigee-iot-tenant-id` defaults to `default` tenant.
@@ -200,7 +222,7 @@ node cli routers create  -v $VPC_ID -a <ami-XXXXXX> --type t2.medium -s 2 $STACK
 node cli traffic elb $STACK_NAME --router <router-id-returned>
 ```
 
-### Create Zetta Targets
+### 8. Create Zetta Targets
 
 Zetta targets are Zetta servers with a few modules installed to collect device data
 and usage data and writes it to SQS. By default it runs 10 zetta instances per host.
@@ -214,7 +236,7 @@ node cli targets create -v $VPC_ID -a <ami-XXXXXX> --type t2.large -s 2 $STACK_N
 node cli traffic zetta $STACK_NAME -k zetta-kp-$STACK_NAME.pem --target <router-id-returned>
 ```
 
-### Create Tenant Management API
+### 9. Create Tenant Management API
 
 Tenant Management API provides an admin API for reading and modifying the current
 tenants in the Link stack. Does not run an ASG currently.
@@ -228,7 +250,7 @@ node cli tenant-mgmt-api create -a <ami-XXXXXX> -v $VPC_ID --type t2.large $STAC
 node cli traffic tenant-mgmt-api $STACK_NAME --version <tenant-mgmt-id-returned> --zone <zone in router53 (with ending ".")>
 ```
 
-### Routing Traffic to Stack
+### 10. Routing Traffic to Stack
 
 Find the created Resource from the stacks CloudFormation stack, it's named the same as the Link stack. The ELB's 
 resource name is `ZettaELB` in the CF stack. The UI provides a link to the actual ELB. Use that DNS name or create
@@ -243,9 +265,9 @@ Public Security Groups:
 ## Dependencies
 
 - Vagrant
-- Packer  0.12.0
+- [Packer 0.12.0](https://releases.hashicorp.com/packer/0.12.0)
 - CoresOS 1010.6.0
-- Virtualbox
+- [Virtualbox](https://www.virtualbox.org/wiki/Downloads)
 - Docker for Mac
 - AWS API Credentials
 
